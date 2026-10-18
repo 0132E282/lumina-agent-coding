@@ -9,7 +9,7 @@ Read and follow [AGENTS.md](./AGENTS.md) before working. `.agents/rules/` and `.
 - `.claude/agents/*.md`: roles, tools, and model for Claude Code.
 - `.claude/commands/*.md`: slash commands `/review`, `/git`, `/cleanup`. Planning uses native Plan mode + `.agents/skills/workflow-plan/SKILL.md`.
 - `.claude/settings.json` and `.claude/hooks/`: Claude hooks; do not run automatically on Codex or Antigravity.
-- `.claude/storage/` is ignored; do not commit logs/temp files. `docs/` handoffs are deliverables.
+- `.agents/storage/` is ignored; do not commit logs/temp files. `docs/` handoffs are deliverables.
 - Docs default to `AI-readable`; `human-readable` only when requested.
 
 ## Pipeline

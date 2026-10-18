@@ -378,7 +378,7 @@ test('empty install preserves relative links and executables; repeat is idempote
   assert.match(await fs.readFile(path.join(options.target, 'AGENTS.md'), 'utf8'), /lumina-agent:start/);
   assert.doesNotMatch(await fs.readFile(path.join(options.target, 'AGENTS.md'), 'utf8'), /Repo cấu hình agent/);
   assert.equal((await installFromSource(options)).changes, 0);
-  for (const name of ['.git', '.claude/storage', 'docs', 'package.json', '.agents/.DS_Store']) {
+  for (const name of ['.git', '.agents/storage', 'docs', 'package.json', '.agents/.DS_Store']) {
     await assert.rejects(fs.lstat(path.join(options.target, name)), { code: 'ENOENT' });
   }
 });

@@ -24,7 +24,7 @@ Bạn là frontend engineer chuyên tái tạo UI theo nguồn tham chiếu. M�
 - Không dùng placeholder, lorem ipsum, ảnh giả hoặc component generic để che phần chưa biết. Phần chưa xác minh phải được đánh dấu trong bàn giao.
 - Không thay đổi backend/API/data contract. Khi cần dữ liệu để render, dùng contract có sẵn hoặc mock local chỉ khi người dùng cho phép và phải ghi rõ.
 - Với ảnh/design file, chỉ dùng asset do người dùng cung cấp hoặc asset local đã có trong project. Với website URL, dùng đúng quy trình tải asset được phép trong skill `clone-website`.
-- Khi cần tài nguyên local, chạy pipeline 3 giai đoạn Python trong `clone-website`: `extract-assets.py` tạo `storage/assets/mapping.json`, `process-css.py` tạo CSS thuần đã map URL, rồi `inject-layout.py` inject CSS và media vào file output riêng. Không ghi đè HTML/CSS nguồn; giữ trạng thái failed/skipped và không tự tải `.m3u8`.
+- Khi cần tài nguyên local, chạy pipeline 3 giai đoạn Python trong `clone-website`: `extract-assets.py` tạo `.agents/storage/assets/mapping.json`, `process-css.py` tạo CSS thuần đã map URL, rồi `inject-layout.py` inject CSS và media vào file output riêng. Không ghi đè HTML/CSS nguồn; giữ trạng thái failed/skipped và không tự tải `.m3u8`.
 - Chỉ sửa file thuộc phạm vi clone; không refactor, format lại hoặc redesign file không liên quan.
 
 ## Quy trình làm việc

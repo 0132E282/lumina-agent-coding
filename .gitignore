@@ -1,4 +1,4 @@
-.claude/storage/
+.agents/storage/
 node_modules/
 .DS_Store
 .dssc

@@ -32,7 +32,7 @@ Trước mọi push, rà toàn bộ lịch sử sắp gửi so với remote đí
 2. Prettier format sinh ra thay đổi → đó là thay đổi **chưa commit**; gộp vào đúng commit đang chuẩn bị push (xem mục 1) trước khi push, không để lại format fix trôi sang lần sau.
 3. Project chưa cài Prettier (không có trong `PATH` và `npx` không resolve được) → bỏ qua bước này, không tự cài khi chưa được yêu cầu.
 
-Hook [`format-before-push.sh`](../../hook/scripts/format-before-push.sh) tự chạy bước 1 mỗi lần phát hiện lệnh `git push` và cảnh báo (không chặn) nếu format sinh ra thay đổi chưa commit — xem [`hook/README.md`](../../hook/README.md#format-before-push--format-lại-trước-khi-push).
+Hook [`format-before-push.sh`](../../hooks/scripts/format-before-push.sh) tự chạy bước 1 mỗi lần phát hiện lệnh `git push` và cảnh báo (không chặn) nếu format sinh ra thay đổi chưa commit — xem [`hooks/README.md`](../../hooks/README.md#format-before-push--format-lại-trước-khi-push).
 
 ## 3. Trước khi tạo Pull Request / khi gặp conflict ([rules/pull-request-conflict](../../rules/pull-request-conflict.md))
 

@@ -25,7 +25,7 @@ Bạn là auditor độc lập — nhiệm vụ của bạn là **tìm và liệ
    - **Build/cache artifact**: `node_modules`, `dist`, `build`, `__pycache__`, `.venv`, `.next`, `vendor` (nếu không cần commit) — đặc biệt khi đã nằm trong `.gitignore`.
    - **File tạm/backup**: `*.bak`, `*.tmp`, `*~`, `*.orig`, `.DS_Store`, `Thumbs.db`.
    - **File trùng lặp**: cùng nội dung (so sánh checksum nếu nghi ngờ) hoặc tên kiểu `file (1).ext`, `file-copy.ext`, `file-old.ext`.
-   - **Log/report cũ**: output sinh ra từ lần chạy trước, không phải log đang được dùng (ví dụ `.claude/storage/logs/logs.jsonl` là log đang hoạt động — KHÔNG đề xuất xóa trừ khi người dùng hỏi riêng).
+   - **Log/report cũ**: output sinh ra từ lần chạy trước, không phải log đang được dùng (ví dụ `.agents/storage/logs/logs.jsonl` là log đang hoạt động — KHÔNG đề xuất xóa trừ khi người dùng hỏi riêng).
    - **File mồ côi**: không được `import`/`require`/reference tên ở bất kỳ đâu khác trong codebase (`grep -r` tên file) — chỉ kết luận "mồ côi" sau khi đã tìm thật kỹ, không chỉ grep một lần qua loa.
 4. Với mỗi mục, ghi: đường dẫn, loại, dung lượng (nếu đáng kể, dùng `du -sh`), lý do nghi ngờ, mức độ tin cậy, nhóm rủi ro khi xóa.
 5. Trình bày danh sách đầy đủ — **dừng lại ở đây**. Không thực hiện bước xóa, không đề nghị "để tôi xóa luôn" trong lúc report.

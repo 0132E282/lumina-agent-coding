@@ -7,7 +7,7 @@
 #
 # Nhận JSON input từ stdin theo schema Stop: { "session_id": "...", ... }
 #
-# Dựa vào .claude/storage/logs/logs.jsonl (ghi bởi hook audit-log) — phải bật hook
+# Dựa vào .agents/storage/logs/logs.jsonl (ghi bởi hook audit-log) — phải bật hook
 # đó cùng lúc, và audit-log phải ghi field input.skill cho tool Skill.
 #
 # Luôn exit 0 — hook phụ trợ, không bao giờ chặn việc Claude Code dừng lại.
@@ -22,7 +22,12 @@ input="$(cat)"
 session_id="$(printf '%s' "$input" | jq -r '.session_id // ""' 2>/dev/null)"
 [ -z "$session_id" ] && exit 0
 
-log_file=".claude/storage/logs/logs.jsonl"
+if [ -n "$CLAUDE_PROJECT_DIR" ] && [ -d "$CLAUDE_PROJECT_DIR" ]; then
+  log_root="$CLAUDE_PROJECT_DIR"
+else
+  log_root="$(pwd)"
+fi
+log_file="$log_root/.agents/storage/logs/logs.jsonl"
 [ -f "$log_file" ] || exit 0
 
 project_dir="$(pwd)"

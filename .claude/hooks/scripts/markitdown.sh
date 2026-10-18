@@ -12,7 +12,7 @@
 #   { "session_id": "...", "prompt": "...", "files": [{"path": "...", ...}], "images": [{"path": "...", ...}], ... }
 #
 # File .md convert được là tài nguyên của session hiện tại — lưu vào
-# `.claude/storage/attachments/<session_id>/` (cạnh `.claude/storage/logs/`,
+# `.agents/storage/attachments/<session_id>/` (cạnh `.agents/storage/logs/`,
 # đã ignore qua .gitignore), không dùng /tmp hệ thống và không tự xoá. File
 # cùng tên đã convert rồi (còn tồn tại) thì tái dùng, không convert lại.
 #
@@ -31,7 +31,12 @@ command -v markitdown >/dev/null 2>&1 || exit 0
 input="$(cat)"
 
 session_id="$(printf '%s' "$input" | jq -r '.session_id // "unknown-session"' 2>/dev/null)"
-outdir=".claude/storage/attachments/${session_id}"
+if [ -n "$CLAUDE_PROJECT_DIR" ] && [ -d "$CLAUDE_PROJECT_DIR" ]; then
+  project_dir="$CLAUDE_PROJECT_DIR"
+else
+  project_dir="$(pwd)"
+fi
+outdir="$project_dir/.agents/storage/attachments/${session_id}"
 mkdir -p "$outdir" || exit 0
 
 context=""

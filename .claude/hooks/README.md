@@ -40,19 +40,19 @@ Trước mỗi lần Claude Code (hoặc subagent) gọi **bất kỳ tool nào*
 
 - **Script**: [`scripts/audit-log.sh`](./scripts/audit-log.sh)
 - **Loại hook**: `PreToolUse`, matcher `.*` (mọi tool)
-- **File log**: `.claude/storage/logs/logs.jsonl` (JSON Lines, append-only) — cả thư mục `.claude/storage/` đã nằm trong `.gitignore`, không commit nhầm.
+- **File log**: `.agents/storage/logs/logs.jsonl` (JSON Lines, append-only) — cả thư mục `.agents/storage/` đã nằm trong `.gitignore`, không commit nhầm.
 - **Nội dung mỗi dòng**: `ts` (UTC ISO8601), `session_id`, `tool`, `cwd`, `input` (tóm tắt — chỉ `file_path`/`command` (≤200 ký tự)/`pattern`/`skill` (tên skill khi tool là `Skill`) tùy loại tool, **không** ghi nguyên nội dung file Write/Edit để tránh log phình to và rò rỉ dữ liệu nhạy cảm).
-- **An toàn**: luôn `exit 0`; input JSON hỏng, thiếu `jq`, hoặc `tool_name` rỗng đều bị bỏ qua êm, không ghi dòng rác. Đường dẫn log lấy từ `cwd` trong payload (fallback sang `CLAUDE_PROJECT_DIR`/working directory), nên không phụ thuộc hook được khởi chạy từ đâu.
+- **An toàn**: luôn `exit 0`; input JSON hỏng, thiếu `jq`, hoặc `tool_name` rỗng đều bị bỏ qua êm, không ghi dòng rác. Thư mục ghi log lấy từ `CLAUDE_PROJECT_DIR` (luôn là project root, bất kể agent đã `cd` sang thư mục con), fallback sang `cwd` trong payload rồi `pwd` nếu biến đó không có — tránh ghi log lạc vào thư mục con khi session đổi cwd. Field `cwd` trong mỗi dòng log vẫn giữ nguyên giá trị gốc từ payload để phục vụ truy vết.
 - **Phụ thuộc**: cần `jq`.
 
 ### Xem log
 
 ```bash
 # Theo dõi real-time, mỗi dòng in đẹp
-tail -f .claude/storage/logs/logs.jsonl | jq .
+tail -f .agents/storage/logs/logs.jsonl | jq .
 
 # Đọc toàn bộ log hiện có dưới dạng 1 mảng JSON dễ đọc (ví dụ mở trong editor)
-jq -s '.' .claude/storage/logs/logs.jsonl
+jq -s '.' .agents/storage/logs/logs.jsonl
 ```
 
 ## commit-msg-guard — chặn commit message sai format
@@ -142,7 +142,7 @@ Sau mỗi lần Edit/Write một file workflow CI (`.github/workflows/*.yml`, `.
 
 ## remind-cleanup — nhắc dọn file tạm cuối session
 
-Khi Claude Code kết thúc một turn, hook này tìm file đã `Write` trong session hiện tại (qua `.claude/storage/logs/logs.jsonl`), giới hạn trong phạm vi dự án (so khớp `cwd`), còn tồn trên đĩa và khớp pattern tên file tạm (`tmp`/`scratch`/`debug`/`draft`/`sandbox`/`test-output`/`.bak`/`.orig`) — nếu có, nhắc qua `additionalContext` để Claude thấy và tự quyết có dùng skill `cleanup-temp-files` để dọn file tạm không; `/cleanup` chỉ làm gọn context. Liên hệ skill [`cleanup-temp-files`](../skills/cleanup-temp-files/SKILL.md).
+Khi Claude Code kết thúc một turn, hook này tìm file đã `Write` trong session hiện tại (qua `.agents/storage/logs/logs.jsonl`), giới hạn trong phạm vi dự án (so khớp `cwd`), còn tồn trên đĩa và khớp pattern tên file tạm (`tmp`/`scratch`/`debug`/`draft`/`sandbox`/`test-output`/`.bak`/`.orig`) — nếu có, nhắc qua `additionalContext` để Claude thấy và tự quyết có dùng skill `cleanup-temp-files` để dọn file tạm không; `/cleanup` chỉ làm gọn context. Liên hệ skill [`cleanup-temp-files`](../skills/cleanup-temp-files/SKILL.md).
 
 - **Script**: [`scripts/remind-cleanup.sh`](./scripts/remind-cleanup.sh) — gọi `skills/cleanup-temp-files/scripts/find-session-scratch-files.sh`
 - **Loại hook**: `Stop`
@@ -152,7 +152,7 @@ Khi Claude Code kết thúc một turn, hook này tìm file đã `Write` trong s
 
 ## report-reminder — nhắc dùng skill `report` nếu chưa báo cáo thay đổi
 
-Khi Claude Code kết thúc một turn, hook này tìm trong `.claude/storage/logs/logs.jsonl` các lần `Edit`/`Write` của session hiện tại (giới hạn `cwd` đúng dự án) xảy ra **sau** lần gọi skill `report` gần nhất (hoặc từ đầu session nếu chưa gọi lần nào) — có thì nhắc qua `additionalContext`. Đây là lớp enforce cơ chế cho [`rules/mandatory-report.md`](../rules/mandatory-report.md), thay vì chỉ dựa vào Claude tự giác nhớ gọi skill `report`.
+Khi Claude Code kết thúc một turn, hook này tìm trong `.agents/storage/logs/logs.jsonl` các lần `Edit`/`Write` của session hiện tại (giới hạn `cwd` đúng dự án) xảy ra **sau** lần gọi skill `report` gần nhất (hoặc từ đầu session nếu chưa gọi lần nào) — có thì nhắc qua `additionalContext`. Đây là lớp enforce cơ chế cho [`rules/mandatory-report.md`](../rules/mandatory-report.md), thay vì chỉ dựa vào Claude tự giác nhớ gọi skill `report`.
 
 - **Script**: [`scripts/report-reminder.sh`](./scripts/report-reminder.sh)
 - **Loại hook**: `Stop`
@@ -198,7 +198,7 @@ Khi gửi prompt có đính kèm file PDF/HTML/ảnh, hook này tự chạy CLI 
 - **Script**: [`scripts/markitdown.sh`](./scripts/markitdown.sh)
 - **Loại hook**: `UserPromptSubmit` (không cần `matcher`)
 - **Phạm vi file**: lấy từ `files[]`/`images[]` trong input, chỉ convert đúng phần mở rộng `.pdf .html .htm .png .jpg .jpeg .gif .webp`.
-- **Cơ chế**: convert mỗi file vào `.claude/storage/attachments/<session_id>/` (tài nguyên của session, cùng chỗ với log Claude khác, đã ignore qua `.gitignore` — không tự xoá), cắt mỗi file còn tối đa 8000 ký tự rồi trả qua `hookSpecificOutput.additionalContext`. File cùng tên đã convert rồi (còn tồn tại) thì tái dùng, không convert lại.
+- **Cơ chế**: convert mỗi file vào `.agents/storage/attachments/<session_id>/` (tài nguyên của session, cùng chỗ với log Claude khác, đã ignore qua `.gitignore` — không tự xoá), neo theo `CLAUDE_PROJECT_DIR` (fallback `pwd`) để không ghi lạc vào thư mục con khi session đổi cwd. Cắt mỗi file còn tối đa 8000 ký tự rồi trả qua `hookSpecificOutput.additionalContext`. File cùng tên đã convert rồi (còn tồn tại) thì tái dùng, không convert lại.
 - **Ảnh (PNG/JPG/GIF/WEBP)**: `markitdown` mặc định không OCR ảnh thường (chỉ đọc EXIF) nếu không cấu hình Azure/LLM — hook tự fallback sang `tesseract -l vie+eng` (OCR offline, không cần key/API) khi `markitdown` ra rỗng. Độ chính xác phụ thuộc chất lượng ảnh/cỡ chữ, không đảm bảo hoàn hảo.
 - **An toàn**: luôn `exit 0`; thiếu `jq`/`markitdown`, không có file đính kèm phù hợp, hoặc convert lỗi từng file → bỏ qua êm, không chặn prompt.
 - **Phụ thuộc**: cần `jq` và CLI `markitdown` (`uv tool install "markitdown[all]"` hoặc `pip install "markitdown[all]"`) trong `PATH`. Tuỳ chọn: `tesseract` kèm gói ngôn ngữ `vie`+`eng` (`brew install tesseract tesseract-lang` / `apt install tesseract-ocr tesseract-ocr-vie`) để OCR ảnh — thiếu thì phần ảnh chỉ im lặng bỏ qua, không lỗi; thiếu riêng gói `vie` thì OCR vẫn chạy nhưng sai dấu tiếng Việt.
