@@ -26,7 +26,7 @@ Chỉ trình bày kết quả/diff đã có; không tự tìm lỗi, review, ki�
 
 ## Yêu cầu theo loại
 
-- **Change**: template là nguồn chuẩn định dạng; chỉ nêu thay đổi thực tế và vấn đề được giải quyết, không diễn giải lại file. Code phụ thuộc dữ liệu dùng [complexity-performance](../complexity-performance/SKILL.md); có query/database kết hợp [database](../database/SKILL.md). Giữ kiểm chứng, giới hạn, đánh giá; rule/skill/docs/config thuần túy ghi Big O không áp dụng. Chỉ thêm code cũ/mới khi được yêu cầu.
+- **Change**: template là nguồn chuẩn định dạng; chỉ nêu thay đổi thực tế và vấn đề được giải quyết, không diễn giải lại file. Code phụ thuộc dữ liệu dùng [complexity-performance](../complexity-performance/SKILL.md); có query/database kết hợp [database](../database/SKILL.md). Giữ kiểm chứng, giới hạn, đánh giá; rule/skill/docs/config thuần túy ghi Big O không áp dụng. Thay đổi UI/frontend thêm `URL`/`Ảnh chứng` theo [`rules/frontend`](../../rules/frontend.md). Chỉ thêm code cũ/mới khi được yêu cầu.
 - **Plan**: tóm tắt số REQ/task/câu hỏi mở/rủi ro, rủi ro chính và bước tiếp theo; không chép toàn bộ plan. Có từ hai câu hỏi mở thì dùng bảng theo [open-questions-table](../../rules/open-questions-table.md).
 - **Review**: dùng text, không pipe-table; giữ các field và thống kê trong template. Severity: CRITICAL (logic nặng/bảo mật/crash), WARNING (code smell/hiệu năng/edge case), SUGGESTION (gợi ý), GOOD (điểm tốt). Code phụ thuộc dữ liệu ghi time/space Before/After, input, query/API/I/O và preprocessing; ngoài runtime ghi N/A.
 - **Security**: giữ đủ chín field theo [review-web-security](../review-web-security/SKILL.md), gồm confidence, điều kiện khai thác và CWE/OWASP; không gộp vào review thường.

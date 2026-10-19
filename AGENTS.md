@@ -17,7 +17,7 @@ This is an agent configuration repo. `.agents/rules/` is the single shared sourc
 ## Skills, roles, and workflows
 
 - `.agents/skills/` is the shared skill source; `.claude/skills/` and `.codex/skills/` symlink there. `.codex/agents/*.toml` corresponds to `.claude/agents/*.md`.
-- Workflows: `$workflow-{analyze,plan,implement,test,review,report,git,cleanup}`. Claude calls `/review`, `/git`, `/cleanup` directly. Planning: native Plan mode + `.agents/skills/workflow-plan/SKILL.md`. Git: `/git` or `$workflow-git`, default `commit all`; no auto-push, no temp/secret files.
+- Workflows: `$workflow-{analyze,plan,implement,test,review,report,git,cleanup}`. Claude calls `/git`, `/cleanup` directly (real command files in `.claude/commands/`); for review, type `/review` to use Claude Code's built-in `code-review`/`security-review` skills — there is no `.claude/commands/review.md` (see [`workflow-review`](./.agents/skills/workflow-review/SKILL.md)). Planning: native Plan mode + `.agents/skills/workflow-plan/SKILL.md`. Git: `/git` or `$workflow-git`, default `commit all`; no auto-push, no temp/secret files.
 - Hand off via `docs/` per role; maintain approval checkpoints. Do not auto-run the full pipeline.
 - On task completion → mandatory report via `report` skill ([`rules/mandatory-report`](./.agents/rules/mandatory-report.md)).
 

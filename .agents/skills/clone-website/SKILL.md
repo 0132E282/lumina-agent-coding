@@ -14,23 +14,19 @@ Sau khi đã nhận diện source và phạm vi route/page, phải hỏi ngườ
 
 > Bạn có muốn cập nhật thiết kế để bản clone giống source 100% không? Nếu có, mình sẽ giữ nguyên section, thứ tự, kích thước, width/max-width, spacing, typography, asset, responsive và interaction theo source. Nếu không, hãy chỉ rõ phần nào được phép khác.
 
-Không tự mặc định câu trả lời là “có” hoặc “không”, không bắt đầu triển khai khi checkpoint này chưa có câu trả lời rõ ràng. Nếu người dùng chọn 100%, mọi sai khác quan sát được trong phạm vi đã chọn là lỗi cần sửa; chỉ ghi nhận đạt pixel-perfect sau khi đã đối chiếu thực tế cùng viewport và trạng thái.
+Không tự mặc định câu trả lời, không code khi checkpoint chưa có câu trả lời rõ ràng. Chọn 100% → mọi sai khác quan sát được trong phạm vi đã chọn là lỗi cần sửa; chỉ ghi đạt pixel-perfect sau khi đối chiếu thực tế cùng viewport/trạng thái.
 
-Tái tạo website theo đúng nguồn tham chiếu được người dùng cung cấp. Nguồn tham chiếu là source of truth cho cấu trúc, bố cục, nội dung hiển thị, typography, màu sắc, spacing, asset, responsive behavior và tương tác quan sát được.
-
-Clone website là tái tạo UI và hành vi quan sát được 100%, không phải chỉ tải tài nguyên về máy. Asset download chỉ là bước hỗ trợ; kết quả nghiệm thu là website clone phải khớp source.
+Nguồn tham chiếu (ảnh, website, sitemap, recording, HTML, design file) là source of truth tuyệt đối cho cấu trúc, nội dung, typography, màu, spacing, asset, responsive và tương tác quan sát được. Clone là tái tạo UI/hành vi 100%, không phải chỉ tải asset về máy — asset download chỉ hỗ trợ; nghiệm thu là clone khớp source.
 
 ## Ràng buộc bất biến
 
-- Giữ nguyên hierarchy của trang: route, thứ tự section, vùng header/navigation/main/footer, nhóm component, vị trí và quan hệ giữa các phần.
-- Không tự ý thêm, xóa, đổi thứ tự hoặc đổi nội dung section khác với phần người dùng đã chọn. Nếu phát hiện source có section khác với code hiện tại, phải báo chênh lệch và xin xác nhận phạm vi; không tự mở rộng hoặc thay thế section khác.
-- Giữ nguyên UI đã quan sát được: layout, kích thước tương đối, typography, màu, border, radius, shadow, spacing, icon, ảnh, trạng thái và chuyển động. Không tự ý đổi theme, design system, component library hoặc phong cách.
-- Không redesign, “cải thiện”, tối giản, hiện đại hóa, thêm section, thêm CTA, đổi copy, đổi asset hoặc đổi hành vi nếu nguồn tham chiếu và yêu cầu không nói rõ.
-- Không dùng placeholder, ảnh giả, text giả hoặc component generic để che phần chưa hiểu. Nếu thiếu asset hoặc không quan sát được hành vi, ghi rõ giới hạn và giữ cấu trúc tối thiểu cần thiết.
-- Bảo toàn URL, tên route, link, query, form action và contract dữ liệu hiện có khi chúng thuộc phạm vi clone. Không đổi backend/API chỉ để thuận tiện cho frontend.
-- Responsive phải suy ra từ các viewport hoặc breakpoint có bằng chứng. Không tự thêm breakpoint làm thay đổi UI ngoài nguồn.
-- Không tự áp dụng các skill thiết kế như `design-taste-frontend`, `minimalist-ui`, `gpt-taste` hoặc `redesign-existing-projects`; chúng có thể làm lệch nguồn clone.
-- Không tự thêm, bớt, đổi bố cục, đổi copy, đổi component, đổi interaction hoặc “cải thiện” UI để hợp gu agent. Mọi khác biệt phải được người dùng xác nhận trước.
+- Giữ nguyên hierarchy: route, thứ tự section, vùng header/navigation/main/footer, nhóm component, vị trí và quan hệ giữa các phần.
+- Không tự ý thêm, xóa, đổi thứ tự, đổi bố cục, đổi copy, đổi component/interaction, redesign, "cải thiện", tối giản, hiện đại hóa, thêm section/CTA, đổi theme/design system/component library hoặc phong cách ngoài phạm vi người dùng đã chọn — dù nhìn "hợp lý" hay "tốt hơn" theo gu agent. Source khác code hiện tại ở phần khác phạm vi → báo chênh lệch, xin xác nhận, không tự mở rộng/thay thế.
+- Giữ nguyên giá trị UI đã quan sát được: kích thước tương đối, màu, border, radius, shadow, spacing, icon, ảnh, trạng thái, chuyển động.
+- Không dùng placeholder, ảnh giả, text giả hoặc component generic để che phần chưa hiểu; thiếu asset/hành vi thì ghi rõ giới hạn, giữ cấu trúc tối thiểu.
+- Bảo toàn URL, route, link, query, form action và contract dữ liệu thuộc phạm vi clone. Không đổi backend/API chỉ để thuận tiện frontend.
+- Responsive suy từ viewport/breakpoint có bằng chứng; không tự thêm breakpoint làm đổi UI ngoài nguồn.
+- Không tự áp dụng skill thiết kế khác (`design-taste-frontend`, `minimalist-ui`, `gpt-taste`, `redesign-existing-projects`) — chúng có thể làm lệch nguồn clone.
 
 ## Quy trình
 
@@ -41,9 +37,10 @@ Trước khi code từ URL, phải kiểm tra khả năng truy cập, status/red
 3. **Khảo sát codebase**: đọc hướng dẫn project, stack, route, component, asset và contract liên quan; tái sử dụng cơ chế render, token và component hiện có khi chúng khớp nguồn. Chỉ thay đổi file/page nằm trong phạm vi clone.
 4. **Đối chiếu với code/design hiện tại**: nếu clone hiện tại khác source website hoặc khác design file, phải dừng và hỏi người dùng chọn source of truth. Không tự quyết định dùng website hay design file.
 5. **Chốt và đồng bộ tài liệu**: nếu người dùng chọn website, xác nhận cập nhật design/plan/docs để khớp 100% website; nếu chọn design file, dùng design file làm source of truth và cập nhật plan/docs theo design đã chốt. Cập nhật đúng format tài liệu hiện có của repo, gồm plan/index khi bị ảnh hưởng; không ghi kế hoạch mâu thuẫn với source đã chọn.
-6. **Giao coding-agent triển khai**: sau khi source of truth, inventory, phạm vi và plan/docs đã được người dùng chốt, bàn giao task cụ thể cho `coding-agent` để viết code. Agent clone không tự viết product code trong bước điều phối này.
+6. **Giao coding-agent triển khai**: sau khi source of truth, inventory, phạm vi và plan/docs đã chốt, bàn giao cho `coding-agent` viết code — không tự viết code ở bước điều phối này. Ở Claude Code, đây là lượt gọi riêng do agent điều phối (phiên đã chạy bước 1–5) thực hiện qua Agent tool; agent clone không có `Edit` và không có tool gọi agent khác nên không tự làm được.
 7. **Đối chiếu fidelity**: coding-agent phải kiểm tra cùng viewport và trạng thái với source; so sánh macro-layout trước rồi tới typography, spacing, asset, màu và interaction. Phải kiểm tra cả bounding box và computed style thực tế của container, section, slider track/thumb và phần tử liên quan, tối thiểu gồm `width`, `max-width`, `min-width`, `height`, `padding`, `margin`, `gap`, `overflow`, `flex-basis`/grid track. Không kết luận đúng chỉ vì CSS source có khai báo tương tự: nếu source dùng `max-width` nhưng clone hiển thị full width, hoặc ngược lại, phải sửa hoặc báo sai khác cụ thể. Nếu có sai khác không thể xác minh, ghi lại và dừng phần suy đoán.
-8. **Bàn giao**: rà diff để xác nhận không có UI thêm/bớt hoặc thay đổi ngoài source of truth đã chọn; nêu nguồn, plan/docs đã đồng bộ, phần khớp, phần chưa xác minh và check đã chạy. Không tuyên bố pixel-perfect khi chưa có đối chiếu tương ứng.
+8. **Chụp ảnh chứng (trước và kết quả)**: sau khi mọi sửa đổi trong scope đã xong — chụp ở **trạng thái kết quả cuối cùng**, không chụp giữa chừng/WIP rồi báo xong. Chụp cặp ảnh cùng viewport/trạng thái: ảnh `trước` là source (website/ảnh/design gốc đang clone) và ảnh `kết quả` là trang clone thật mở trên trình duyệt, để đối chứng song song. Lưu vào `.agents/storage/evidence/<task-slug>/<viewport>-<trạng-thái>-{source|result}.png` (không commit, chỉ dùng làm bằng chứng cho báo cáo). Không tuyên bố đã đối chiếu fidelity nếu chưa có cả hai ảnh thật; môi trường không chụp được thì ghi rõ lý do thay vì bỏ qua.
+9. **Bàn giao**: rà diff để xác nhận không có UI thêm/bớt hoặc thay đổi ngoài source of truth đã chọn; nêu nguồn, plan/docs đã đồng bộ, phần khớp, phần chưa xác minh và check đã chạy. Report theo [template Change](../report/assets/change-report-template.md) phải có dòng `URL:` (route đã kiểm tra) và `Ảnh chứng:` (đường dẫn screenshot ở bước 8). Không tuyên bố pixel-perfect khi chưa có đối chiếu và ảnh chứng tương ứng.
 
 ## Pipeline tự động hóa tài nguyên, CSS và media
 
@@ -59,9 +56,9 @@ python3 .agents/skills/clone-website/scripts/inspect-source.py \
   --output clone-source.json
 ```
 
-Khi nguồn là URL và người dùng yêu cầu clone, subagent phải tự chạy bước inventory này trước khi sang Giai đoạn 1; không chờ người dùng nhắc lại.
+Khi nguồn là URL và người dùng yêu cầu clone, subagent phải tự chạy bước inventory này trước khi sang Bước 1; không chờ người dùng nhắc lại.
 
-### Giai đoạn 1 — Extract và download asset
+### Bước 1 — Extract và download asset
 
 Chạy [`scripts/extract-assets.py`](scripts/extract-assets.py) với output riêng của clone:
 
@@ -71,11 +68,11 @@ python3 .agents/skills/clone-website/scripts/extract-assets.py \
   --output .agents/storage/assets
 ```
 
-Script tạo `.agents/storage/assets/temp/images`, `videos`, `fonts`, `other` và `.agents/storage/assets/mapping.json`. Mapping giữ `originUrl`, `localPath`, `kind`, `status`, kích thước, content type và lý do skip/fail. Script quét HTML, inline `url()`, linked stylesheet và `url()` trong CSS đã tải; giới hạn cùng-origin mặc định, timeout 30 giây và 50 MiB/file. Dùng `--allow-external` chỉ khi host ngoài đã được người dùng cho phép. Stream `.m3u8` được ghi trạng thái `skipped`, không tự tải.
+Script tạo `.agents/storage/assets/temp/{images,videos,fonts,other}` và `mapping.json` (giữ `originUrl`, `localPath`, `kind`, `status`, kích thước, content type, lý do skip/fail). Quét HTML, inline `url()` và `url()` trong CSS đã tải; mặc định cùng-origin, timeout 30s, 50 MiB/file. `--allow-external` chỉ khi host ngoài đã được cho phép; `.m3u8` luôn ghi `skipped`, không tự tải.
 
-Với URL nguồn đã được người dùng giao để clone, quyền tải tài nguyên cùng origin được hiểu là đã nằm trong phạm vi công việc. Chỉ dừng và báo blocker khi nguồn yêu cầu vượt authentication/CAPTCHA/paywall, bị chặn, hoặc cần tải host ngoài/stream mà chưa được cho phép. Không tải asset chỉ vì nhìn thấy URL trong code nếu người dùng chưa cho phép; tôn trọng quyền truy cập, license, robots/ToS và giới hạn của nguồn.
+URL đã được giao để clone → tải tài nguyên cùng origin nằm trong phạm vi công việc, không cần hỏi lại; chỉ dừng/báo blocker khi vượt authentication/CAPTCHA/paywall hoặc cần host ngoài/stream chưa được phép (xem [`clone-fidelity`](../../rules/clone-fidelity.md) cho giới hạn chung).
 
-### Giai đoạn 2 — Process CSS
+### Bước 2 — Process CSS
 
 Với từng stylesheet đã được inventory, chạy [`scripts/process-css.py`](scripts/process-css.py):
 
@@ -88,7 +85,7 @@ python3 .agents/skills/clone-website/scripts/process-css.py \
 
 Script chỉ thay URL đã có trạng thái `downloaded`, giữ nguyên selector/thứ tự CSS và thêm newline cuối file. Không dùng mapping để giả lập asset failed/skipped. Giữ file CSS processed trong layout/asset structure của clone, không ghi đè CSS nguồn.
 
-### Giai đoạn 3 — Inject layout và media
+### Bước 3 — Inject layout và media
 
 Sau khi CSS đã được xử lý, chạy [`scripts/inject-layout.py`](scripts/inject-layout.py) với layout output riêng:
 
@@ -121,7 +118,7 @@ python3 .agents/skills/clone-website/scripts/compare-html.py \
 └── processed/
 ```
 
-`.agents/storage/assets/temp` và `mapping.json` là tài nguyên tạm của tiến trình clone (đã nằm trong `.gitignore` chung của `.agents/storage/`), không commit. Asset thật sự dùng trong code clone (deliverable cuối) đặt ở `public/`/thư mục asset của project, không ở `.agents/storage/`. Khi cần tài liệu thiết kế, copy template [`assets/pixel-perfect-spec.md`](assets/pixel-perfect-spec.md) thành `docs/design/pixel-perfect-spec.md`, thay `TBD` bằng giá trị đo được và cập nhật registry docs theo rule của repo.
+`temp/` và `mapping.json` là tài nguyên tạm (đã trong `.gitignore` của `.agents/storage/`), không commit. Asset dùng thật trong clone đặt ở `public/`/thư mục asset của project, không ở `.agents/storage/`. Cần tài liệu thiết kế: copy [`assets/pixel-perfect-spec.md`](assets/pixel-perfect-spec.md) vào `docs/design/`, thay `TBD` bằng giá trị đo được, cập nhật registry docs theo rule repo.
 
 ## Quy tắc khi nguồn là screenshot hoặc ảnh
 

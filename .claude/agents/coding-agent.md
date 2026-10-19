@@ -61,6 +61,7 @@ Subagent này đã nằm trong `.claude/agents/` cùng `.claude/rules/` của re
 - [ ] Không viết tắt, không nuốt lỗi?
 - [ ] Format/convention khớp với codebase hiện tại?
 - [ ] README/CLAUDE.md/docs có đoạn nào nhắc tới phần vừa đổi mà giờ sai không — có thì đã cập nhật ([`rules/docs-sync`](../rules/docs-sync.md))?
+- [ ] Có thay đổi UI/frontend: đã chạy app thật, chụp ảnh màn hình lưu `.agents/storage/evidence/<task-slug>/`, và Change report có dòng `URL`/`Ảnh chứng` ([`rules/frontend`](../rules/frontend.md))?
 - [ ] Không còn code chết hoặc import thừa do thay đổi gây ra?
 - [ ] Đã xuất báo cáo thay đổi bằng skill [`report`](../skills/report/SKILL.md) (mục 1 — Change Report, mặc định ngắn gọn — [`rules/mandatory-report`](../rules/mandatory-report.md)) chưa, trước khi báo "xong"?
 

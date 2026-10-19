@@ -7,7 +7,7 @@ Read and follow [AGENTS.md](./AGENTS.md) before working. `.agents/rules/` and `.
 ## Project-specific configuration
 
 - `.claude/agents/*.md`: roles, tools, and model for Claude Code.
-- `.claude/commands/*.md`: slash commands `/review`, `/git`, `/cleanup`. Planning uses native Plan mode + `.agents/skills/workflow-plan/SKILL.md`.
+- `.claude/commands/*.md`: slash commands `/git`, `/cleanup`, `/test`, `/report`, `/design`. No custom `/review` command file — typing `/review` uses Claude Code's built-in `code-review`/`security-review` skills directly (see [`workflow-review`](./.agents/skills/workflow-review/SKILL.md)). Planning uses native Plan mode + `.agents/skills/workflow-plan/SKILL.md`.
 - `.claude/settings.json` and `.claude/hooks/`: Claude hooks; do not run automatically on Codex or Antigravity.
 - `.agents/storage/` is ignored; do not commit logs/temp files. `docs/` handoffs are deliverables.
 - Docs default to `AI-readable`; `human-readable` only when requested.
