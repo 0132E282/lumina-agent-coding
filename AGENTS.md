@@ -33,7 +33,7 @@ Follow [implementation](./.agents/rules/implementation.md) directly. `/cleanup` 
 
 ## Hooks and format
 
-`.claude/settings.json` hooks do not run on Codex. Follow equivalent rules via instructions; do not report a hook as run without a runtime. Use the project's formatter/linter/test runner on the changed scope; do not `npx`-install packages.
+Hooks are runtime-specific: Claude Code loads `.claude/settings.json`, Codex loads `.codex/hooks.json` or inline `[hooks]` tables in `.codex/config.toml` (and user-level hooks from `~/.codex/`), while Antigravity does not automatically run either runtime's hooks. Codex project hooks require review/trust before they run. Follow the equivalent rule through the active runtime's hook configuration or explicit commands; do not report a hook as run without evidence that the runtime executed it. Use the project's formatter/linter/test runner on the changed scope; do not `npx`-install packages.
 
 ## Antigravity
 

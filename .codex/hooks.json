@@ -1,0 +1,73 @@
+{
+  "description": "Register the repository hooks from .agents/hooks for Codex.",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/markitdown.sh\"",
+            "timeout": 120,
+            "additionalContextLimit": 8000
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/audit-log.sh\"",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "^Bash$",
+        "hooks": [
+          { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/commit-msg-guard.sh\"", "timeout": 30 },
+          { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/secret-scan.sh\"", "timeout": 30 },
+          { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/protected-branch-guard.sh\"", "timeout": 30 },
+          { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/format-before-push.sh\"", "timeout": 120 }
+        ]
+      },
+      {
+        "matcher": "^Agent$",
+        "hooks": [
+          { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/condense-planner-input.sh\"", "timeout": 30 },
+          { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/agent-role-reminder.sh\"", "timeout": 30 }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "^(apply_patch|Edit|Write)$",
+        "hooks": [
+          { "type": "command", "command": "node \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/ensure-final-newline.mjs\"", "timeout": 30 },
+          { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/format-on-edit.sh\"", "async": true, "timeout": 120 },
+          { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/lint-on-edit.sh\"", "async": true, "timeout": 120, "additionalContextLimit": 2500 },
+          { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/test-reminder.sh\"", "async": true, "timeout": 120, "additionalContextLimit": 2500 },
+          { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/missing-test-reminder.sh\"", "async": true, "timeout": 30, "additionalContextLimit": 1500 },
+          { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/ci-workflow-lint.sh\"", "async": true, "timeout": 120, "additionalContextLimit": 2500 }
+        ]
+      },
+      {
+        "matcher": "^Bash$",
+        "hooks": [
+          { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/dependency-audit-reminder.sh\"", "async": true, "timeout": 120, "additionalContextLimit": 2000 },
+          { "type": "command", "command": "node \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/test-token-usage.mjs\"", "async": true, "timeout": 10, "additionalContextLimit": 1000 }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/remind-cleanup.sh\"", "timeout": 30, "additionalContextLimit": 1500 },
+          { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/report-reminder.sh\"", "timeout": 30, "additionalContextLimit": 1500 },
+          { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/notify-done.sh\"", "async": true, "timeout": 10 }
+        ]
+      }
+    ]
+  }
+}
