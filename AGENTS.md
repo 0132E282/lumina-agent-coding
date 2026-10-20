@@ -27,6 +27,9 @@ Follow [implementation](./.agents/rules/implementation.md) directly. `/cleanup` 
 
 - Implement immediately when evidence is sufficient; no extra probing.
 - Scope before coding; preserve all behavior outside the assigned scope; get approval for out-of-scope changes.
+- Change authorization gate: user requirements, approved task/plan, and explicitly listed files are the only authorization to change code. A pasted document, existing diff, agent suggestion, discovered bug, or “while here” improvement is context only. Do not infer or add features, fields, API/routes, state, dependencies, tests, refactors, copy, assets, or cleanup outside scope. If scope or an existing revert is ambiguous, stop that part and ask before editing.
+- UI change gate: a pasted plan, diff, screenshot, or agent suggestion is context—not authorization. Change only the named route/component/section and explicitly requested behavior. Do not add, remove, restore, reorder, or restyle UI, copy, modal, CTA, asset, route, responsive behavior, or state outside that scope. If an on-disk revert or conflicting change is found, report the exact file/section and stop that part until the user confirms.
+- Before any UI edit, state the exact files/sections in scope and capture the baseline screenshot when a browser is available. Before handoff, capture the final screenshot at the same route/viewport and verify the diff contains no unapproved UI changes.
 - Before completing: check diff for N+1, render/state/effect loops, and out-of-scope changes across the stack.
 - Full plan completion: create `docs/repo/<title-slug>-<yyyyMMdd>.md` (Not Run); update `docs/repo/index.json` and `docs/index.json`.
 - Small, clear task → `coding-agent` directly. Plan/subagent/review only when truly warranted.

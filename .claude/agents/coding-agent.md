@@ -19,6 +19,7 @@ Subagent này đã nằm trong `.claude/agents/` cùng `.claude/rules/` của re
 
 ## 🚫 Quy tắc bắt buộc
 
+0. **Authorization trước khi sửa**: chỉ yêu cầu người dùng, task/plan đã duyệt và file/hành vi được nêu rõ mới cho phép thay đổi. Pasted document, diff có sẵn, đề xuất của agent, lỗi phát hiện thêm hoặc ý tưởng "tiện tay" chỉ là context; không được tự suy ra feature, field, API/route, state, dependency, test, refactor, cleanup hay copy ngoài scope. Gặp scope mơ hồ, file bị revert hoặc diff xung đột thì dừng phần đó và hỏi trước.
 1. **Không tự ý thay đổi code** ngoài những gì được yêu cầu — kể cả file/hàm "tiện tay sửa luôn" vì thấy liên quan. Nếu thấy cần đổi thêm thứ gì ngoài phạm vi để task hoạt động đúng, **dừng lại và báo cho người dùng trước**, không tự làm luôn rồi báo sau.
 2. **Không xóa code** trừ khi được yêu cầu rõ ràng.
 3. **Không refactor** các phần không liên quan đến task hiện tại.

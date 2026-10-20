@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/scripts/markitdown.sh"
+            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/markitdown.sh\""
           }
         ]
       }
@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/scripts/audit-log.sh"
+            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/audit-log.sh\""
           }
         ]
       },
@@ -29,19 +29,19 @@
           },
           {
             "type": "command",
-            "command": "bash .claude/hooks/scripts/commit-msg-guard.sh"
+            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/commit-msg-guard.sh\""
           },
           {
             "type": "command",
-            "command": "bash .claude/hooks/scripts/secret-scan.sh"
+            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/secret-scan.sh\""
           },
           {
             "type": "command",
-            "command": "bash .claude/hooks/scripts/protected-branch-guard.sh"
+            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/protected-branch-guard.sh\""
           },
           {
             "type": "command",
-            "command": "bash .claude/hooks/scripts/format-before-push.sh"
+            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/format-before-push.sh\""
           }
         ]
       },
@@ -50,11 +50,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/scripts/condense-planner-input.sh"
+            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/condense-planner-input.sh\""
           },
           {
             "type": "command",
-            "command": "bash .claude/hooks/scripts/agent-role-reminder.sh"
+            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/agent-role-reminder.sh\""
           }
         ]
       }
@@ -65,7 +65,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/scripts/ensure-final-newline.mjs",
+            "command": "repo_root=\"$(git rev-parse --show-toplevel 2>/dev/null)\" && script=\"$repo_root/.agents/hooks/scripts/ensure-final-newline.mjs\" && [ -f \"$script\" ] && node \"$script\"",
             "timeout": 10
           }
         ]
@@ -75,23 +75,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/scripts/format-on-edit.sh"
+            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/format-on-edit.sh\""
           },
           {
             "type": "command",
-            "command": "bash .claude/hooks/scripts/lint-on-edit.sh"
+            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/lint-on-edit.sh\""
           },
           {
             "type": "command",
-            "command": "bash .claude/hooks/scripts/test-reminder.sh"
+            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/test-reminder.sh\""
           },
           {
             "type": "command",
-            "command": "bash .claude/hooks/scripts/missing-test-reminder.sh"
+            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/missing-test-reminder.sh\""
           },
           {
             "type": "command",
-            "command": "bash .claude/hooks/scripts/ci-workflow-lint.sh"
+            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/ci-workflow-lint.sh\""
           }
         ]
       },
@@ -100,11 +100,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/scripts/dependency-audit-reminder.sh"
+            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/dependency-audit-reminder.sh\""
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/scripts/test-token-usage.mjs",
+            "command": "repo_root=\"$(git rev-parse --show-toplevel 2>/dev/null)\" && script=\"$repo_root/.agents/hooks/scripts/test-token-usage.mjs\" && [ -f \"$script\" ] && node \"$script\"",
             "timeout": 10
           }
         ]
@@ -115,15 +115,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/scripts/remind-cleanup.sh"
+            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/remind-cleanup.sh\""
           },
           {
             "type": "command",
-            "command": "bash .claude/hooks/scripts/report-reminder.sh"
+            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/report-reminder.sh\""
           },
           {
             "type": "command",
-            "command": "bash .claude/hooks/scripts/notify-done.sh"
+            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/notify-done.sh\""
           }
         ]
       }
