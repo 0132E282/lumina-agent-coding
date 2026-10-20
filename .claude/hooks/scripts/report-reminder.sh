@@ -39,16 +39,23 @@ result="$(jq -s -r --arg sid "$session_id" --arg cwd "$project_dir" '
   | ($entries | map(select(.tool == "Skill" and .input.skill == "report") | .ts) | sort | last) as $last_report
   | ($entries | map(select(.tool == "Edit" or .tool == "Write"))
       | map(select($last_report == null or .ts > $last_report))) as $pending
-  | "\($pending | length)|\($pending | map(.input.file_path // empty) | unique | .[0:5] | join(", "))"
+  | "\($pending | length)|\($pending | map(.ts) | max // "")|\($pending | map(.input.file_path // empty) | unique | .[0:5] | join(", "))"
 ' "$log_file" 2>/dev/null)"
 
 [ -z "$result" ] && exit 0
 
 count="${result%%|*}"
-preview="${result#*|}"
+rest="${result#*|}"
+latest_ts="${rest%%|*}"
+preview="${rest#*|}"
 
 [ -z "$count" ] && exit 0
 [ "$count" = "0" ] && exit 0
+
+# ! Nhắc một lần cho mỗi nhóm Edit/Write chưa báo cáo — nhắc lại cùng nhóm sẽ chặn Stop lặp vô hạn.
+state_file="$log_root/.agents/storage/state/report-reminder-$session_id"
+[ "$(cat "$state_file" 2>/dev/null)" = "$latest_ts" ] && exit 0
+mkdir -p "$(dirname "$state_file")" && printf '%s' "$latest_ts" > "$state_file"
 
 msg="📊 Đã Edit/Write ${count} lần (${preview}) mà chưa thấy gọi skill \`report\` để xuất báo cáo thay đổi — rules/mandatory-report.md yêu cầu bắt buộc. Dùng Skill tool với \`report\` trước khi báo hoàn thành task."
 
