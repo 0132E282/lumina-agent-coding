@@ -62,7 +62,7 @@ usage_text="$(printf '%s' "$usage_json" | jq -r --arg label "$window_label" '
   (if (.waste | length) > 0 then
     "Issue lãng phí: \(.waste | length) — " + (.waste | map("\(.rule): \(.evidence) (×\(.count))") | join("; "))
   else "Issue lãng phí: Không phát hiện." end),
-  "Khi báo cáo thêm hai dòng Token: và Issue lãng phí: theo template change. Số liệu tính đến lúc gọi skill, chưa gồm các message của lượt hiện tại."
+  "Khi báo cáo thêm hai dòng Token: và Issue lãng phí: theo template change. Chép nguyên các số trên, không dùng số cũ hay tự tính; số liệu tính đến lúc gọi skill, chưa gồm các message của lượt hiện tại."
 ' 2>/dev/null || true)"
 [ -z "$usage_text" ] && exit 0
 
