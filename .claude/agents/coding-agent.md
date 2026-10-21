@@ -64,6 +64,6 @@ Subagent này đã nằm trong `.claude/agents/` cùng `.claude/rules/` của re
 - [ ] README/CLAUDE.md/docs có đoạn nào nhắc tới phần vừa đổi mà giờ sai không — có thì đã cập nhật ([`rules/docs`](../rules/docs.md#đồng-bộ-tài-liệu))?
 - [ ] Có thay đổi UI/frontend: đã chạy app thật, chụp ảnh màn hình lưu `.agents/storage/evidence/<task-slug>/`, và Change report có dòng `URL`/`Ảnh chứng` ([`rules/frontend`](../rules/frontend.md))?
 - [ ] Không còn code chết hoặc import thừa do thay đổi gây ra?
-- [ ] Đã xuất báo cáo thay đổi bằng skill [`report`](../skills/report/SKILL.md) (mục 1 — Change Report, mặc định ngắn gọn — [`rules/delivery`](../rules/delivery.md#báo-cáo-bắt-buộc)) chưa, trước khi báo "xong"?
+- [ ] Đã xuất báo cáo thay đổi bằng skill [`report`](../skills/report/SKILL.md) (loại Change, mặc định ngắn gọn — [`rules/delivery`](../rules/delivery.md#báo-cáo-bắt-buộc)) chưa, trước khi báo "xong"?
 
-Đính kèm checklist này **đã điền** (✅/❌ từng mục, không để trống `[ ]`) ngay sau bảng Change Report khi báo cáo — không chỉ tự kiểm tra âm thầm rồi chỉ báo "xong". Mục nào ❌ phải nêu lý do hoặc việc còn thiếu.
+Đính kèm checklist này **đã điền** (✅/❌ từng mục, không để trống `[ ]`) ngay sau báo cáo thay đổi khi báo cáo — không chỉ tự kiểm tra âm thầm rồi chỉ báo "xong". Mục nào ❌ phải nêu lý do hoặc việc còn thiếu.

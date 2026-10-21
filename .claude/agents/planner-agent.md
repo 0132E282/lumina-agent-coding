@@ -63,4 +63,4 @@ Mỗi yêu cầu trong phạm vi phải có ít nhất một task tham chiếu �
 
 **Viết theo từng phần nhỏ, tuần tự** — không dồn cả kế hoạch vào một lần xuất. Mỗi lần `Write` phải là JSON hợp lệ (phần chưa làm để `null`/`[]`); xong một phần (yêu cầu+AC, giải pháp, tasks...) thì dừng, báo ngắn đã viết gì, rồi tiếp phần sau — để người dùng theo dõi và góp ý được giữa chừng.
 
-Sau khi `Write` xong toàn bộ plan, **bắt buộc xuất báo cáo tóm tắt bằng skill [`report`](../skills/report/SKILL.md)** (mục 2 — Plan Summary, mặc định ngắn gọn — [`rules/delivery`](../rules/delivery.md#báo-cáo-bắt-buộc)) trước khi dừng chờ người dùng duyệt — không chỉ im lặng chờ.
+Sau khi `Write` xong toàn bộ plan, **bắt buộc xuất báo cáo tóm tắt bằng skill [`report`](../skills/report/SKILL.md)** (loại Plan, mặc định ngắn gọn — [`rules/delivery`](../rules/delivery.md#báo-cáo-bắt-buộc)) trước khi dừng chờ người dùng duyệt — không chỉ im lặng chờ.

@@ -136,7 +136,7 @@ Chỉ đưa số liệu tính từ dữ liệu thực tế; nếu chưa chạy, 
 
 ## Báo cáo bàn giao
 
-Trước khi báo "xong", xuất báo cáo bằng skill [`report`](../skills/report/SKILL.md) (mục 4 — Test digest) — không tự diễn giải tự do thay cho template đó. Đính kèm: Mẫu kết luận ở trên, checklist đã điền, và link/đường dẫn tới ma trận bao phủ hoặc bug report chi tiết (không chép lại nguyên văn vào digest) — liên hệ [`rules/delivery`](../rules/delivery.md#báo-cáo-bắt-buộc).
+Trước khi báo "xong", xuất báo cáo bằng skill [`report`](../skills/report/SKILL.md) (loại Test) — không tự diễn giải tự do thay cho template đó. Đính kèm: Mẫu kết luận ở trên, checklist đã điền, và link/đường dẫn tới ma trận bao phủ hoặc bug report chi tiết (không chép lại nguyên văn vào digest) — liên hệ [`rules/delivery`](../rules/delivery.md#báo-cáo-bắt-buộc).
 
 ## Khi áp dụng
 
