@@ -259,6 +259,8 @@ export async function installFromSource({ source, target, dryRun = false, global
   for (const relative of allEntries.keys()) {
     if (!roots.some(root => relative === root || relative.startsWith(`${root}/`))) allEntries.delete(relative);
   }
+  // ! Global mode bỏ .claude/rules — Claude tự nạp ~/.claude/rules, trùng với .claude/rules của project (rule bị nạp hai lần).
+  if (global) allEntries.delete('.claude/rules');
   const entries = allEntries;
   let block = instructionBlock;
   if (global) {

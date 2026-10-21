@@ -358,6 +358,24 @@ test('global install preserves user configuration and resolves hooks from anothe
   assert.equal((await installFromSource(options)).changes, 0);
 });
 
+test('global install skips .claude/rules symlink but keeps .agents/rules and .codex/rules; project keeps it', async context => {
+  const options = { ...await fixture(context), global: true };
+  assert.ok((await installFromSource(options)).changes > 0);
+  await assert.rejects(fs.lstat(path.join(options.target, '.claude/rules')), { code: 'ENOENT' });
+  assert.ok((await fs.readdir(path.join(options.target, '.agents/rules'))).some(name => name.endsWith('.md')));
+  assert.equal(await fs.readlink(path.join(options.target, '.codex/rules')), '../.agents/rules');
+  assert.equal((await installFromSource(options)).changes, 0);
+
+  const existing = path.join(options.target, '.claude/rules');
+  await fs.symlink('elsewhere', existing);
+  assert.equal((await installFromSource(options)).changes, 0);
+  assert.equal(await fs.readlink(existing), 'elsewhere');
+
+  const project = await fixture(context);
+  await installFromSource(project);
+  assert.equal(await fs.readlink(path.join(project.target, '.claude/rules')), '../.agents/rules');
+});
+
 test('global dry run and instruction conflict do not write home payload', async context => {
   const options = { ...await fixture(context), global: true };
   await installFromSource({ ...options, dryRun: true });
