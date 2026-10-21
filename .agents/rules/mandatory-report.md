@@ -12,5 +12,4 @@ description: "Hoàn thành task có kết quả cụ thể: dùng skill report, 
 - Chọn đúng loại từ kết quả đã có; report không thay thế review, phân tích hay kiểm thử.
 - Báo cáo thay đổi theo [template nguồn chuẩn](../skills/report/assets/change-report-template.md): mỗi file có `Path`, chỉ nhóm hành động thực tế, không dùng bảng, `Title` hoặc `Description`.
 - Mặc định ngắn gọn: thay đổi chính, kiểm chứng, giới hạn và đánh giá; giữ Big O và field chuyên biệt khi áp dụng. Chỉ thêm giải thích sâu/code cũ-mới khi được yêu cầu.
-- Cuối báo cáo task của mọi agent/skill/command, ghi usage thực tế và phạm vi đo theo skill report. Chưa có tổng task nhưng có snapshot phiên/subtotal thì hiện số đó cùng nhãn phiên/một phần; chỉ ghi N/A khi nguồn phù hợp không có dữ liệu và nêu đúng nguyên nhân. Không ước lượng hoặc lấy tổng phiên làm tổng task.
 - Không áp dụng cho trả lời câu hỏi/tra cứu đơn thuần không có kết quả cần báo cáo.

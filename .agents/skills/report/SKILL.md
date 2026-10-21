@@ -1,6 +1,6 @@
 ---
 name: report
-description: "Báo cáo kết quả đã có khi hoàn thành task hoặc gọi /report, $workflow-report; ghi input/output/tổng token và phạm vi đo, thiếu số liệu ghi N/A. Không tự review hay phân tích code."
+description: "Báo cáo kết quả đã có khi hoàn thành task hoặc gọi /report, $workflow-report. Không tự review hay phân tích code."
 license: MIT
 metadata:
   version: "1.7"
@@ -8,7 +8,7 @@ metadata:
 
 # Report
 
-Khi scope là toàn plan/nhóm task coding, gom bàn giao nội bộ, thay đổi plan và kiểm chứng để gửi **một báo cáo cuối sau khi tất cả task được giao hoàn thành**. Trước đó chỉ cập nhật tiến độ ngắn; không xuất report giữa các task. Báo cáo cuối gộp thay đổi theo file, trạng thái task/AC, checks thật, Big O, giới hạn và một mục token đúng phạm vi; không lặp report/token của từng agent. Chưa hoàn tất vì blocker cần người dùng thì báo blocker và phần còn lại, không dùng kết luận DONE. Yêu cầu `/report` khi chưa xong chỉ xuất trạng thái chưa hoàn thành, không giả báo cáo hoàn tất.
+Khi scope là toàn plan/nhóm task coding, gom bàn giao nội bộ, thay đổi plan và kiểm chứng để gửi **một báo cáo cuối sau khi tất cả task được giao hoàn thành**. Trước đó chỉ cập nhật tiến độ ngắn; không xuất report giữa các task. Báo cáo cuối gộp thay đổi theo file, trạng thái task/AC, checks thật, Big O, giới hạn; không lặp report của từng agent. Chưa hoàn tất vì blocker cần người dùng thì báo blocker và phần còn lại, không dùng kết luận DONE. Yêu cầu `/report` khi chưa xong chỉ xuất trạng thái chưa hoàn thành, không giả báo cáo hoàn tất.
 
 Chỉ trình bày kết quả/diff đã có; không tự tìm lỗi, review, kiểm thử hay đánh giá code. Mặc định ngắn gọn, đúng template; không bỏ field bắt buộc. Áp dụng theo [mandatory-report](../../rules/mandatory-report.md) và [quality-assurance](../../rules/quality-assurance.md).
 
@@ -35,11 +35,3 @@ Chỉ trình bày kết quả/diff đã có; không tự tìm lỗi, review, ki�
 - **Feedback**: ba dòng `Title: [Type] tiêu đề`, `URL: vị trí hoặc chưa xác định`, `Description: hiện tượng + đã làm gì`. Type tự do; không thay thế bug report QA hay tool SendFeedback.
 
 Dấu phân cách và bố cục theo template tương ứng. Báo cáo sau khi công việc nguồn hoàn tất; feedback ghi ngay khi phát hiện.
-
-## Token sử dụng
-
-Cuối mọi báo cáo task, thêm một dòng `Token: input <số> | output <số> | tổng <số> | phạm vi <repo/task/skill/command> | nguồn <usage runtime>`. Chỉ dùng usage thực tế do runtime cung cấp, đúng phạm vi đo (task/lượt/phiên); không suy từ số ký tự, độ dài context hay token budget. Không có telemetry thì ghi `Token: N/A — runtime không cung cấp usage cho task này.`
-
-Có snapshot/subtotal quan sát được nhưng chưa phải tổng task: ghi rõ nhãn (`Token phiên (snapshot): ...` hoặc `Token quan sát (một phần): ...`) kèm nguồn/giới hạn — không bỏ số liệu có sẵn rồi chỉ ghi N/A.
-
-Cần đo bằng CLI JSONL (Codex rollout, Codex/Claude Code/Antigravity stream) hoặc muốn hiểu hook `test-token-usage` chạy sau test: xem [token-usage-guide](./assets/token-usage-guide.md). Chỉ mở file đó khi thực sự cần chạy script đo — báo cáo thông thường dùng `N/A` hoặc snapshot như trên là đủ.

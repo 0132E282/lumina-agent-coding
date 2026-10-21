@@ -86,11 +86,6 @@
           {
             "type": "command",
             "command": "bash .claude/hooks/scripts/dependency-audit-reminder.sh"
-          },
-          {
-            "type": "command",
-            "command": "node .claude/hooks/scripts/test-token-usage.mjs",
-            "timeout": 10
           }
         ]
       }

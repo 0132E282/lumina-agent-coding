@@ -91,11 +91,6 @@
           {
             "type": "command",
             "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/dependency-audit-reminder.sh\""
-          },
-          {
-            "type": "command",
-            "command": "repo_root=\"$(git rev-parse --show-toplevel 2>/dev/null)\" && script=\"$repo_root/.agents/hooks/scripts/test-token-usage.mjs\" && [ -f \"$script\" ] && node \"$script\"",
-            "timeout": 10
           }
         ]
       }

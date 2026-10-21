@@ -191,15 +191,6 @@ Mỗi lần gọi Agent tool, hook này luôn báo rõ tên `subagent_type` đan
 - **An toàn**: thiếu `jq` hoặc không phải tool `Agent` → không làm gì.
 - **Phụ thuộc**: cần `jq`.
 
-## test-token-usage — usage sau lệnh test trên Claude
-
-- **Script**: [`scripts/test-token-usage.mjs`](./scripts/test-token-usage.mjs); Node có sẵn, không thêm dependency.
-- **Loại hook**: `PostToolUse`, matcher `Bash`; chỉ xử lý lệnh test được nhận diện, không tự chạy test.
-- **Nguồn**: đọc duy nhất `transcript_path` của payload phiên hiện tại, gọi [`token-usage.mjs`](../skills/report/scripts/token-usage.mjs) với runtime `claude-transcript`, rồi đưa số liệu vào `additionalContext` cho báo cáo.
-- **Phạm vi**: subtotal token được ghi trong transcript phiên đến thời điểm hook chạy, không phải riêng lệnh test hoặc tổng cuối task; bỏ message trùng ID và subagent. Transcript live có thể chưa ghi đầy đủ output token, nên luôn ghi số liệu một phần; thiếu transcript/usage thì N/A, không ước lượng.
-- **An toàn**: không gọi model/API, không đọc credential hoặc quét phiên khác, không lưu raw transcript, không chặn test khi thiếu số liệu. Codex/Antigravity không tự chạy hook Claude này.
-- **Đăng ký**: thêm trong `.claude/settings.json` và [`settings.snippet.json`](./settings.snippet.json). Kiểm thử fixture không đồng nghĩa hook đã chạy trong Claude thật. Schema payload theo [Claude hooks](https://code.claude.com/docs/en/hooks).
-
 ## ensure-final-newline — newline cuối file text
 
 - **Script**: [`scripts/ensure-final-newline.mjs`](./scripts/ensure-final-newline.mjs), không cần Prettier hoặc package mới.
@@ -210,4 +201,4 @@ Mỗi lần gọi Agent tool, hook này luôn báo rõ tên `subagent_type` đan
 
 ## Đã bật sẵn trong chính repo này
 
-`hook/` nằm trong `.claude/hooks/` của repo này, và `.claude/settings.json` đã trỏ cả 18 hook tự viết (`audit-log`, `commit-msg-guard`, `secret-scan`, `protected-branch-guard`, `format-before-push`, `condense-planner-input`, `agent-role-reminder`, `format-on-edit`, `ensure-final-newline`, `lint-on-edit`, `test-reminder`, `missing-test-reminder`, `dependency-audit-reminder`, `test-token-usage`, `ci-workflow-lint`, `remind-cleanup`, `report-reminder`, `notify-done`) tới đúng path `.claude/hooks/scripts/...` — không cần cài thêm gì để dùng ngay trong repo này. Riêng hook `rtk hook claude` gọi tool ngoài, chỉ chạy được nếu máy đã cài [`rtk`](https://github.com/rtk-ai/rtk) (xem mục riêng ở trên). [`settings.snippet.json`](./settings.snippet.json) có nội dung tương đương, dùng khi copy sang project khác theo hướng dẫn ở trên.
+`hook/` nằm trong `.claude/hooks/` của repo này, và `.claude/settings.json` đã trỏ cả 17 hook tự viết (`audit-log`, `commit-msg-guard`, `secret-scan`, `protected-branch-guard`, `format-before-push`, `condense-planner-input`, `agent-role-reminder`, `format-on-edit`, `ensure-final-newline`, `lint-on-edit`, `test-reminder`, `missing-test-reminder`, `dependency-audit-reminder`, `ci-workflow-lint`, `remind-cleanup`, `report-reminder`, `notify-done`) tới đúng path `.claude/hooks/scripts/...` — không cần cài thêm gì để dùng ngay trong repo này. Riêng hook `rtk hook claude` gọi tool ngoài, chỉ chạy được nếu máy đã cài [`rtk`](https://github.com/rtk-ai/rtk) (xem mục riêng ở trên). [`settings.snippet.json`](./settings.snippet.json) có nội dung tương đương, dùng khi copy sang project khác theo hướng dẫn ở trên.
