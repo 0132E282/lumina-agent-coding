@@ -81,8 +81,19 @@ async function runHook() {
 }
 
 const argumentsList = process.argv.slice(2);
+// ! Hook mode: bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+function projectOwnsHook() {
+  try {
+    const ownDirectory = fs.realpathSync(path.dirname(new URL(import.meta.url).pathname));
+    const projectDirectory = fs.realpathSync(path.join(process.env.CLAUDE_PROJECT_DIR || process.cwd(), '.claude/hooks/scripts'));
+    return ownDirectory !== projectDirectory && fs.existsSync(path.join(projectDirectory, path.basename(process.argv[1])));
+  } catch {
+    return false;
+  }
+}
+
 if (argumentsList.length === 0) {
-  await runHook();
+  if (!projectOwnsHook()) await runHook();
 } else if (argumentsList.length === 1 && argumentsList[0] === '--help') {
   process.stdout.write(help);
 } else if (!['--check', '--write'].includes(argumentsList[0]) || argumentsList.length < 2) {

@@ -13,6 +13,9 @@
 # Best-effort: nếu không trích được message (ví dụ commit mở editor,
 # dùng -F file, hoặc thiếu jq/validator) -> không chặn, để git tự xử lý.
 
+# ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+. "$(dirname "$0")/_dedupe-guard.sh"
+
 set -o pipefail
 trap 'exit 0' ERR
 

@@ -17,6 +17,9 @@
 # tracking branch, thiếu `prettier`, hoặc không có file nào trong diff cần
 # format -> không chặn, không cảnh báo gì.
 
+# ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+. "$(dirname "$0")/_dedupe-guard.sh"
+
 set -o pipefail
 trap 'exit 0' ERR
 

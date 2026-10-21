@@ -9,6 +9,9 @@
 # Chỉ hỗ trợ JS/TS (jest/vitest) và Python (pytest) — hai stack phổ biến
 # nhất. Không tìm thấy test tương ứng, hoặc thiếu test runner -> bỏ qua êm.
 
+# ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+. "$(dirname "$0")/_dedupe-guard.sh"
+
 set -o pipefail
 trap 'exit 0' ERR
 

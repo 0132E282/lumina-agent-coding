@@ -12,6 +12,9 @@
 # script phải luôn chạy tới dòng `exit 0` cuối cùng. `trap ERR` là lưới an
 # toàn cuối, phòng khi có lỗi lọt qua các điểm xử lý ở trên.
 
+# ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+. "$(dirname "$0")/_dedupe-guard.sh"
+
 set -o pipefail
 trap 'exit 0' ERR
 

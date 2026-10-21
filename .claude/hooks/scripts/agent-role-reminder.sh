@@ -17,6 +17,9 @@
 #
 # Best-effort: thiếu jq hoặc không phải tool Agent -> không làm gì.
 
+# ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+. "$(dirname "$0")/_dedupe-guard.sh"
+
 set -o pipefail
 trap 'exit 0' ERR
 

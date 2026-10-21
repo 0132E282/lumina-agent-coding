@@ -8,6 +8,9 @@
 # lại. Stop hook mà exit code 2 sẽ CHẶN Claude dừng — tuyệt đối tránh, nên
 # không dùng `set -e`/`set -u` và có `trap ERR` làm lưới an toàn cuối.
 
+# ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+. "$(dirname "$0")/_dedupe-guard.sh"
+
 set -o pipefail
 trap 'exit 0' ERR
 

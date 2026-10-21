@@ -159,7 +159,19 @@ Khi Claude Code kết thúc một turn, hook này tìm trong `.agents/storage/lo
 - **Chỉ nhắc, không tự gọi skill giùm**: dùng `hookSpecificOutput.additionalContext`, không dùng `decision`/`reason` (sẽ chặn Claude dừng lại).
 - **An toàn**: luôn `exit 0`; không có Edit/Write nào chưa báo cáo, thiếu `jq`, hoặc thiếu log thì im lặng, không báo gì.
 - **Phụ thuộc**: cần `jq`; dựa vào log của hook `audit-log` (field `input.skill`) nên phải bật hook đó cùng lúc.
-- **Token và lãng phí**: khi nhắc, hook còn đọc `transcript_path` bằng [`task-usage.mjs`](../skills/report/scripts/task-usage.mjs) và đưa vào context số token thật (input, output, cache đọc, cache tạo) cùng các vi phạm tiêu chí lãng phí kèm bằng chứng, để báo cáo ghi `Token:` và `Issue lãng phí:`. Ngưỡng ở [`waste-criteria.json`](../skills/report/assets/waste-criteria.json) (mặc định: đọc lại cùng file ≥ 3 lần, lặp cùng lệnh ≥ 3 lần, một kết quả tool > 20.000 ký tự, ≥ 3 lần gọi subagent, cache tạo mới > cache đọc khi ≥ 50.000 token). Cửa sổ đo tính từ mốc lần nhắc trước, lưu ở `.agents/storage/state/<session_id>.json`; lần đầu là cả phiên. Không đọc được transcript thì im lặng về token, không ghi N/A hay ước lượng.
+- **Token và lãng phí**: do hook [`report-usage`](#report-usage--token-thật-và-issue-lãng-phí-khi-gọi-skill-report) cung cấp, không còn nằm ở hook này.
+
+## report-usage — token thật và issue lãng phí khi gọi skill `report`
+
+Khi skill `report` được gọi, hook đọc `transcript_path` bằng [`task-usage.mjs`](../skills/report/scripts/task-usage.mjs) và đưa vào context số token thật (input, output, cache đọc, cache tạo) cùng các vi phạm tiêu chí lãng phí kèm bằng chứng, để báo cáo ghi `Token:` và `Issue lãng phí:`.
+
+- **Script**: [`scripts/report-usage.sh`](./scripts/report-usage.sh)
+- **Loại hook**: `PostToolUse`, matcher `Skill`; chỉ xử lý skill `report` (không phải `workflow-report`).
+- **Ngưỡng**: [`waste-criteria.json`](../skills/report/assets/waste-criteria.json) — mặc định đọc lại cùng file ≥ 3 lần, lặp cùng lệnh ≥ 3 lần, một kết quả tool > 20.000 ký tự, ≥ 3 lần gọi subagent, cache tạo mới > cache đọc khi ≥ 50.000 token.
+- **Cửa sổ đo**: từ lần gọi `report` trước (mốc lưu ở `.agents/storage/state/<session_id>.json`); lần đầu là cả phiên.
+- **An toàn**: luôn `exit 0`, không chặn; thiếu `jq`/`node`/script hoặc không đọc được transcript thì im lặng, không ghi N/A hay ước lượng.
+- **Phạm vi**: chỉ Claude Code (Codex không có hook này nên bỏ hai dòng đó khỏi báo cáo).
+- **Độ trễ**: transcript lúc hook chạy chưa gồm các message của lượt hiện tại nên số liệu tính đến lúc gọi skill; lượt đầu của phiên headless chưa có message nào nên hook im lặng. Phiên tương tác đã được kiểm chứng: hook chèn số liệu thật khi gọi `report`.
 
 ## notify-done — phát âm thanh khi làm xong task
 
@@ -200,6 +212,15 @@ Mỗi lần gọi Agent tool, hook này luôn báo rõ tên `subagent_type` đan
 - **Các runtime khác**: Codex/Antigravity chạy checker theo quality-assurance; hook Claude không tự chạy ở đó. `.editorconfig` bật `insert_final_newline` cho editor hỗ trợ.
 - **Giới hạn**: check danh sách file trong task; không cam kết file chưa kiểm tra đã đạt. Fixture cố ý thiếu newline phải loại khỏi danh sách với lý do.
 
+## _dedupe-guard — tránh hook chạy hai lần
+
+Khi cài global, hook được đăng ký ở cả `~/.claude/settings.json` (đường dẫn tuyệt đối) và `.claude/settings.json` của project (`$(git rev-parse --show-toplevel)`). Hai chuỗi lệnh khác nhau nên Claude Code chạy cả hai trên mỗi event, làm lặp log và kết quả.
+
+- **File**: [`scripts/_dedupe-guard.sh`](./scripts/_dedupe-guard.sh), được `source` ở đầu mọi hook `.sh`; `ensure-final-newline.mjs` có đoạn kiểm tra tương đương ở chế độ hook.
+- **Cơ chế**: bản chạy từ thư mục khác `<project>/.claude/hooks/scripts` thoát ngay (`exit 0`, không đọc stdin, không in gì) nếu project đã có cùng script; project khác không có script thì bản user-level chạy bình thường. So sánh bằng đường dẫn vật lý (`pwd -P`), nên đi qua symlink `.agents/hooks` vẫn tính là bản project.
+- **Kiểm chứng**: một lần gọi skill ghi 2 dòng `audit-log` trước khi có guard, 1 dòng sau khi có guard (đo trên phiên Claude thật).
+- Không đăng ký trong settings vì chỉ được `source`.
+
 ## Đã bật sẵn trong chính repo này
 
-`hook/` nằm trong `.claude/hooks/` của repo này, và `.claude/settings.json` đã trỏ cả 17 hook tự viết (`audit-log`, `commit-msg-guard`, `secret-scan`, `protected-branch-guard`, `format-before-push`, `condense-planner-input`, `agent-role-reminder`, `format-on-edit`, `ensure-final-newline`, `lint-on-edit`, `test-reminder`, `missing-test-reminder`, `dependency-audit-reminder`, `ci-workflow-lint`, `remind-cleanup`, `report-reminder`, `notify-done`) tới đúng path `.claude/hooks/scripts/...` — không cần cài thêm gì để dùng ngay trong repo này. Riêng hook `rtk hook claude` gọi tool ngoài, chỉ chạy được nếu máy đã cài [`rtk`](https://github.com/rtk-ai/rtk) (xem mục riêng ở trên). [`settings.snippet.json`](./settings.snippet.json) có nội dung tương đương, dùng khi copy sang project khác theo hướng dẫn ở trên.
+`hook/` nằm trong `.claude/hooks/` của repo này, và `.claude/settings.json` đã trỏ cả 18 hook tự viết (`audit-log`, `commit-msg-guard`, `secret-scan`, `protected-branch-guard`, `format-before-push`, `condense-planner-input`, `agent-role-reminder`, `format-on-edit`, `ensure-final-newline`, `lint-on-edit`, `test-reminder`, `missing-test-reminder`, `dependency-audit-reminder`, `ci-workflow-lint`, `remind-cleanup`, `report-reminder`, `report-usage`, `notify-done`) tới đúng path `.claude/hooks/scripts/...` — không cần cài thêm gì để dùng ngay trong repo này. Riêng hook `rtk hook claude` gọi tool ngoài, chỉ chạy được nếu máy đã cài [`rtk`](https://github.com/rtk-ai/rtk) (xem mục riêng ở trên). [`settings.snippet.json`](./settings.snippet.json) có nội dung tương đương, dùng khi copy sang project khác theo hướng dẫn ở trên.

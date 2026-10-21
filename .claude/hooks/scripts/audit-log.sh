@@ -9,6 +9,9 @@
 # Cố ý KHÔNG dùng `set -e`/`set -u`, có `trap ERR` làm lưới an toàn cuối —
 # audit log là best-effort, không đánh đổi bằng việc làm gián đoạn agent.
 
+# ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+. "$(dirname "$0")/_dedupe-guard.sh"
+
 set -o pipefail
 trap 'exit 0' ERR
 
