@@ -12,35 +12,14 @@ Viết mới hoặc đồng bộ README, hướng dẫn project và `docs/`; đ�
 
 ## Mục lục
 
-- [Hai chế độ đọc tài liệu](#hai-chế-độ-đọc-tài-liệu)
-- [Giảm tải đọc hiểu bằng sơ đồ](#giảm-tải-đọc-hiểu-bằng-sơ-đồ)
+- [Đọc tài liệu theo đối tượng](#đọc-tài-liệu-theo-đối-tượng)
 - [Chế độ 1 — Đồng bộ](#chế-độ-1--đồng-bộ-đã-có-tài-liệu)
 - [Chế độ 2 — Viết mới](#chế-độ-2--viết-mới-chưa-có-gì-để-đối-chiếu)
 - [Template theo loại tài liệu](#template-theo-loại-tài-liệu)
 
-## Hai chế độ đọc tài liệu
+## Đọc tài liệu theo đối tượng
 
-### AI-readable — mặc định
-
-- Viết ngắn, có heading ổn định; ưu tiên facts, path, contract, dependency và kết quả kiểm chứng.
-- Dùng sơ đồ Mermaid khi có quan hệ/flow phức tạp; không lặp lại toàn bộ sơ đồ bằng prose.
-- Phân biệt dữ kiện, giả định và phần chưa kiểm chứng. Bỏ lời dẫn/trang trí và mục không áp dụng.
-- Chỉ đọc/ghi phần liên quan; ghi thông tin ở nguồn chuẩn một lần rồi liên kết. Mở chi tiết theo nhu cầu.
-
-### Human-readable — chỉ khi được yêu cầu
-
-- Viết giải thích theo ngữ cảnh người đọc, có thể thêm narrative, ví dụ, glossary và hướng dẫn từng bước.
-- Vẫn giữ path, nguồn kiểm chứng, cảnh báo và trạng thái chưa xác minh; không hy sinh tính chính xác để văn phong dễ đọc.
-- Có thể diễn giải lại sơ đồ bằng prose nếu người đọc cần hướng dẫn tuần tự.
-
-Nếu không được chỉ định đối tượng đọc, luôn chọn `AI-readable` và tối ưu cho context nhỏ nhất đủ dùng.
-
-## Giảm tải đọc hiểu bằng sơ đồ
-
-- Khi tài liệu có từ 3 thành phần liên quan, luồng nhiều bước, hierarchy hoặc dependency khó đọc tuyến tính, ưu tiên dùng sơ đồ Mermaid để AI và người đọc nắm quan hệ nhanh hơn.
-- Dùng sơ đồ cho quan hệ, ownership, sequence, boundary và dependency; dùng văn bản cho mục đích, assumption, constraint, caveat và chi tiết không thể hiện tốt bằng hình.
-- Không lặp lại toàn bộ nội dung sơ đồ bằng prose. Sau sơ đồ chỉ ghi kết luận, điểm dễ nhầm và nguồn kiểm chứng.
-- Sơ đồ phải có nhãn ngắn, ít node cần thiết và phân biệt `Đã xác minh`/`Giả định`; nếu sơ đồ làm tài liệu khó đọc hơn thì giữ bản text ngắn và ghi lý do.
+Mặc định viết **AI-readable** (ngắn, heading ổn định, facts/path/contract/kết quả kiểm chứng; không lặp lại sơ đồ bằng prose); chỉ chuyển **human-readable** khi người dùng yêu cầu. Quy tắc chi tiết và cách dùng sơ đồ Mermaid để giảm tải đọc hiểu: [references/writing-style.md](./references/writing-style.md).
 
 ## Chế độ 1 — Đồng bộ (đã có tài liệu)
 
@@ -70,12 +49,6 @@ Dùng khi project/module/feature chưa có CLAUDE.md/README, cần viết lần 
 
 ## Template theo loại tài liệu
 
-Đọc registry và file hiện hữu theo rule ở đầu skill trước khi chọn template. Template là khung điền từ nguồn đã xác minh, không phải nội dung hoàn chỉnh; thay toàn bộ placeholder, bỏ mục không áp dụng kèm lý do và cập nhật menu cùng lượt. Không ghi đè schema, ID hoặc lịch sử có sẵn để khớp template.
+Đọc registry và file hiện hữu theo rule ở đầu skill trước khi chọn template; template chỉ là khung điền từ nguồn đã xác minh. Cách dùng chi tiết từng loại, schema, quy tắc cập nhật menu và kiểm tra trước bàn giao: [references/templates.md](./references/templates.md).
 
-- [Tài liệu Markdown](assets/document-template.md): dùng cho `docs/**/*.md`; frontmatter là metadata, thân Markdown là `content`. README/AGENTS/CLAUDE giữ convention riêng, không thêm vào catalog.
-- [Testcase cấp repo](assets/repo-testcase-template.md): dùng tại `docs/repo/<title-slug>-<yyyyMMdd>.md` khi toàn bộ task của một implementation plan đã coding xong. Chỉ thiết kế từ code/luồng thực tế và ghi `Not Run`; cập nhật cả `docs/repo/index.json` và `docs/index.json`.
-- [Testcase theo feature](assets/feature-testcase-template.json): khung tối thiểu khi chưa có `docs/testcases/index.json`. File này là dữ liệu suite/case/kết quả, không phải menu. Nếu đã có schema, map field tương đương vào schema đó, giữ ID/history và trạng thái cũ; case mới là `Not Run`, `executedAt` chỉ điền ISO 8601 khi thực sự chạy. Đọc [skill testcase](../testing/references/testcase.md) để thiết kế và đối soát.
-- [Implementation plan](assets/implementation-plan-template.json): khung cho agent được giao lập plan, lưu tại `docs/plans/<title-slug>-<yyyyMMdd>.json`. Theo [plan-format](../../rules/docs.md#implementation-plan-contract), mọi task giữ đầy đủ field và `filesToChange` chỉ chứa path đã xác minh; mục nhiều bản ghi dùng object đồng nhất field, gồm cả `remainingRisks`. Chưa rõ path thì để `[]` và ghi blocker. `docs` chỉ đồng bộ/định dạng plan đã có, không tự lập giải pháp hay chuyển sang triển khai; đọc [planner-agent](../../agents/planner-agent.md) khi được giao vai trò planner.
-- [Menu JSON](assets/menu-template.json): mỗi entry chỉ `title`, `description`, `tags`, `path` repo-relative. Áp dụng cho `docs/index.json`, `docs/repo/index.json`, `docs/plans/index.json`; catalog gốc chỉ trỏ tài liệu Markdown. Không copy menu này vào `docs/testcases/index.json`.
-
-`<...>` là placeholder; ngày tạo phải được thay bằng ngày có nguồn xác minh, không suy ra cho artifact cũ. Khi đã xác minh file cần sửa, điền `filesToChange` bằng object dạng `{"path": "<path-repo-relative>", "changes": "<thay đổi chính xác>"}` và giải quyết blocker tương ứng. Trước bàn giao, parse JSON, kiểm tra metadata/link/TOC, field menu, ID và truy vết REQ/BR → AC → Task/Test. Không chạy testcase chỉ vì vừa tạo tài liệu.
+- [Tài liệu Markdown](assets/document-template.md) · [Testcase cấp repo](assets/repo-testcase-template.md) · [Testcase theo feature](assets/feature-testcase-template.json) · [Implementation plan](assets/implementation-plan-template.json) · [Menu JSON](assets/menu-template.json)

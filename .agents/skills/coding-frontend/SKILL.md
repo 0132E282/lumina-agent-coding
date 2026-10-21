@@ -26,32 +26,15 @@ Triển khai giao diện đúng đặc tả, hiển thị nội dung đáng tin 
 
 1. **Khoanh phạm vi**: liệt kê page/component/hành vi được yêu cầu và giữ nguyên các hành vi khác. Nêu sớm thay đổi phụ thuộc ngoài phạm vi để xin chấp thuận trước khi sửa phần đó.
 2. **Khảo sát**: xác định trang/luồng, dữ liệu đầu vào, mẫu UI và tiêu chí nghiệm thu. Kiểm tra cách render hiện có (CSR/SSR/SSG), phiên bản framework và lệnh test/lint/build thật.
-3. **Triển khai**: chọn component có sẵn, nối dữ liệu và xử lý trạng thái; áp dụng các nhóm bên dưới theo loại trang. Giữ logic nghiệp vụ/data fetching theo ranh giới module hiện tại, không tạo abstraction hoặc global state khi local state đủ dùng.
+3. **Triển khai**: chọn component có sẵn, nối dữ liệu và xử lý trạng thái; áp dụng các nhóm trong bảng yêu cầu ở references theo loại trang. Giữ logic nghiệp vụ/data fetching theo ranh giới module hiện tại, không tạo abstraction hoặc global state khi local state đủ dùng.
 4. **Kiểm chứng**: kiểm tra luồng chính, dữ liệu thiếu, lỗi API, route trực tiếp và responsive; chạy test/lint/type check/build phù hợp. Rà vòng lặp render/state/effect trên framework đang dùng và kiểm tra network/API call không tăng theo từng item (N+1). Với luồng backend đi kèm, phối hợp đếm query theo request/job trong skill backend; không giới hạn vào React/Next.js hay một framework cụ thể. Fix bug cần regression test tái hiện trước theo [quality-assurance](../../rules/delivery.md#chất-lượng-và-bằng-chứng); dùng [testing](../testing/references/unit-testing.md) khi cần viết test kỹ thuật. Rà diff để xác nhận không đổi hành vi ngoài yêu cầu; nếu có thay đổi cần thêm quyền, dừng và xin chấp thuận.
 5. **Bàn giao**: tự review diff, cập nhật docs bị ảnh hưởng. Báo file/hành vi đã đổi, check và kết quả thật, phần chưa kiểm chứng; không coi preview local là bằng chứng Google đã index.
 
-### Khi nhận handoff từ `agent-clone`
-
-- Đọc source of truth, inventory, mapping JSON và pixel spec trước khi sửa UI; áp dụng [ràng buộc fidelity](../clone-website/SKILL.md#ràng-buộc-fidelity) của `clone-website`.
-- Dùng asset có `status: downloaded`; giữ nguyên asset `failed`/`skipped` và báo phần cần xử lý thủ công. Không thay bằng placeholder nếu clone đã cam kết fidelity.
-- Giữ cấu trúc section, thứ tự, CSS gốc/processed và đường dẫn media theo mapping. Nếu width, container, breakpoint hoặc interaction thực tế lệch source, ghi sai khác cụ thể và sửa trong phạm vi được giao; không tự redesign.
-- Đối chiếu cùng route, viewport và trạng thái: macro layout trước, sau đó computed style/bounding box, typography, spacing, màu, asset và interaction. Chỉ gọi pixel-perfect khi có bằng chứng tương ứng.
+Khi nhận handoff từ `agent-clone`: đọc [references/clone-handoff.md](./references/clone-handoff.md) trước khi sửa UI.
 
 ## Yêu cầu triển khai
 
-| Nhóm | Cách áp dụng |
-|---|---|
-| HTML ngữ nghĩa | Dùng `header`, `nav`, `main`, `article`, `footer` đúng vai trò. Heading theo cấu trúc nội dung, không chọn cấp heading chỉ vì cỡ chữ. Điều hướng bằng `<a href>`/router link xuất ra anchor; thao tác bằng `<button>` với `type` phù hợp. |
-| CSS/responsive | Theo token và breakpoint project; layout thích ứng nội dung trên mobile/tablet/desktop, chữ đọc được, không tràn toàn trang. Bảng/nội dung rộng có vùng cuộn hợp lý; không giấu lỗi layout bằng `overflow: hidden` toàn trang. |
-| JavaScript/form | Xử lý loading, empty, success, error/retry, validation và pending submit. Tránh submit lặp; giữ dữ liệu form khi lỗi. JavaScript trang trí hoặc widget lỗi không được làm mất nội dung chính; xử lý race/stale response phù hợp. |
-| Nội dung/CMS | Render bài viết, ảnh, bảng, danh sách và rich text theo cấu trúc dữ liệu thật; có fallback cho ảnh/dữ liệu thiếu. Không dùng dữ liệu giả để che API lỗi. Format ngày/giá/ngôn ngữ theo yêu cầu project. |
-| Metadata/SEO | Title, description, canonical và robots theo từng route/dữ liệu; dùng API metadata/head của framework, tránh thẻ trùng hoặc metadata trang cũ khi navigation. Canonical tuyệt đối và nhất quán giữa HTML ban đầu/render; không canonical mọi trang về homepage. Không index admin/nội dung riêng tư. |
-| CSR/SSR/SSG | Xác định nội dung có trong HTML ban đầu và nội dung cần JS. Với trang công khai cần SEO, ưu tiên server/static render khi phù hợp stack và yêu cầu cập nhật; không tự rewrite toàn bộ CSR. Tránh hydration mismatch, fetch waterfall và gọi browser API trong server code. |
-| Ảnh/hiệu năng | Dùng kích thước/định dạng phù hợp và `srcset`/`sizes` hoặc image component có sẵn. Khai báo width/height hoặc aspect ratio để giữ chỗ. Lazy-load ảnh ngoài viewport, không lazy-load ảnh hero/LCP; chỉ ưu tiên tải asset thực sự quan trọng. Hạn chế script nặng, chia tải theo nhu cầu và đo trước khi kết luận nhanh hơn. |
-| Accessibility | Native control trước ARIA; label gắn input, tên dễ hiểu cho nút icon, alt mô tả theo chức năng (ảnh trang trí alt rỗng). Keyboard/focus rõ, không chỉ dùng màu báo lỗi; dialog quản lý focus và trả focus khi đóng. Giữ contrast, reduced motion và thông báo trạng thái phù hợp. |
-| Điều hướng | Menu, breadcrumb, phân trang và link nội bộ dùng URL thật; trang truy cập trực tiếp/refresh được. Infinite scroll có URL phân trang crawl được khi cần SEO. Trang không tồn tại hiển thị đúng và trả 404 khi server/router hỗ trợ; không giả trang lỗi 200. |
-| Chia sẻ | Open Graph `og:title`, `og:description`, `og:image`, `og:url` và type phù hợp theo trang; URL/ảnh tuyệt đối, công khai truy cập được. Ưu tiên metadata trong HTML response cho crawler chia sẻ; fallback từ dữ liệu thật. |
-| An toàn render | Text dùng escaping của framework; HTML CMS cần sanitizer được duy trì với allowlist, không tự lọc bằng regex hoặc đưa raw HTML vào DOM. Kiểm soát URL scheme nguy hiểm, serialize JSON-LD an toàn; không lộ secret trong bundle hoặc HTML. CSP là lớp bổ sung, không thay sanitization. |
+Bảng yêu cầu theo nhóm (HTML ngữ nghĩa, CSS/responsive, JS/form, nội dung/CMS, metadata/SEO, CSR/SSR/SSG, ảnh/hiệu năng, accessibility, điều hướng, chia sẻ, an toàn render): [references/implementation-requirements.md](./references/implementation-requirements.md). Mở khi triển khai và chỉ áp dụng nhóm liên quan.
 
 ## Kiểm tra trước khi hoàn thành
 
