@@ -1,43 +1,15 @@
----
-trigger: model_decision
-description: 'Áp dụng khi nhiệm vụ liên quan: 📚 Đồng bộ tài liệu — Docs-as-Code Sync'
----
-
 # 📚 Đồng bộ tài liệu — Docs-as-Code Sync
 
 **Nhóm quy tắc kết hợp**: Documentation as Code + Definition of Done (bao gồm docs)
 
-Khi đọc hoặc sửa file trong `docs/`, agent phải đọc `index.json` phù hợp trước, tìm bằng `title`, `description`, `tags`, rồi mở file chi tiết qua `path`. Mỗi entry trong index menu/catalog chỉ có `title`, `description`, `tags`, `path`; nội dung nằm trong file chi tiết (`.md` cho tài liệu, `.json` cho plan/review). File Markdown chi tiết có title, description, tags và content; description của menu plan/review hướng dẫn AI khi nào nên tham khảo file. Ngoại lệ: `docs/testcases/index.json` là dữ liệu testcase và kết quả chạy theo schema testcase chuyên biệt, không phải menu. Cập nhật index/record tương ứng cùng lượt, không nhúng nội dung tài liệu vào menu.
+Đọc hoặc sửa file trong `docs/` thì đọc `index.json` phù hợp trước theo [`documentation-reading-and-toc`](./documentation-reading-and-toc.md), rồi cập nhật index/record tương ứng cùng lượt; không nhúng nội dung tài liệu vào menu. `docs/testcases/index.json` là dữ liệu testcase và kết quả chạy theo schema riêng, không phải menu.
 
-Sau khi hoàn tất coding cho tất cả task của một implementation plan, tạo testcase cấp repository bằng Markdown tại `docs/repo/<title-slug>-<yyyyMMdd>.md`, dựa trên code và luồng thực tế sau triển khai. Chỉ thiết kế testcase, không tự chạy bộ testcase này; ghi trạng thái `Not Run`. Cập nhật `docs/repo/index.json` (mục lục con) và catalog Markdown `docs/index.json` cùng lượt; entry chỉ có `title`, `description`, `tags`, `path`. Tài liệu này không thay thế dữ liệu testcase/kết quả theo feature trong `docs/testcases/index.json`.
+Sau khi hoàn tất coding cho tất cả task của một implementation plan, tạo testcase cấp repository bằng Markdown tại `docs/repo/<title-slug>-<yyyyMMdd>.md`, dựa trên code và luồng thực tế sau triển khai. Chỉ thiết kế testcase, không tự chạy; ghi trạng thái `Not Run`. Cập nhật `docs/repo/index.json` và `docs/index.json` cùng lượt (entry chỉ có `title`, `description`, `tags`, `path`). Tài liệu này không thay thế dữ liệu theo feature trong `docs/testcases/index.json`.
 
 ## Cách áp dụng
 
-- Sau khi hoàn thành một plan ([`planner-agent`](../agents/planner-agent.md)) **và** `coding-agent` đã triển khai xong (tạo/sửa/xóa file, đổi API, đổi cấu trúc, đổi tên agent/skill/command), luôn kiểm tra `README.md`/`CLAUDE.md`/`docs/` có đoạn nào nhắc tới phần vừa đổi không — có thì **cập nhật ngay trong cùng lượt**, không để lại "làm sau".
-- **"Hoàn thành" (DONE)** của một task không chỉ là code chạy đúng + test pass ([`rules/quality-assurance`](./quality-assurance.md)) — còn phải gồm: docs liên quan (nếu có nhắc tới phần vừa đổi) đã phản ánh đúng thay đổi.
-- Khi task thay đổi API và repository đã có Postman collection/tài liệu Postman phù hợp, cập nhật request, ví dụ và metadata liên quan ngay trong Postman. Nếu collection/request tương ứng đã tồn tại, sửa nó; không tạo collection, request hoặc file trùng chỉ vì đang làm lại tài liệu. Chỉ tạo mới khi chưa có mục phù hợp và task yêu cầu bổ sung.
-- Dùng skill [`docs`](../skills/docs/SKILL.md) để rà nhanh khi phạm vi ảnh hưởng tới docs lớn hoặc không chắc hết những đâu đang nhắc tới phần vừa đổi (đổi tên agent/skill/command, xóa/thêm module) — không tự nhớ thủ công từng chỗ rồi bỏ sót.
-- Chỉ cập nhật đúng phần thực sự bị ảnh hưởng — không viết lại toàn bộ docs hay mở rộng phạm vi khi không cần ([`rules/simplicity`](./simplicity.md)).
-
-```javascript
-// ❌ Code xong, báo hoàn thành — quên README vẫn nhắc API cũ
-function finishTask() {
-  implementFeature()
-  runTests()
-  reportDone() // docs vẫn nói "endpoint /v1/old" dù đã đổi sang /v2/new
-}
-
-// ✅ Definition of Done gồm cả docs bị ảnh hưởng
-function finishTask() {
-  implementFeature()
-  runTests()
-  syncAffectedDocs() // cập nhật đúng đoạn README/CLAUDE.md/docs nhắc tới phần vừa đổi
-  reportDone()
-}
-```
-
-## Khi áp dụng
-
-- Ngay sau khi `coding-agent` hoàn thành một task trong `docs/plans/*.json` mà task đó đổi API/cấu trúc/convention đang được nhắc trong docs.
-- Trước khi báo "hoàn thành task" với người dùng — tự hỏi: _"README/CLAUDE.md/docs có đoạn nào giờ sai không?"_
-- **Không áp dụng** cho thay đổi nội bộ không ảnh hưởng gì tới nội dung đã viết trong docs (ví dụ đổi tên biến cục bộ, refactor không đổi hành vi/giao diện công khai).
+- Sau khi `coding-agent` triển khai xong theo plan của [`planner-agent`](../agents/planner-agent.md) (tạo/sửa/xóa file, đổi API, đổi cấu trúc, đổi tên agent/skill/command), kiểm tra `README.md`/`CLAUDE.md`/`docs/` có đoạn nào nhắc phần vừa đổi — có thì cập nhật ngay trong cùng lượt, không để "làm sau".
+- **DONE** của một task không chỉ là code đúng + test pass ([`rules/quality-assurance`](./quality-assurance.md)) mà còn gồm docs liên quan đã phản ánh đúng thay đổi. Trước khi báo hoàn thành, tự hỏi: _"README/CLAUDE.md/docs có đoạn nào giờ sai không?"_
+- Đổi API và repo đã có Postman collection phù hợp: sửa request, ví dụ, metadata ngay trong Postman; đã tồn tại thì sửa, không tạo collection/request/file trùng.
+- Phạm vi docs lớn hoặc không chắc hết chỗ nhắc tới phần vừa đổi (đổi tên agent/skill/command, thêm/xóa module): dùng skill [`docs`](../skills/docs/SKILL.md), không tự nhớ thủ công.
+- Chỉ cập nhật đúng phần bị ảnh hưởng ([`rules/simplicity`](./simplicity.md)). Không áp dụng cho thay đổi nội bộ không ảnh hưởng nội dung docs (đổi tên biến cục bộ, refactor không đổi hành vi/giao diện công khai).

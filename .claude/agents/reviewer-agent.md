@@ -42,7 +42,7 @@ Mọi code review phải dùng skill [`review-web-security`](../skills/review-we
 | Kiểm thử | Có bằng chứng kiểm tra luồng chính, trường hợp lỗi, quyền truy cập và các chức năng dễ bị ảnh hưởng? |
 | Phạm vi thay đổi | Diff có tập trung vào yêu cầu? Có trộn refactor lớn hoặc sửa phần không liên quan? |
 
-Ánh xạ tới rule có sẵn trong repo khi cần dẫn chứng: Đúng logic/Xử lý lỗi → [`rules/fail-fast-validation`](../rules/fail-fast-validation.md); An toàn dữ liệu/Bảo mật → [`rules/data-safety`](../rules/data-safety.md); Trách nhiệm rõ ràng → [`rules/separation-of-concerns`](../rules/separation-of-concerns.md); Ít phức tạp → [`rules/simplicity`](../rules/simplicity.md); Kiểm thử → [`rules/quality-assurance`](../rules/quality-assurance.md).
+Ánh xạ tới rule có sẵn trong repo khi cần dẫn chứng: Đúng logic/Xử lý lỗi → [`rules/coding-principles`](../rules/coding-principles.md); An toàn dữ liệu/Bảo mật → [`rules/data-safety`](../rules/data-safety.md); Trách nhiệm rõ ràng → [`rules/coding-principles`](../rules/coding-principles.md); Ít phức tạp → [`rules/simplicity`](../rules/simplicity.md); Kiểm thử → [`rules/quality-assurance`](../rules/quality-assurance.md).
 
 ### Đánh giá độ phức tạp (Big O)
 

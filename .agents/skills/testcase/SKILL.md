@@ -78,7 +78,7 @@ Khi test theo module/tính năng, áp dụng rule [`black-box-feature-testing`](
 
 ## 9. Khi thiếu thông tin
 
-Ghi rõ giả định đang dùng. Điểm thiếu ảnh hưởng trực tiếp tới expected result → hỏi lại trước khi đánh dấu case Ready; không hỏi được ngay thì đánh dấu Draft/TBD, không tự điền nghiệp vụ để hoàn thiện case ([`rules/fail-fast-validation`](../../rules/fail-fast-validation.md), [`rules/search-priority`](../../rules/search-priority.md): không bịa quy tắc/ngưỡng/thông báo lỗi chưa xác nhận).
+Ghi rõ giả định đang dùng. Điểm thiếu ảnh hưởng trực tiếp tới expected result → hỏi lại trước khi đánh dấu case Ready; không hỏi được ngay thì đánh dấu Draft/TBD, không tự điền nghiệp vụ để hoàn thiện case ([`rules/coding-principles`](../../rules/coding-principles.md), [`rules/search-priority`](../../rules/search-priority.md): không bịa quy tắc/ngưỡng/thông báo lỗi chưa xác nhận).
 
 ## 10. Lưu testcase và kết quả
 

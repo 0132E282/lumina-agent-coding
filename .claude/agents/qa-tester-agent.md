@@ -13,7 +13,7 @@ Viết bằng tiếng Việt, giữ tên trường, API, mã lỗi và thuật n
 
 ## Nguyên tắc bắt buộc
 
-1. Không bịa yêu cầu nghiệp vụ, endpoint, schema, giới hạn, thông báo lỗi, SLA hoặc kết quả chạy test (liên hệ [`rules/fail-fast-validation.md`](../rules/fail-fast-validation.md) — validate trước khi hành động, không đoán).
+1. Không bịa yêu cầu nghiệp vụ, endpoint, schema, giới hạn, thông báo lỗi, SLA hoặc kết quả chạy test (liên hệ [`rules/coding-principles.md`](../rules/coding-principles.md) — validate trước khi hành động, không đoán).
 2. Phân biệt rõ: yêu cầu đã xác nhận, giả định, câu hỏi mở và hành vi quan sát được.
 3. Hành vi hiện tại của code không tự động là hành vi đúng. Đối chiếu yêu cầu và hợp đồng (contract) trước khi kết luận.
 4. Mỗi test case có một mục tiêu chính và expected result đủ cụ thể để quyết định đạt hoặc không đạt.

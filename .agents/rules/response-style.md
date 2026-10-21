@@ -13,6 +13,7 @@ description: "Áp dụng khi nhiệm vụ liên quan: 💬 Phong cách trả l�
 - Chỉ trả lời đúng trọng tâm câu hỏi — bỏ phần suy đoán/mở rộng không ai hỏi.
 - Giữ đúng context: phân biệt rõ cái gì thuộc project đang làm, cái gì không liên quan — không gộp chung rồi trả lời lan man.
 - Không tự thêm rule/file vào repo khi chưa được yêu cầu rõ ràng.
+- Từ 2 câu hỏi mở trở lên: dạng text, không bảng; mỗi câu một mục `Câu hỏi:` / `Đề xuất:` (thêm `Ảnh hưởng nếu chọn sai:` khi rủi ro cao — tiền, mất dữ liệu, phân quyền), ngăn cách bằng dòng 80 dấu `-` đặt trong inline code (không dùng `---` trần vì Markdown render thành đường kẻ ngắn). Chỉ 1 câu thì hỏi thẳng. Không áp dụng cho `AskUserQuestion` hay tool hỏi có UI riêng.
 
 ```markdown
 <!-- ❌ Dài dòng, lan man cho câu hỏi đơn giản -->

@@ -9,7 +9,7 @@ description: "Áp dụng khi nhiệm vụ liên quan: 💬 Comment có kỷ lu�
 
 ## Khi nào được comment
 
-- **Mặc định không comment.** Tên hàm/biến phải tự giải thích (xem [readability.md](./readability.md)).
+- **Mặc định không comment.** Tên hàm/biến phải tự giải thích (xem [coding-principles.md](./coding-principles.md)).
 - **Không comment logic đơn giản**: gán biến, gọi hàm tên rõ, `if`/vòng lặp hiển nhiên, CRUD, getter/setter.
 - Chỉ comment khi giải thích **"tại sao"** mà code không tự nói được: ràng buộc nghiệp vụ, workaround, hành vi bất ngờ của thư viện/bên thứ ba.
 
@@ -42,7 +42,7 @@ public function verifyIPN(array $data): array
 ## Độ dài
 
 - Mỗi dòng comment ≤ 180 ký tự; tối đa 1–3 dòng. Cần dài hơn ⇒ đưa vào docs thay vì nhồi vào comment.
-- **Sắp viết tới dòng comment thứ 4 cho cùng một đoạn → dừng lại ngay**, không viết tiếp rồi tự nhủ "giải thích cho đủ". Chọn 1 trong 2: (a) chỉ giữ đúng 1-3 dòng cốt lõi nhất — invariant/hệ quả nếu làm sai, bỏ phần diễn giải "vì sao đi đến kết luận này"; (b) nếu logic phức tạp tới mức cần nhiều đoạn lý luận, đó là dấu hiệu nên tách hàm riêng tên rõ nghĩa (xem [readability.md](./readability.md)) hoặc ghi vào docs, không nhồi hết vào comment.
+- **Sắp viết tới dòng comment thứ 4 cho cùng một đoạn → dừng lại ngay**, không viết tiếp rồi tự nhủ "giải thích cho đủ". Chọn 1 trong 2: (a) chỉ giữ đúng 1-3 dòng cốt lõi nhất — invariant/hệ quả nếu làm sai, bỏ phần diễn giải "vì sao đi đến kết luận này"; (b) nếu logic phức tạp tới mức cần nhiều đoạn lý luận, đó là dấu hiệu nên tách hàm riêng tên rõ nghĩa (xem [coding-principles.md](./coding-principles.md)) hoặc ghi vào docs, không nhồi hết vào comment.
 - Nhiều ràng buộc cần cảnh báo trong cùng một đoạn code → mỗi ràng buộc 1 dòng `!` riêng, không gộp thành một đoạn văn dài nhiều câu.
 - Khi sửa code, cập nhật hoặc xoá comment liên quan nếu nó không còn đúng.
 

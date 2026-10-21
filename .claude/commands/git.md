@@ -23,8 +23,9 @@ Mỗi lần chỉ chọn một chế độ (`commit`, `merge`, `pr`, `main` ho�
 1. Kiểm tra repo/nhánh, `git status`, staged diff và unstaged diff. `all` vẫn loại secret, file rác và scratch theo rule; `change` không gộp sửa đổi ngoài task. Nếu index chứa thay đổi ngoài scope, giữ nguyên index đó và chỉ commit đúng scope bằng cách an toàn; không âm thầm commit hoặc unstage phần của người khác. Scope chưa xác định được thì hỏi trước khi stage.
    Tuyệt đối không commit/push file tmp/scratch/debug/test thử nghiệm, log/output tạm, cache, `.DS_Store`, `.dssc`, file backup `.bak`/`.orig` hoặc secret. Xác định bằng nội dung/mục đích và rule project; không cấm toàn bộ `tests/` hoặc `*.test.*` vì test chính thức là deliverable. Stage bằng danh sách path đã rà, không `git add .`/`git add -A` mù quáng. Kiểm tra lại staged diff trước commit, kể cả file đã tracked; `.gitignore` không bảo vệ file tracked. File không rõ có phải rác thì giữ ngoài commit và hỏi, không tự xóa.
 2. Một commit cho toàn bộ thay đổi liên quan, không tách vụn. Không có thay đổi hợp lệ thì báo và dừng.
-3. Message Conventional Commits, tiêu đề `<type>: <mô tả>` ≤ 75 ký tự, body nêu vấn đề và thay đổi chính. Chạy script [`validate-commit-message.sh`](../skills/git-workflow/scripts/validate-commit-message.sh), chỉ commit khi validator đạt.
-4. Việc gọi `commit` cho phép tạo commit đúng scope, không tự push/tạo PR/merge. Báo hash, nhánh và file đã commit.
+3. Trước khi commit, chạy Prettier trên các file đang staged (`git diff --cached --name-only --diff-filter=ACMR`) rồi `git add` lại đúng các file đó; project chưa cài Prettier thì bỏ qua, không tự cài.
+4. Message Conventional Commits, tiêu đề `<type>: <mô tả>` ≤ 75 ký tự, body nêu vấn đề và thay đổi chính. Chạy script [`validate-commit-message.sh`](../skills/git-workflow/scripts/validate-commit-message.sh), chỉ commit khi validator đạt.
+5. Việc gọi `commit` cho phép tạo commit đúng scope, không tự push/tạo PR/merge. Báo hash, nhánh và file đã commit.
 
 ## Merge local và xử lý conflict
 

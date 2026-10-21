@@ -48,11 +48,11 @@ Timeout, retry có giới hạn/backoff/jitter, duplicate delivery, dead-letter 
 
 ### 5. Rủi ro & câu hỏi mở
 
-Ảnh hưởng, mitigation, người xác nhận nếu biết. Đánh dấu blocker cần trả lời trước khi triển khai; phần không blocker dùng giả định rõ ràng. Chọn kiểm chứng có giá trị thật theo rủi ro: contract/integration test, quyền truy cập chéo tenant, idempotency, job retry, migration compatibility, load test theo workload, restore test — phân biệt kế hoạch test với kết quả đã chạy. Có ≥2 blocker/câu hỏi mở cần người dùng chốt → trình bày dạng text, mỗi câu một mục theo [`rules/open-questions-table`](../rules/open-questions-table.md).
+Ảnh hưởng, mitigation, người xác nhận nếu biết. Đánh dấu blocker cần trả lời trước khi triển khai; phần không blocker dùng giả định rõ ràng. Chọn kiểm chứng có giá trị thật theo rủi ro: contract/integration test, quyền truy cập chéo tenant, idempotency, job retry, migration compatibility, load test theo workload, restore test — phân biệt kế hoạch test với kết quả đã chạy. Có ≥2 blocker/câu hỏi mở cần người dùng chốt → trình bày dạng text, mỗi câu một mục theo [`rules/response-style`](../rules/response-style.md).
 
 ### 6. Bàn giao
 
-**Không tự chia task triển khai.** Tài liệu đã ghi ra `docs/system-design.md` (mục 1–5) làm input cho agent `planner-agent` — agent đó tự đọc file này, chia task có dependency/acceptance criteria/truy vết; tránh hai agent cùng làm một việc ([`rules/separation-of-concerns`](../rules/separation-of-concerns.md)).
+**Không tự chia task triển khai.** Tài liệu đã ghi ra `docs/system-design.md` (mục 1–5) làm input cho agent `planner-agent` — agent đó tự đọc file này, chia task có dependency/acceptance criteria/truy vết; tránh hai agent cùng làm một việc ([`rules/coding-principles`](../rules/coding-principles.md)).
 
 ## Review trước khi bàn giao
 
@@ -66,7 +66,7 @@ Không mặc định một stack hay chỉ xử lý backend — **xác định s
 
 **Ví dụ — React / Next.js / TypeScript** (chỉ áp dụng khi stack thật dùng React/Next.js):
 - Kiến trúc component theo custom hook, tách container/presentational tùy quy mô — không thêm global state (Redux/Zustand/Context phạm vi rộng...) khi props/local state đã đủ dùng ([`rules/simplicity`](../rules/simplicity.md)).
-- Next.js: phân biệt rõ Server Component vs Client Component (hoặc SSR/`getServerSideProps` nếu dùng Pages Router); API Route/Route Handler chỉ nhận/trả HTTP, nghiệp vụ tách ra service/lib riêng, validate input (zod/yup...) trước khi chạm dữ liệu — tránh trộn nghiệp vụ vào route handler ([`rules/separation-of-concerns`](../rules/separation-of-concerns.md)).
+- Next.js: phân biệt rõ Server Component vs Client Component (hoặc SSR/`getServerSideProps` nếu dùng Pages Router); API Route/Route Handler chỉ nhận/trả HTTP, nghiệp vụ tách ra service/lib riêng, validate input (zod/yup...) trước khi chạm dữ liệu — tránh trộn nghiệp vụ vào route handler ([`rules/coding-principles`](../rules/coding-principles.md)).
 - Type dùng chung giữa client-server (hoặc generate từ OpenAPI/schema thật) cho API contract — tránh `any`, tránh lệch type giữa FE-BE.
 - Data fetching: SWR/React Query, hoặc fetch trong Server Component — tránh fetch chồng (request waterfall); cache/revalidate theo đúng tần suất dữ liệu thật đổi.
 - Lỗi/loading/empty state rõ ràng (error boundary, `loading.tsx`/suspense); ranh giới quyền hiển thị UI chỉ là UX — backend vẫn phải tự kiểm tra quyền ([`rules/data-safety`](../rules/data-safety.md)).

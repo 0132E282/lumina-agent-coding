@@ -26,7 +26,7 @@ Nguồn tham chiếu (ảnh, website, sitemap, recording, HTML, design file) là
 - Không dùng placeholder, ảnh giả, text giả hoặc component generic để che phần chưa hiểu; thiếu asset/hành vi thì ghi rõ giới hạn, giữ cấu trúc tối thiểu.
 - Bảo toàn URL, route, link, query, form action và contract dữ liệu thuộc phạm vi clone. Không đổi backend/API chỉ để thuận tiện frontend.
 - Responsive suy từ viewport/breakpoint có bằng chứng; không tự thêm breakpoint làm đổi UI ngoài nguồn.
-- Không tự áp dụng skill thiết kế khác (`design-taste-frontend`, `minimalist-ui`, `gpt-taste`, `redesign-existing-projects`) — chúng có thể làm lệch nguồn clone.
+- Không tự áp dụng skill thiết kế khác (`minimalist-ui`, `redesign-existing-projects`...) — chúng có thể làm lệch nguồn clone.
 
 ## Quy trình
 
@@ -44,7 +44,7 @@ Trước khi code từ URL, phải kiểm tra khả năng truy cập, status/red
 
 ## Pipeline tự động hóa tài nguyên, CSS và media
 
-Khi người dùng yêu cầu clone từ URL và cần tài nguyên local, dùng pipeline dưới đây. Đây là cơ chế hỗ trợ tạo clone; nghiệm thu cuối vẫn là đối chiếu UI thực tế. Áp dụng rule [`clone-fidelity`](../../rules/clone-fidelity.md).
+Khi người dùng yêu cầu clone từ URL và cần tài nguyên local, dùng pipeline dưới đây. Đây là cơ chế hỗ trợ tạo clone; nghiệm thu cuối vẫn là đối chiếu UI thực tế. Áp dụng mục [Ràng buộc fidelity](#ràng-buộc-fidelity) bên dưới.
 
 ### Bước 0 — Inventory nguồn (trước khi code)
 
@@ -70,7 +70,7 @@ python3 .agents/skills/clone-website/scripts/extract-assets.py \
 
 Script tạo `.agents/storage/assets/temp/{images,videos,fonts,other}` và `mapping.json` (giữ `originUrl`, `localPath`, `kind`, `status`, kích thước, content type, lý do skip/fail). Quét HTML, inline `url()` và `url()` trong CSS đã tải; mặc định cùng-origin, timeout 30s, 50 MiB/file. `--allow-external` chỉ khi host ngoài đã được cho phép; `.m3u8` luôn ghi `skipped`, không tự tải.
 
-URL đã được giao để clone → tải tài nguyên cùng origin nằm trong phạm vi công việc, không cần hỏi lại; chỉ dừng/báo blocker khi vượt authentication/CAPTCHA/paywall hoặc cần host ngoài/stream chưa được phép (xem [`clone-fidelity`](../../rules/clone-fidelity.md) cho giới hạn chung).
+URL đã được giao để clone → tải tài nguyên cùng origin nằm trong phạm vi công việc, không cần hỏi lại; chỉ dừng/báo blocker khi vượt authentication/CAPTCHA/paywall hoặc cần host ngoài/stream chưa được phép (xem [Ràng buộc fidelity](#ràng-buộc-fidelity)).
 
 ### Bước 2 — Process CSS
 
@@ -138,5 +138,14 @@ python3 .agents/skills/clone-website/scripts/compare-html.py \
 ## Skill liên quan
 
 - Dùng `coding-frontend` để triển khai frontend theo stack và rule thật của project.
-- Dùng `image-to-code` chỉ khi người dùng yêu cầu quy trình image-first; khi đó ảnh tham chiếu vẫn là source of truth và không được tự art-direct lại.
 - Dùng `workflow-test` hoặc `testcase` khi người dùng yêu cầu thiết kế/chạy test; không tự biến việc clone thành redesign.
+
+## Ràng buộc fidelity
+
+- Chốt source of truth, route, viewport và trạng thái trước khi triển khai. Tách dữ kiện đã quan sát khỏi giả định; không ghi nhận pixel-perfect nếu chưa đối chiếu cùng viewport/trạng thái.
+- Mọi asset tải về có mapping `originUrl` → `localPath`, trạng thái, loại tài nguyên và lỗi nếu có; không thay URL chưa tải bằng placeholder hoặc URL không xác minh.
+- Giữ CSS gốc ở file riêng khi có thể, thay URL bằng mapping đã xác minh, giữ thứ tự stylesheet và selector. Không dùng regex sửa CSS phức tạp nếu có thể làm hỏng chuỗi, data URI hoặc `@import`.
+- Video, iframe, stream manifest và asset lớn có trạng thái riêng. Không tự tải/ghép stream `.m3u8`, không bỏ qua `poster`, `source`, `track` hoặc `srcset`; ghi rõ phần cần xử lý thủ công.
+- Inject CSS/media phải idempotent (chạy lại không nhân đôi `<link>`, `<style>` hoặc nguồn media) và không ghi đè layout nguồn; dùng file output riêng.
+- Pixel spec chỉ chứa giá trị đo/quan sát được (màu, font, kích thước, line-height, spacing, container, breakpoint, shadow, transition, trạng thái); giá trị chưa đo ghi `TBD`/`Unverified`, không bịa.
+- Tuân thủ giới hạn cùng-origin, kích thước file, timeout và quyền truy cập. Host ngoài, authentication, CAPTCHA, paywall hoặc stream cần quyền riêng thì dừng và báo blocker.

@@ -17,7 +17,7 @@ Lớp **kỹ thuật viết test code** khi implement — khác [`qa-tester-agen
 - Test **hành vi** (input/output), không test chi tiết triển khai — đổi cách viết nội bộ hàm mà không đổi input/output thì test không được fail.
 - Sửa bug → viết test tái hiện bug **trước**, thấy fail, rồi fix tới khi pass ([`rules/quality-assurance`](../../rules/quality-assurance.md)).
 - Độ phủ theo **rủi ro**, không theo % cứng — ưu tiên business logic/edge case/luồng tiền-dữ liệu nhạy cảm, bỏ qua getter/setter/CRUD đã cover gián tiếp.
-- Rule of Three cho test fixture/helper ([`rules/dry`](../../rules/dry.md)) — không gom chung từ lần lặp thứ 2.
+- Rule of Three cho test fixture/helper ([`rules/coding-principles`](../../rules/coding-principles.md)) — không gom chung từ lần lặp thứ 2.
 
 ## Chọn test double
 

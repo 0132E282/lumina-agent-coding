@@ -15,7 +15,7 @@ Khác [`design-patterns`](../design-patterns/SKILL.md) (tạo cấu trúc mới 
 - Không đổi hành vi — output khác đi là sửa bug/thêm tính năng, không phải refactor.
 - Phải có test bao phủ trước khi refactor ([`rules/quality-assurance`](../../rules/quality-assurance.md)); thiếu test → viết test chốt hành vi hiện tại trước (dùng [`testing-strategy`](../testing-strategy/SKILL.md)).
 - Từng bước nhỏ, chạy lại test sau mỗi bước — không dồn nhiều kỹ thuật vào một lần sửa lớn.
-- Rule of Three ([`rules/dry`](../../rules/dry.md)): smell lặp 2 lần có thể chấp nhận, lần 3 mới refactor.
+- Rule of Three ([`rules/coding-principles`](../../rules/coding-principles.md)): smell lặp 2 lần có thể chấp nhận, lần 3 mới refactor.
 - Giữ phạm vi ([`rules/simplicity`](../../rules/simplicity.md)): chỉ refactor phần cần thiết cho task đã giao.
 
 ## Code smell → kỹ thuật refactor
@@ -24,11 +24,11 @@ Khác [`design-patterns`](../design-patterns/SKILL.md) (tạo cấu trúc mới 
 |---|---|
 | Hàm quá dài, làm nhiều việc (tên có "và": `validateAndSave`) | **Extract Method/Function** |
 | Biểu thức điều kiện/tính toán phức tạp khó đọc | **Extract Variable** |
-| `if/else` lồng sâu nhiều tầng | **Decompose Conditional** / Guard Clauses (early return, [`rules/readability`](../../rules/readability.md)) |
+| `if/else` lồng sâu nhiều tầng | **Decompose Conditional** / Guard Clauses (early return, [`rules/coding-principles`](../../rules/coding-principles.md)) |
 | `switch`/`if-else` theo loại đối tượng, lặp ở **≥3 nơi** | **Replace Conditional with Polymorphism** — 1 nơi duy nhất thì giữ `if` ([`rules/simplicity`](../../rules/simplicity.md)) |
 | Số/chuỗi "ma thuật" lặp lại không rõ nghĩa | **Replace Magic Number/String with Symbolic Constant** |
 | Hàm nhận quá nhiều tham số cùng mô tả một khái niệm | **Introduce Parameter Object** (`street, city, zip` → `Address`) |
-| Data clump — cùng nhóm field + hàm xử lý lặp ở nhiều chỗ | **Extract Class** ([`rules/separation-of-concerns`](../../rules/separation-of-concerns.md)) |
+| Data clump — cùng nhóm field + hàm xử lý lặp ở nhiều chỗ | **Extract Class** ([`rules/coding-principles`](../../rules/coding-principles.md)) |
 | Biến tạm chỉ dùng gọi lại một biểu thức một lần | **Replace Temp with Query** — cẩn trọng nếu biểu thức là query nặng (DB/network) |
 | Comment giải thích "đoạn này làm gì" | **Extract Method + đặt tên rõ** thay comment ([`rules/comments`](../../rules/comments.md)) |
 

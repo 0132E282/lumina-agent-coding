@@ -1,6 +1,6 @@
 ---
 name: git-workflow
-description: Thực thi quy tắc git bắt buộc — commit (rules/commit-discipline.md), format lại bằng Prettier trước khi push, và tạo pull request/resolve conflict (rules/pull-request-conflict.md). Tuyệt đối không tự ý git commit khi chưa có lệnh rõ ràng, không commit vụn vặt, message theo Conventional Commits (tiêu đề "<type>: mô tả" ≤ 75 ký tự); trước khi push format lại diff so với remote; khi tạo PR phải check conflict và biết nhánh nào được ưu tiên giữ. Dùng ngay trước khi chạy git commit, git push, tạo/update PR, hoặc resolve conflict. Đi kèm script validate-commit-message.sh để kiểm tra message tự động.
+description: Thực thi quy tắc git bắt buộc — commit (rules/commit-discipline.md), format lại bằng Prettier trước khi commit và push, và tạo pull request/resolve conflict (rules/pull-request-conflict.md). Tuyệt đối không tự ý git commit khi chưa có lệnh rõ ràng, không commit vụn vặt, message theo Conventional Commits (tiêu đề "<type>: mô tả" ≤ 75 ký tự); trước khi push format lại diff so với remote; khi tạo PR phải check conflict và biết nhánh nào được ưu tiên giữ. Dùng ngay trước khi chạy git commit, git push, tạo/update PR, hoặc resolve conflict. Đi kèm script validate-commit-message.sh để kiểm tra message tự động.
 license: MIT
 metadata:
   version: "1.4"
@@ -16,8 +16,9 @@ Riêng `/git` và `$workflow-git` mặc định scope `all`; `change` khi ngư�
 
 1. **Có lệnh rõ ràng từ người dùng chưa?** Chưa có → dừng, không commit, bất kể code đã xong hay chưa.
 2. **Gộp đúng phạm vi** — một commit cho toàn bộ thay đổi liên quan của task hiện tại, không tách vụn, không gộp thêm thay đổi ngoài phạm vi. Chỉ 2 kiểu phạm vi hợp lệ: "push hết" (toàn bộ thay đổi hiện có, khi người dùng nói rõ) hoặc "push theo tính năng" (chỉ phần liên quan task, mặc định khi không chỉ định) — **cả hai đều tuyệt đối không được kèm file tmp/scratch/debug/test thử nghiệm hoặc file rác**. Chạy `git status` rà lại trước `git add`; thấy file rác do mình tạo trong session thì dọn bằng skill [`cleanup-temp-files`](../cleanup-temp-files/SKILL.md) trước, không add vào commit.
-3. **Conventional Commits**: tiêu đề `<type>: <mô tả ngắn gọn>` (`feat`/`fix`/`refactor`/`docs`/`test`/`chore`/`style`/`perf`/`build`/`ci`), tối đa **75 ký tự**; body liệt kê thay đổi chính, nêu rõ vấn đề được giải quyết.
-4. **Chạy script kiểm tra** trước khi commit thật:
+3. **Format lại bằng Prettier trước khi commit**: chạy Prettier trên các file đang staged (`git diff --cached --name-only --diff-filter=ACMR`), rồi `git add` lại đúng các file đó để phần format nằm trong cùng commit. Project chưa cài Prettier (không có trong `PATH` và `npx` không resolve được) → bỏ qua, không tự cài khi chưa được yêu cầu.
+4. **Conventional Commits**: tiêu đề `<type>: <mô tả ngắn gọn>` (`feat`/`fix`/`refactor`/`docs`/`test`/`chore`/`style`/`perf`/`build`/`ci`), tối đa **75 ký tự**; body liệt kê thay đổi chính, nêu rõ vấn đề được giải quyết.
+5. **Chạy script kiểm tra** trước khi commit thật:
    ```bash
    echo "feat: thêm hook tự động format code bằng Prettier sau khi edit" \
      | bash .claude/skills/git-workflow/scripts/validate-commit-message.sh -
@@ -45,7 +46,7 @@ Hook [`format-before-push.sh`](../../hooks/scripts/format-before-push.sh) tự c
 
 ## Checklist
 
-**Commit**: có lệnh rõ ràng từ người dùng · đã gộp đúng phạm vi (push hết hoặc push theo tính năng — không trộn lẫn) · không có file tmp/test/rác lẫn vào · tiêu đề đúng format `<type>: <mô tả>` ≤ 75 ký tự · body nêu rõ vấn đề được giải quyết · đã chạy `validate-commit-message.sh` và nhận `✅`.
+**Commit**: có lệnh rõ ràng từ người dùng · đã chạy Prettier trên file staged (nếu project có cài) · đã gộp đúng phạm vi (push hết hoặc push theo tính năng — không trộn lẫn) · không có file tmp/test/rác lẫn vào · tiêu đề đúng format `<type>: <mô tả>` ≤ 75 ký tự · body nêu rõ vấn đề được giải quyết · đã chạy `validate-commit-message.sh` và nhận `✅`.
 
 **Push**: đã format lại diff so với remote bằng Prettier (nếu project có cài) · không còn thay đổi format nào trôi ra ngoài commit đang push.
 
