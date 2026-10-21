@@ -15,6 +15,7 @@
         "matcher": "^Bash$",
         "hooks": [
           { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/commit-msg-guard.sh\"", "timeout": 30 },
+          { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/bugfix-test-reminder.sh\"", "timeout": 30 },
           { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/secret-scan.sh\"", "timeout": 30 },
           { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/protected-branch-guard.sh\"", "timeout": 30 },
           { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/format-before-push.sh\"", "timeout": 120 }

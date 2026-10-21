@@ -29,46 +29,31 @@ tool_name="$(printf '%s' "$input" | jq -r '.tool_name // ""' 2>/dev/null)"
 command_str="$(printf '%s' "$input" | jq -r '.tool_input.command // ""' 2>/dev/null)"
 [ -z "$command_str" ] && exit 0
 
-printf '%s' "$command_str" | grep -qE '\bgit[[:space:]]+commit\b' || exit 0
+. "$(dirname "$0")/_shell-command.sh"
+invocations="$(git_invocations "$command_str" commit)" || true
+[ -n "$invocations" ] || exit 0
 
 validator=".claude/skills/git-workflow/scripts/validate-commit-message.sh"
 [ -f "$validator" ] || exit 0
 
-# Trường hợp phổ biến nhất (git commit -m "$(cat <<'EOF' ... EOF)"): lấy
-# nội dung heredoc làm message.
-delimiter="$(printf '%s' "$command_str" | grep -oE "<<-?['\"]?[A-Za-z_][A-Za-z0-9_]*['\"]?" | head -1 | sed -E "s/^<<-?//; s/^['\"]//; s/['\"]\$//")" || true
+# Message chỉ lấy từ đối số của chính lệnh `git commit` (-m/--message, hoặc
+# -F - kèm heredoc); không lấy heredoc/-m của lệnh khác như `cat`/`git tag`.
+reasons=()
+while IFS= read -r invocation; do
+  [ -z "$invocation" ] && continue
+  IFS=$'\037' read -r -a fields <<< "$invocation"
+  message="$(git_commit_message "${fields[@]:2}")" || continue
+  [ -z "$message" ] && continue
+  # Dùng nội dung output để biết hợp lệ hay không (validator exit 1 khi sai —
+  # không dựa vào exit code trực tiếp vì `trap ERR` phía trên sẽ thoát sớm).
+  validation_output="$(printf '%s' "$message" | bash "$validator" - 2>&1)" || true
+  printf '%s' "$validation_output" | grep -q '❌' || continue
+  reasons+=("$(printf '%s' "$validation_output" | tr '\n' ' ')")
+done <<< "$invocations"
 
-message=""
-if [ -n "$delimiter" ]; then
-  message="$(printf '%s\n' "$command_str" | awk -v d="$delimiter" '
-    found==1 {
-      line=$0
-      gsub(/^[ \t]+|[ \t]+$/, "", line)
-      if (line == d) { found=0; exit }
-      print $0
-      next
-    }
-    index($0, "<<") > 0 && index($0, d) > 0 { found=1 }
-  ')" || true
-fi
+[ "${#reasons[@]}" -eq 0 ] && exit 0
 
-# Fallback: git commit -m "..." đơn giản (không heredoc).
-if [ -z "$message" ]; then
-  message="$(printf '%s' "$command_str" | grep -oE -- '-m[[:space:]]+"[^"]*"' | head -1 | sed -E 's/^-m[[:space:]]+"//; s/"$//')" || true
-fi
-if [ -z "$message" ]; then
-  message="$(printf '%s' "$command_str" | grep -oE -- "-m[[:space:]]+'[^']*'" | head -1 | sed -E "s/^-m[[:space:]]+'//; s/'\$//")" || true
-fi
-
-[ -z "$message" ] && exit 0
-
-# Dùng nội dung output để biết hợp lệ hay không (validator exit 1 khi sai —
-# không dựa vào exit code trực tiếp vì `trap ERR` phía trên sẽ thoát sớm).
-validation_output="$(printf '%s' "$message" | bash "$validator" - 2>&1)" || true
-
-printf '%s' "$validation_output" | grep -q '❌' || exit 0
-
-reason="$(printf '%s' "$validation_output" | tr '\n' ' ')"
+reason="${reasons[*]}"
 jq -n --arg reason "$reason" '{
   hookSpecificOutput: {
     hookEventName: "PreToolUse",

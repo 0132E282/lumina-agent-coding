@@ -4,7 +4,7 @@
 - Nhãn thay đổi: `Đã sửa:`, `Đã thêm mới:`, `Đã xóa:`; chỉ hiện nhóm có thay đổi. Một thay đổi ghi cùng hàng nhãn; nhiều thay đổi dùng bullet, có dòng trống trước danh sách.
 - Mô tả ngắn nêu thay đổi và vấn đề được giải quyết. Link dùng số dòng/khoảng dòng thực tế làm nhãn, đường dẫn tuyệt đối mở tại dòng đầu: `[3–27](/absolute/path/file:3)`. Nội dung xóa nêu lý do thực tế, không tạo link khi vị trí không còn; không bịa số dòng.
 - `Big O:` nằm ngay trong mục của file, sau các dòng thay đổi, bằng tiếng Anh, một dòng **in đậm cả dòng** cho nổi bật: `**Big O: <độ phức tạp> — Good | needs optimization**`. Ví dụ `**Big O: O(2n) — Good**`, `**Big O: N+1 — needs optimization**`. Chỉ ghi cho file có code xử lý phụ thuộc dữ liệu (thuật toán, vòng lặp, query/API); rule/skill/docs/template/config/test thì **bỏ hẳn dòng này**, không ghi "Không áp dụng", "Không có" hay bất kỳ câu giải thích nào thay thế.
-- Cuối báo cáo (sau dòng phân cách cuối) ghi `Kiểm chứng:`, `Giới hạn:`, `Đánh giá:`, rồi `Token:` và `Issue lãng phí:` khi hook `report-usage` (chạy lúc gọi skill `report`) đã đưa số liệu thật vào context — chép đúng số và nhãn phạm vi (cả phiên hay từ mốc báo cáo trước) từ chính lần hook chèn ở lượt này — không dùng số của lần trước, không tự tính; muốn có số mới thì gọi lại skill `report` trong lượt đó; không có số liệu thì bỏ cả hai dòng, không ghi N/A, không ước lượng; chỉ thêm code cũ/mới hoặc giải thích sâu khi được yêu cầu.
+- Cuối báo cáo (sau dòng phân cách cuối) ghi `Kiểm chứng:`, `Giới hạn:`, `Đánh giá:`, rồi `Token:` (và `Issue lãng phí:` chỉ khi hook liệt kê vi phạm) khi hook `report-usage` (chạy lúc gọi skill `report`) đã đưa số liệu thật vào context — chép đúng số và nhãn phạm vi (cả phiên hay từ mốc trước) từ chính lần hook chèn ở lượt này — không dùng số của lần trước, không tự tính; muốn có số mới thì gọi lại skill `report` trong lượt đó; không có số liệu thì bỏ dòng, không ghi N/A, không ước lượng. Chỉ nêu kết quả cuối, không kể quá trình (test-first, các lần thử, subagent nào làm gì); chỉ thêm code cũ/mới hoặc giải thích sâu khi được yêu cầu.
 - Thay đổi UI/frontend (gồm clone-website): thêm `URL:` (route đã kiểm tra trên trình duyệt thật) và `Ảnh chứng:` (đường dẫn screenshot thật, ví dụ `.agents/storage/evidence/<task-slug>/...png`; nêu `trước` nếu có và `kết quả` bắt buộc) — xem [`rules/frontend`](../../../rules/frontend.md). Bỏ khi không có UI.
 - Thay đổi API: chỉ khi có đụng API mới thêm `API:` (không có thì không ghi, không để dòng trống) — request thật (`METHOD URL` + giá trị input) và response thật (status, body) đã chạy, đối chiếu khớp kỳ vọng. Chưa chạy thì ghi `Chưa chạy`, không bịa response.
 - Xuất ngoài code fence; dòng phân cách là 80 dấu `-` trong inline code.
@@ -25,7 +25,7 @@ Path: path/to/other.ext
 
 `--------------------------------------------------------------------------------`
 
-**Kiểm chứng**: Lệnh và kết quả thực tế; nêu phần chưa kiểm tra.
+**Kiểm chứng**: Lệnh và kết quả cuối cùng (vd. `npm test` 91/91 pass); nêu phần chưa kiểm tra.
 
 **URL**: Route đã mở trên trình duyệt thật (chỉ khi có UI).
 
@@ -35,6 +35,6 @@ Path: path/to/other.ext
 
 **Đánh giá**: Kết luận, trade-off và rủi ro còn lại; `Không có` khi phù hợp.
 
-**Token**: input X | output Y | cache đọc Z | cache tạo W — phạm vi và nguồn theo hook (chỉ khi có số liệu thật; bỏ dòng này nếu không có).
+**Token**: input X | output Y | cache đọc Z | cache tạo W | tổng T (phạm vi theo hook) — chép đúng số rút gọn hook đưa ra, vd. `input 18 | output 4.4k | cache đọc 912k | cache tạo 13.4k | tổng 930k (từ mốc trước)` (chỉ khi có số liệu thật; bỏ dòng này nếu không có).
 
-**Issue lãng phí**: Mỗi vi phạm tiêu chí kèm bằng chứng (đọc lại file, lặp lệnh, kết quả tool quá lớn, nhiều subagent, cache tạo mới cao) hoặc `Không phát hiện` (chỉ khi có số liệu thật; bỏ dòng này nếu không có). Ngưỡng ở `assets/waste-criteria.json`.
+**Issue lãng phí**: Mỗi vi phạm tiêu chí kèm bằng chứng (đọc lại file, lặp lệnh, kết quả tool quá lớn, nhiều subagent, cache tạo mới cao) — chỉ khi hook liệt kê vi phạm; không có thì bỏ dòng, không ghi `Không phát hiện`. Ngưỡng ở `assets/waste-criteria.json`.

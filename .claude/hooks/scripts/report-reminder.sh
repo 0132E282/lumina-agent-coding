@@ -37,8 +37,10 @@ project_dir="$(pwd)"
 
 # Đếm Edit/Write xảy ra SAU lần gọi skill `report` gần nhất (hoặc từ đầu
 # session nếu chưa gọi lần nào) — nếu > 0 nghĩa là có thay đổi chưa báo cáo.
+# Chỉ tính entry của phiên chính (không có agent_id): Edit/Write của subagent
+# được phiên chính gộp vào một báo cáo tổng sau khi mọi task xong.
 result="$(jq -s -r --arg sid "$session_id" --arg cwd "$project_dir" '
-  map(select(.session_id == $sid and .cwd == $cwd)) as $entries
+  map(select(.session_id == $sid and .cwd == $cwd and ((.agent_id // "") == ""))) as $entries
   | ($entries | map(select(.tool == "Skill" and .input.skill == "report") | .ts) | sort | last) as $last_report
   | ($entries | map(select(.tool == "Edit" or .tool == "Write"))
       | map(select($last_report == null or .ts > $last_report))) as $pending

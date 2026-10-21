@@ -8,6 +8,7 @@ import test from 'node:test';
 
 const usageHook = fileURLToPath(new URL('../.claude/hooks/scripts/report-usage.sh', import.meta.url));
 const reminderHook = fileURLToPath(new URL('../.claude/hooks/scripts/report-reminder.sh', import.meta.url));
+const auditHook = fileURLToPath(new URL('../.claude/hooks/scripts/audit-log.sh', import.meta.url));
 
 function repository(context) {
   const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'report-hooks-test-')));
@@ -70,10 +71,10 @@ test('report-usage emits the token and waste lines and windows by marker', conte
   const firstOutput = JSON.parse(first.stdout).hookSpecificOutput;
   assert.equal(firstOutput.hookEventName, 'PostToolUse');
   const firstLines = firstOutput.additionalContext.split('\n');
-  assert.equal(firstLines.length, 3);
-  assert.equal(firstLines[0], '📈 Token (cả phiên, nguồn transcript): input 20 | output 10 | cache đọc 200 | cache tạo 14.');
-  assert.equal(firstLines[1], 'Issue lãng phí: Không phát hiện.');
-  assert.match(firstLines[2], /Token: và Issue lãng phí:/);
+  assert.equal(firstLines.length, 2);
+  assert.equal(firstLines[0], '📈 Token: input 20 | output 10 | cache đọc 200 | cache tạo 14 | tổng 244 (cả phiên).');
+  assert.doesNotMatch(firstOutput.additionalContext, /Không phát hiện/);
+  assert.match(firstLines[1], /dòng Token: theo template change \(và dòng Issue lãng phí: chỉ khi hook liệt kê vi phạm\)/);
   const marker = path.join(root, '.agents/storage/state/session-1.json');
   assert.deepEqual(JSON.parse(fs.readFileSync(marker, 'utf8')), { lastLine: 2 });
 
@@ -81,7 +82,7 @@ test('report-usage emits the token and waste lines and windows by marker', conte
   const second = runHook(usageHook, root, skillPayload('plugin:report', transcript));
   assert.equal(second.status, 0);
   const secondLines = JSON.parse(second.stdout).hookSpecificOutput.additionalContext.split('\n');
-  assert.equal(secondLines[0], '📈 Token (từ mốc báo cáo trước, nguồn transcript): input 1 | output 2 | cache đọc 0 | cache tạo 0.');
+  assert.equal(secondLines[0], '📈 Token: input 1 | output 2 | cache đọc 0 | cache tạo 0 | tổng 3 (từ mốc trước).');
   assert.deepEqual(JSON.parse(fs.readFileSync(marker, 'utf8')), { lastLine: 3 });
 
   const third = runHook(usageHook, root, skillPayload('report', transcript));
@@ -109,4 +110,62 @@ test('report-reminder no longer prints token lines or touches the usage marker',
   const again = runHook(reminderHook, root, payload);
   assert.equal(again.status, 0);
   assert.equal(again.stdout, '');
+});
+
+test('report-usage prints compact numbers but stores raw numbers', context => {
+  const root = repository(context);
+  const file = path.join(root, 'transcript.jsonl');
+  const usage = { input_tokens: 18, output_tokens: 4448, cache_read_input_tokens: 912046, cache_creation_input_tokens: 13421 };
+  fs.writeFileSync(file, `${JSON.stringify({ type: 'assistant', message: { id: 'm0', usage, content: [] } })}\n`);
+  const result = runHook(usageHook, root, skillPayload('report', file));
+  assert.equal(result.status, 0);
+  const lines = JSON.parse(result.stdout).hookSpecificOutput.additionalContext.split('\n');
+  assert.equal(lines[0], '📈 Token: input 18 | output 4.4k | cache đọc 912k | cache tạo 13.4k | tổng 930k (cả phiên).');
+  assert.doesNotMatch(lines.join('\n'), /nguồn transcript/);
+  const emitted = JSON.parse(fs.readFileSync(path.join(root, '.agents/storage/state/session-1.emitted.json'), 'utf8'));
+  assert.deepEqual([emitted.input, emitted.output, emitted.cacheRead, emitted.cacheCreate, emitted.total], [18, 4448, 912046, 13421, 929933]);
+});
+
+test('report-reminder ignores Edit/Write made by subagents (audit-log records agent_id)', context => {
+  const root = repository(context);
+  const transcript = writeTranscript(root, 1);
+  const editPayload = (filePath, extra = {}) => ({
+    session_id: 'session-1', cwd: root, tool_name: 'Edit', tool_input: { file_path: filePath }, ...extra,
+  });
+
+  const subagentAudit = runHook(auditHook, root, editPayload('subagent.txt', { agent_id: 'agent-abc', agent_type: 'coding-agent' }));
+  assert.equal(subagentAudit.status, 0);
+  const logFile = path.join(root, '.agents/storage/logs/logs.jsonl');
+  const [subagentEntry] = fs.readFileSync(logFile, 'utf8').trim().split('\n').map(line => JSON.parse(line));
+  assert.equal(subagentEntry.agent_id, 'agent-abc');
+
+  const payload = { session_id: 'session-1', transcript_path: transcript };
+  const onlySubagent = runHook(reminderHook, root, payload);
+  assert.equal(onlySubagent.status, 0);
+  assert.equal(onlySubagent.stdout, '');
+
+  const mainAudit = runHook(auditHook, root, editPayload('main.txt'));
+  assert.equal(mainAudit.status, 0);
+  const mainEntry = JSON.parse(fs.readFileSync(logFile, 'utf8').trim().split('\n')[1]);
+  assert.equal('agent_id' in mainEntry, false);
+
+  const withMain = runHook(reminderHook, root, payload);
+  assert.equal(withMain.status, 0);
+  const message = JSON.parse(withMain.stdout).hookSpecificOutput.additionalContext;
+  assert.match(message, /Edit\/Write 1 lần \(main\.txt\)/);
+  assert.doesNotMatch(message, /subagent\.txt/);
+});
+
+test('report-usage keeps the Issue lãng phí line when waste is detected', context => {
+  const root = repository(context);
+  const file = path.join(root, 'transcript.jsonl');
+  const usage = { input_tokens: 10, output_tokens: 5, cache_read_input_tokens: 0, cache_creation_input_tokens: 60000 };
+  fs.writeFileSync(file, `${JSON.stringify({ type: 'assistant', message: { id: 'm0', usage, content: [] } })}\n`);
+  const result = runHook(usageHook, root, skillPayload('report', file));
+  assert.equal(result.status, 0);
+  const lines = JSON.parse(result.stdout).hookSpecificOutput.additionalContext.split('\n');
+  assert.equal(lines.length, 3);
+  assert.match(lines[0], /^📈 Token: /);
+  assert.equal(lines[1], 'Issue lãng phí: 1 — cacheCreateOverRead: cache tạo 60000 > cache đọc 0 (×1)');
+  assert.match(lines[2], /dòng Issue lãng phí: chỉ khi hook liệt kê vi phạm/);
 });

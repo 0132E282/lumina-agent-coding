@@ -29,28 +29,50 @@ tool_name="$(printf '%s' "$input" | jq -r '.tool_name // ""' 2>/dev/null)"
 command_str="$(printf '%s' "$input" | jq -r '.tool_input.command // ""' 2>/dev/null)"
 [ -z "$command_str" ] && exit 0
 
-printf '%s' "$command_str" | grep -qE '\bgit[[:space:]]+push\b' || exit 0
+. "$(dirname "$0")/_shell-command.sh"
+invocations="$(git_invocations "$command_str" push)" || true
+[ -n "$invocations" ] || exit 0
 
 reasons=()
 
-if printf '%s' "$command_str" | grep -qE -- '--force\b|--force-with-lease|([[:space:]]|^)-f([[:space:]]|$)'; then
-  reasons+=("force push (có thể ghi đè lịch sử/nhánh remote)")
-fi
-
-if printf '%s' "$command_str" | grep -qE -- '--no-verify|--no-gpg-sign'; then
-  reasons+=("bỏ qua hook/ký commit (--no-verify/--no-gpg-sign)")
-fi
-
-current_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" || true
-if printf '%s' "$current_branch" | grep -qE '^(main|master)$'; then
-  if ! printf '%s' "$command_str" | grep -qE 'HEAD:[^[:space:]]+'; then
-    reasons+=("push trực tiếp lên nhánh ${current_branch}")
+# Chỉ đọc cờ/refspec của chính lệnh `git push` thực thi, không đọc dữ liệu
+# heredoc/chuỗi; subcommand động (`git "$x"`) được kiểm như push thật.
+while IFS= read -r invocation; do
+  [ -z "$invocation" ] && continue
+  IFS=$'\037' read -r -a fields <<< "$invocation"
+  directory="${fields[1]}"
+  if [ -n "$directory" ] && [ ! -d "$directory" ]; then
+    reasons+=("không vào được thư mục git -C '$directory' để xác định nhánh")
+    continue
   fi
-fi
+
+  force=0
+  skip_verification=0
+  pushes_head_refspec=0
+  for raw_argument in "${fields[@]:2}"; do
+    argument="$(decode_shell_token "$raw_argument")"
+    case "$argument" in
+      --force|--force=*|--force-with-lease|--force-with-lease=*|--force-if-includes) force=1 ;;
+      --no-verify|--no-gpg-sign) skip_verification=1 ;;
+      --*) ;;
+      -*f*) force=1 ;;
+      HEAD:?*) pushes_head_refspec=1 ;;
+    esac
+  done
+
+  [ "$force" -eq 1 ] && reasons+=("force push (có thể ghi đè lịch sử/nhánh remote)")
+  [ "$skip_verification" -eq 1 ] && reasons+=("bỏ qua hook/ký commit (--no-verify/--no-gpg-sign)")
+
+  current_branch="$(git -C "${directory:-.}" rev-parse --abbrev-ref HEAD 2>/dev/null)" || true
+  case "$current_branch" in
+    main|master) [ "$pushes_head_refspec" -eq 0 ] && reasons+=("push trực tiếp lên nhánh ${current_branch}") ;;
+  esac
+done <<< "$invocations"
 
 [ "${#reasons[@]}" -eq 0 ] && exit 0
 
-reason_text="Hành động rủi ro cao trước khi push: $(printf '%s; ' "${reasons[@]}"). Xác nhận với người dùng trước khi tiếp tục."
+reason_list="$(printf '%s; ' "${reasons[@]}")"
+reason_text="Hành động rủi ro cao trước khi push: ${reason_list%; }. Xác nhận với người dùng trước khi tiếp tục."
 jq -n --arg reason "$reason_text" '{
   hookSpecificOutput: {
     hookEventName: "PreToolUse",

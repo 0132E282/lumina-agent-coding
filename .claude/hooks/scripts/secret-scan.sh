@@ -28,7 +28,10 @@ tool_name="$(printf '%s' "$input" | jq -r '.tool_name // ""' 2>/dev/null)"
 command_str="$(printf '%s' "$input" | jq -r '.tool_input.command // ""' 2>/dev/null)"
 [ -z "$command_str" ] && exit 0
 
-printf '%s' "$command_str" | grep -qE '\bgit[[:space:]]+(add|commit)\b' || exit 0
+. "$(dirname "$0")/_shell-command.sh"
+add_invocations="$(git_invocations "$command_str" add)" || true
+commit_invocations="$(git_invocations "$command_str" commit)" || true
+[ -n "$add_invocations$commit_invocations" ] || exit 0
 
 SECRET_PATTERN='-----BEGIN (RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----|AKIA[0-9A-Z]{16}|(api[_-]?key|secret|token|password)[[:space:]]*[:=][[:space:]]*["'"'"'][A-Za-z0-9/+_=-]{16,}["'"'"']'
 
@@ -46,29 +49,50 @@ is_env_file() {
   esac
 }
 
-if printf '%s' "$command_str" | grep -qE '\bgit[[:space:]]+add\b'; then
-  paths="$(printf '%s' "$command_str" | grep -oE 'git[[:space:]]+add[^&|;]*' | sed -E 's/^git[[:space:]]+add//' | tr ' ' '\n' | grep -vE '^-|^$')" || true
-  while IFS= read -r p; do
+# Thư mục `git -C` không vào được thì không kiểm được -> hỏi lại thay vì bỏ qua.
+directory_is_usable() {
+  [ -z "$1" ] || [ -d "$1" ] && return 0
+  flagged+=("không vào được thư mục git -C '$1' để kiểm tra")
+  return 1
+}
+
+while IFS= read -r invocation; do
+  [ -z "$invocation" ] && continue
+  IFS=$'\037' read -r -a fields <<< "$invocation"
+  add_directory="${fields[1]}"
+  directory_is_usable "$add_directory" || continue
+  for raw_argument in "${fields[@]:2}"; do
+    case "$raw_argument" in $'\035'*|-*) continue ;; esac
+    p="$(decode_shell_token "$raw_argument")"
     [ -z "$p" ] && continue
     if is_env_file "$p"; then
       flagged+=("$p (file .env)")
     fi
-    if [ -f "$p" ] && grep -qE "$SECRET_PATTERN" "$p" 2>/dev/null; then
+    path_on_disk="$p"
+    case "$p" in
+      /*) ;;
+      *) [ -n "$add_directory" ] && path_on_disk="$add_directory/$p" ;;
+    esac
+    if [ -f "$path_on_disk" ] && grep -qE -- "$SECRET_PATTERN" "$path_on_disk" 2>/dev/null; then
       flagged+=("$p (khớp pattern secret)")
     fi
-  done <<< "$paths"
-fi
+  done
+done <<< "$add_invocations"
 
-if printf '%s' "$command_str" | grep -qE '\bgit[[:space:]]+commit\b'; then
-  staged_diff="$(git diff --cached 2>/dev/null)" || true
-  if [ -n "$staged_diff" ] && printf '%s' "$staged_diff" | grep -E '^\+' | grep -qE "$SECRET_PATTERN"; then
+while IFS= read -r invocation; do
+  [ -z "$invocation" ] && continue
+  IFS=$'\037' read -r -a fields <<< "$invocation"
+  directory_is_usable "${fields[1]}" || continue
+  staged_diff="$(git -C "${fields[1]:-.}" diff --cached 2>/dev/null)" || true
+  if [ -n "$staged_diff" ] && printf '%s' "$staged_diff" | grep -E '^\+' | grep -qE -- "$SECRET_PATTERN"; then
     flagged+=("staged changes (khớp pattern secret)")
   fi
-fi
+done <<< "$commit_invocations"
 
 [ "${#flagged[@]}" -eq 0 ] && exit 0
 
-reason="Phát hiện nội dung giống secret/credential: $(printf '%s; ' "${flagged[@]}"). Xác nhận lại với người dùng trước khi tiếp tục (rules/backend.md)."
+flagged_list="$(printf '%s; ' "${flagged[@]}")"
+reason="Phát hiện nội dung giống secret/credential hoặc không kiểm tra được: ${flagged_list%; }. Xác nhận lại với người dùng trước khi tiếp tục (rules/backend.md)."
 jq -n --arg reason "$reason" '{
   hookSpecificOutput: {
     hookEventName: "PreToolUse",

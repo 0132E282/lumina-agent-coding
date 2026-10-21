@@ -37,6 +37,8 @@ timestamp="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 session_id="$(printf '%s' "$input" | jq -r '.session_id // "unknown"' 2>/dev/null)"
 tool_name="$tool_name_check"
 cwd="$(printf '%s' "$input" | jq -r '.cwd // ""' 2>/dev/null)"
+# Claude Code chỉ gửi agent_id khi tool chạy trong subagent; phiên chính không có field này.
+agent_id="$(printf '%s' "$input" | jq -r '.agent_id // ""' 2>/dev/null)"
 
 # Tóm tắt tool_input theo loại tool — KHÔNG ghi nguyên nội dung file (Write/Edit)
 # vào log để tránh log phình to và rò rỉ nội dung nhạy cảm.
@@ -56,8 +58,10 @@ entry="$(jq -nc \
   --arg session "$session_id" \
   --arg tool "$tool_name" \
   --arg cwd "$cwd" \
+  --arg agent_id "$agent_id" \
   --argjson input "$summary" \
-  '{ts: $ts, session_id: $session, tool: $tool, cwd: $cwd, input: $input}' 2>/dev/null)"
+  '{ts: $ts, session_id: $session, tool: $tool, cwd: $cwd, input: $input}
+   + (if $agent_id != "" then {agent_id: $agent_id} else {} end)' 2>/dev/null)"
 
 [ -n "$entry" ] && printf '%s\n' "$entry" >> "$log_file" 2>/dev/null
 

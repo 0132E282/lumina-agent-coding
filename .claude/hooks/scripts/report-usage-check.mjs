@@ -3,8 +3,9 @@
 // Usage: node report-usage-check.mjs <logRoot>  (Stop payload qua stdin). Luôn exit 0.
 import * as fs from 'node:fs';
 import path from 'node:path';
+import { formatCompactNumber } from './compact-number.mjs';
 
-const NUMBER = String.raw`(\d{1,3}(?:[.,  ]\d{3})+|\d+)`;
+const NUMBER = String.raw`(\d+(?:\.\d+)?[kKmM](?![\p{L}\d])|\d{1,3}(?:[.,  ]\d{3})+|\d+)`;
 const FIELDS = [
   ['input', 'input'],
   ['output', 'output'],
@@ -41,14 +42,28 @@ function parseReportedNumbers(message) {
   if (!tokenLine) return null;
   const numbers = {};
   for (const [name, label] of FIELDS) {
-    const match = new RegExp(`${label}\\s*:?\\s*${NUMBER}`, 'i').exec(tokenLine);
+    const match = new RegExp(`${label}\\s*:?\\s*${NUMBER}`, 'iu').exec(tokenLine);
     if (!match) return null;
-    numbers[name] = Number(match[1].replace(/[.,  ]/g, ''));
+    numbers[name] = parseReportedValue(match[1]);
   }
+  const totalMatch = new RegExp(`tổng\\s*:?\\s*${NUMBER}`, 'iu').exec(tokenLine);
+  if (totalMatch) numbers.total = parseReportedValue(totalMatch[1]);
   return numbers;
 }
 
-const describe = numbers => `input ${numbers.input} | output ${numbers.output} | cache đọc ${numbers.cacheRead} | cache tạo ${numbers.cacheCreate}`;
+// Số rút gọn giữ dạng chuỗi chuẩn hoá (k thường, M hoa) để so đúng với formatCompactNumber; số thô đổi về Number.
+function parseReportedValue(text) {
+  const compact = /^(\d+(?:\.\d+)?)([kKmM])$/.exec(text);
+  if (compact) return `${compact[1]}${compact[2].toLowerCase() === 'k' ? 'k' : 'M'}`;
+  return Number(text.replace(/[.,  ]/g, ''));
+}
+
+const matchesEmitted = (reportedValue, emittedValue) => (typeof reportedValue === 'string'
+  ? reportedValue === formatCompactNumber(emittedValue)
+  : reportedValue === emittedValue);
+
+const describe = (numbers, format = String) => `input ${format(numbers.input)} | output ${format(numbers.output)} | cache đọc ${format(numbers.cacheRead)} | cache tạo ${format(numbers.cacheCreate)}${numbers.total === undefined ? '' : ` | tổng ${format(numbers.total)}`}`;
+const describeCompact = numbers => describe(numbers, formatCompactNumber);
 
 function readJson(file) {
   try {
@@ -71,7 +86,12 @@ function main() {
   const stateDirectory = path.join(logRoot, '.agents/storage/state');
   const emitted = readJson(path.join(stateDirectory, `${sessionId}.emitted.json`));
   const hasEmitted = emitted && FIELDS.every(([name]) => Number.isFinite(emitted[name]));
-  if (hasEmitted && FIELDS.every(([name]) => emitted[name] === reported[name])) return;
+  // Tổng là tuỳ chọn trong báo cáo; emitted cũ chưa có total thì cộng từ 4 trường.
+  if (hasEmitted && !Number.isFinite(emitted.total)) {
+    emitted.total = FIELDS.reduce((sum, [name]) => sum + emitted[name], 0);
+  }
+  const totalMatches = reported.total === undefined || matchesEmitted(reported.total, emitted?.total);
+  if (hasEmitted && totalMatches && FIELDS.every(([name]) => matchesEmitted(reported[name], emitted[name]))) return;
 
   const signature = `${describe(reported)} => ${hasEmitted ? describe(emitted) : 'no-emitted'}`;
   const checkedFile = path.join(stateDirectory, `${sessionId}.checked`);
@@ -81,7 +101,7 @@ function main() {
   fs.appendFileSync(checkedFile, `${signature}\n`);
 
   const message = hasEmitted
-    ? `⚠️ Dòng Token trong báo cáo không khớp số hook đã chèn (báo cáo: ${describe(reported)}; hook: ${describe(emitted)}). Sửa lại bằng đúng số hook: ${describe(emitted)}.`
+    ? `⚠️ Dòng Token trong báo cáo không khớp số hook đã chèn (báo cáo: ${describe(reported)}; hook: ${describeCompact(emitted)}). Sửa lại bằng đúng số hook: ${describeCompact(emitted)}.`
     : '⚠️ Báo cáo có dòng Token nhưng hook chưa chèn số nào ở phiên này; gọi lại skill report để lấy số thật hoặc bỏ dòng Token.';
   process.stdout.write(`${JSON.stringify({ hookSpecificOutput: { hookEventName: 'Stop', additionalContext: message } })}\n`);
 }

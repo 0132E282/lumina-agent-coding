@@ -104,7 +104,7 @@ test('every hook shell script passes bash -n and sources the guard', () => {
   for (const name of scripts) {
     const result = spawnSync('bash', ['-n', path.join(sourceScripts, name)], { encoding: 'utf8' });
     assert.equal(result.status, 0, `${name}: ${result.stderr}`);
-    if (name === '_dedupe-guard.sh') continue;
+    if (name.startsWith('_')) continue;
     assert.match(fs.readFileSync(path.join(sourceScripts, name), 'utf8'), /^\. "\$\(dirname "\$0"\)\/_dedupe-guard\.sh"$/m, name);
   }
 });

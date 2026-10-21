@@ -23,6 +23,10 @@
           },
           {
             "type": "command",
+            "command": "bash .claude/hooks/scripts/bugfix-test-reminder.sh"
+          },
+          {
+            "type": "command",
             "command": "bash .claude/hooks/scripts/secret-scan.sh"
           },
           {

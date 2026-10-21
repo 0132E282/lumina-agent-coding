@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """Validate shared directories and tool adapters without modifying files."""
 from pathlib import Path
+import sys
 import tomllib
+
+sys.dont_write_bytecode = True
+from check_docs import find_errors as find_docs_errors
 
 root = Path(__file__).resolve().parents[1]
 errors = []
@@ -27,6 +31,7 @@ for path in (root / '.codex/agents').glob('*.toml'):
             errors.append(f'Missing role source: {path.stem}')
     except tomllib.TOMLDecodeError as exc:
         errors.append(f'{path.name}: {exc}')
+errors.extend(find_docs_errors(root))
 if errors:
     raise SystemExit('\n'.join(errors))
-print('Shared rules/skills, symlinks and Codex agent adapters are valid.')
+print('Shared rules/skills, symlinks, Codex agent adapters, Markdown links and docs indexes are valid.')

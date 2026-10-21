@@ -28,9 +28,13 @@ command -v jq >/dev/null 2>&1 || exit 0
 
 project_dir="$(pwd)"
 
-# Pattern "có vẻ là tạm": tên chứa tmp/scratch/debug/draft/sandbox/test-output,
-# hoặc đuôi .tmp/.bak/.orig — cố ý hẹp để tránh báo nhầm file thật.
+# Pattern "có vẻ là tạm": tên file bắt đầu bằng tmp/scratch/debug/draft/sandbox/
+# test-output, hoặc đuôi .tmp/.bak/.orig. Chỉ dựa vào tên nên vẫn có thể trùng
+# file thật — vì vậy loại trừ thêm thư mục cấu hình/tài liệu bên dưới.
 scratch_pattern='(^|/)(tmp|scratch|debug|draft|sandbox|test[_-]?output)[^/]*\.[A-Za-z0-9]+$|\.(tmp|bak|orig)$'
+# Thư mục cấu hình/tài liệu của project (tính từ project_dir), ví dụ
+# .agents/rules/debug.md là rule chính thức, không phải file tạm.
+excluded_pattern='^(\.agents/(rules|skills|agents)|\.claude|\.codex|docs)/'
 
 candidates="$(jq -r --arg sid "$session_id" --arg cwd "$project_dir" '
   select(.session_id == $sid and .tool == "Write" and .cwd == $cwd)
@@ -42,6 +46,8 @@ candidates="$(jq -r --arg sid "$session_id" --arg cwd "$project_dir" '
 printf '%s\n' "$candidates" | sort -u | while IFS= read -r path; do
   [ -z "$path" ] && continue
   [ -f "$path" ] || continue
+  relative_path="${path#"$project_dir"/}"
+  printf '%s' "$relative_path" | grep -qE "$excluded_pattern" && continue
   printf '%s' "$path" | grep -qE "$scratch_pattern" && printf '%s\n' "$path"
 done
 

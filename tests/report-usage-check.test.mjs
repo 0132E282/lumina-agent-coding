@@ -8,8 +8,9 @@ import test from 'node:test';
 
 const checkHook = fileURLToPath(new URL('../.claude/hooks/scripts/report-usage-check.sh', import.meta.url));
 const usageHook = fileURLToPath(new URL('../.claude/hooks/scripts/report-usage.sh', import.meta.url));
+const { formatCompactNumber } = await import(new URL('../.claude/hooks/scripts/compact-number.mjs', import.meta.url));
 
-const EMITTED = { input: 1234567, output: 89, cacheRead: 4500, cacheCreate: 12, ts: '2026-01-01T00:00:00Z' };
+const EMITTED = { input: 1234567, output: 89, cacheRead: 4500, cacheCreate: 12, total: 1239168, ts: '2026-01-01T00:00:00Z' };
 
 function repository(context) {
   const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'report-usage-check-test-')));
@@ -67,8 +68,66 @@ test('mismatching numbers warn with both sets of numbers', context => {
   assert.equal(output.hookEventName, 'Stop');
   assert.match(output.additionalContext, /không khớp số hook đã chèn/);
   assert.match(output.additionalContext, /báo cáo: input 999 \| output 89/);
-  assert.match(output.additionalContext, /hook: input 1234567 \| output 89 \| cache đọc 4500 \| cache tạo 12/);
-  assert.match(output.additionalContext, /Sửa lại bằng đúng số hook: input 1234567/);
+  assert.match(output.additionalContext, /hook: input 1\.2M \| output 89 \| cache đọc 4\.5k \| cache tạo 12 \| tổng 1\.2M/);
+  assert.match(output.additionalContext, /Sửa lại bằng đúng số hook: input 1\.2M/);
+});
+
+test('formatCompactNumber rounds deterministically to k/M', () => {
+  const cases = [
+    [0, '0'], [18, '18'], [999, '999'], [1000, '1k'], [4448, '4.4k'], [10_000, '10k'], [13_421, '13.4k'],
+    [99_960, '100k'], [628_400, '628k'], [912_046, '912k'], [999_600, '1M'], [1_234_567, '1.2M'],
+    [15_000_000, '15M'], [123_400_000, '123M'],
+  ];
+  for (const [value, expected] of cases) assert.equal(formatCompactNumber(value), expected, String(value));
+});
+
+test('compact Token line equal to format(emitted) stays silent, any k/M case', context => {
+  const root = repository(context);
+  writeEmitted(root);
+  for (const line of [
+    'Token: input 1.2M | output 89 | cache đọc 4.5k | cache tạo 12 (từ mốc trước)',
+    '**Token**: input 1.2m | output 89 | cache đọc 4.5K | cache tạo 12 (cả phiên)',
+    'Token: input 1234567 | output 89 | cache đọc 4.5k | cache tạo 12',
+  ]) {
+    const result = runHook(checkHook, root, stopPayload(line));
+    assert.equal(result.status, 0);
+    assert.equal(result.stdout, '', line);
+  }
+});
+
+test('compact Token line different from format(emitted) warns in compact form', context => {
+  const root = repository(context);
+  writeEmitted(root, 'session-1', { input: 18, output: 4448, cacheRead: 912046, cacheCreate: 13421, total: 929933, ts: '2026-01-01T00:00:00Z' });
+  const result = runHook(checkHook, root, stopPayload('Token: input 18 | output 4.5k | cache đọc 912k | cache tạo 13.4k (cả phiên)'));
+  assert.equal(result.status, 0);
+  const additionalContext = JSON.parse(result.stdout).hookSpecificOutput.additionalContext;
+  assert.match(additionalContext, /không khớp/);
+  assert.match(additionalContext, /báo cáo: input 18 \| output 4\.5k/);
+  assert.match(additionalContext, /Sửa lại bằng đúng số hook: input 18 \| output 4\.4k \| cache đọc 912k \| cache tạo 13\.4k \| tổng 930k/);
+});
+
+test('optional total: matching raw or compact total stays silent, missing total still matches', context => {
+  const root = repository(context);
+  writeEmitted(root);
+  for (const line of [
+    'Token: input 1.2M | output 89 | cache đọc 4.5k | cache tạo 12 | tổng 1.2M (cả phiên)',
+    'Token: input 1234567 | output 89 | cache đọc 4500 | cache tạo 12 | tổng 1.239.168',
+    'Token: input 1.2M | output 89 | cache đọc 4.5k | cache tạo 12 (cả phiên)',
+  ]) {
+    const result = runHook(checkHook, root, stopPayload(line));
+    assert.equal(result.status, 0);
+    assert.equal(result.stdout, '', line);
+  }
+});
+
+test('wrong total warns and shows the hook total', context => {
+  const root = repository(context);
+  writeEmitted(root);
+  const result = runHook(checkHook, root, stopPayload('Token: input 1.2M | output 89 | cache đọc 4.5k | cache tạo 12 | tổng 1.3M (cả phiên)'));
+  assert.equal(result.status, 0);
+  const additionalContext = JSON.parse(result.stdout).hookSpecificOutput.additionalContext;
+  assert.match(additionalContext, /báo cáo: input 1\.2M \| output 89 \| cache đọc 4\.5k \| cache tạo 12 \| tổng 1\.3M/);
+  assert.match(additionalContext, /Sửa lại bằng đúng số hook: .*\| tổng 1\.2M/);
 });
 
 test('Token line without emitted record asks to call the report skill again', context => {
@@ -133,9 +192,9 @@ test('report-usage writes the emitted numbers file', context => {
   const result = runHook(usageHook, root, { session_id: 'session-1', transcript_path: transcript, tool_name: 'Skill', tool_input: { skill: 'report' } });
   assert.equal(result.status, 0);
   const emitted = JSON.parse(fs.readFileSync(path.join(root, '.agents/storage/state/session-1.emitted.json'), 'utf8'));
-  assert.deepEqual({ ...emitted, ts: undefined }, { input: 20, output: 10, cacheRead: 200, cacheCreate: 14, ts: undefined });
+  assert.deepEqual({ ...emitted, ts: undefined }, { input: 20, output: 10, cacheRead: 200, cacheCreate: 14, total: 244, ts: undefined });
   assert.match(emitted.ts, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/);
 
-  const check = runHook(checkHook, root, stopPayload('Token: input 20 | output 10 | cache đọc 200 | cache tạo 14'));
+  const check = runHook(checkHook, root, stopPayload('Token: input 20 | output 10 | cache đọc 200 | cache tạo 14 | tổng 244 (cả phiên)'));
   assert.equal(check.stdout, '');
 });

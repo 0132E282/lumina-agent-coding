@@ -21,7 +21,7 @@ Trình tự đọc plan, triển khai, kiểm chứng và bàn giao: [`workflow-
 - Không ghi Pass/Fail hoặc tuyên bố tool/check đã chạy nếu không có thực thi và bằng chứng.
 - Trước bàn giao, kiểm tra final newline trên file text đổi, `git diff --check`, diff/out-of-scope, regression, render/state/effect loop và N+1 trên luồng bị ảnh hưởng; không đo được phải ghi rõ rà tĩnh.
 - Lỗi do diff hoặc thuộc scope phải sửa và kiểm lại; lỗi có sẵn ngoài scope chỉ báo vị trí/tác động và xin phép.
-- Bug fix phải có regression test tái hiện trước khi sửa; tôn trọng yêu cầu không chạy test/check.
+- Bug fix phải theo [`rules/bug-fix`](./bug-fix.md): có bằng chứng, nguyên nhân gốc và regression test tái hiện trước khi sửa; tôn trọng yêu cầu không chạy test/check.
 
 Lệnh, checklist và artifact: [`testing`](../skills/testing/references/unit-testing.md), [`workflow-test`](../skills/workflow-test/SKILL.md), [`workflow-review`](../skills/workflow-review/SKILL.md). Kiểm thử module: [`black-box-feature-testing`](#kiểm-thử-hộp-đen-theo-moduletính-năng).
 
@@ -39,6 +39,7 @@ Kỹ thuật thiết kế, scheduler, dependency group, concurrency và artifact
 - Toàn plan/nhóm task chỉ có một báo cáo tổng hợp cuối sau khi mọi task/AC/check bắt buộc có bằng chứng; subagent chỉ bàn giao nội bộ.
 - Còn TODO/IN_PROGRESS, AC chưa đạt hoặc check bắt buộc Fail/Blocked/Not Run thì không tuyên bố hoàn thành; chỉ báo blocker cụ thể. Testcase repo được yêu cầu thiết kế `Not Run` không phải check thực thi.
 - Report chỉ trình bày kết quả đã có, không thay thế review/phân tích/test và không biến lỗi môi trường thành Pass.
-- Báo cáo thay đổi có `Token:` và `Issue lãng phí:` khi hook `report-usage` cung cấp số liệu thật lúc gọi skill `report`; nêu rõ vi phạm tiêu chí lãng phí (đọc lại file, lặp lệnh, kết quả tool quá lớn, nhiều subagent) kèm bằng chứng. Không có số liệu thì bỏ dòng, không ước lượng.
+- Báo cáo chỉ nêu kết quả cuối (thay đổi, kết quả check, giới hạn); không kể quá trình, các bước thử hay diễn biến từng subagent.
+- Báo cáo thay đổi có `Token:` khi hook `report-usage` cung cấp số liệu thật lúc gọi skill `report`; `Issue lãng phí:` chỉ khi hook liệt kê vi phạm (đọc lại file, lặp lệnh, kết quả tool quá lớn, nhiều subagent) kèm bằng chứng. Không có số liệu thì bỏ dòng, không ước lượng.
 
 Timing, chọn loại và format nguồn chuẩn: [`report`](../skills/report/SKILL.md); entry point: [`workflow-report`](../skills/workflow-report/SKILL.md).

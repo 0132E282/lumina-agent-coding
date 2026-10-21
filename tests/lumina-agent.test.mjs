@@ -330,7 +330,7 @@ test('progress indicator clears when installation fails', async () => {
 });
 
 test('global install preserves user configuration and resolves hooks from another cwd', async context => {
-  const options = await fixture(context);
+  const options = await fixture(context, true);
   options.target = path.join(options.temporary, "home with ' quote $ and ` characters");
   options.global = true;
   await fs.mkdir(path.join(options.target, '.claude'), { recursive: true });
@@ -359,7 +359,7 @@ test('global install preserves user configuration and resolves hooks from anothe
 });
 
 test('global install skips .claude/rules symlink but keeps .agents/rules and .codex/rules; project keeps it', async context => {
-  const options = { ...await fixture(context), global: true };
+  const options = { ...await fixture(context, true), global: true };
   assert.ok((await installFromSource(options)).changes > 0);
   await assert.rejects(fs.lstat(path.join(options.target, '.claude/rules')), { code: 'ENOENT' });
   assert.ok((await fs.readdir(path.join(options.target, '.agents/rules'))).some(name => name.endsWith('.md')));
@@ -388,13 +388,13 @@ test('global dry run and instruction conflict do not write home payload', async 
 });
 
 test('empty install preserves relative links and executables; repeat is idempotent', async context => {
-  const options = await fixture(context);
+  const options = await fixture(context, true);
   const first = await installFromSource(options);
   assert.ok(first.changes > 0);
   assert.equal(await fs.readlink(path.join(options.target, '.codex/skills')), '../.agents/skills');
   assert.equal(await fs.readlink(path.join(options.target, '.agents/agents')), '../.claude/agents');
   const script = '.agents/skills/git-workflow/scripts/validate-commit-message.sh';
-  assert.equal((await fs.stat(path.join(options.target, script))).mode & 0o777, (await fs.stat(path.join(repository, script))).mode & 0o777);
+  assert.equal((await fs.stat(path.join(options.target, script))).mode & 0o777, (await fs.stat(path.join(options.source, script))).mode & 0o777);
   assert.match(await fs.readFile(path.join(options.target, 'AGENTS.md'), 'utf8'), /lumina-agent:start/);
   assert.doesNotMatch(await fs.readFile(path.join(options.target, 'AGENTS.md'), 'utf8'), /Repo cấu hình agent/);
   assert.equal((await installFromSource(options)).changes, 0);
@@ -404,7 +404,7 @@ test('empty install preserves relative links and executables; repeat is idempote
 });
 
 test('project instructions and settings survive; matching hook commands are deduplicated', async context => {
-  const options = await fixture(context);
+  const options = await fixture(context, true);
   await fs.mkdir(path.join(options.target, '.claude'), { recursive: true });
   const projectInstructions = '# Project\nUse our existing React components.\n';
   await fs.writeFile(path.join(options.target, 'AGENTS.md'), projectInstructions);

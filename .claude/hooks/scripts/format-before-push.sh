@@ -34,7 +34,12 @@ tool_name="$(printf '%s' "$input" | jq -r '.tool_name // ""' 2>/dev/null)"
 command_str="$(printf '%s' "$input" | jq -r '.tool_input.command // ""' 2>/dev/null)"
 [ -z "$command_str" ] && exit 0
 
-printf '%s' "$command_str" | grep -qE '(^|[;&|]|[[:space:]])git[[:space:]]+push([[:space:]]|$)' || exit 0
+. "$(dirname "$0")/_shell-command.sh"
+invocation="$(git_invocations "$command_str" push | grep -m1 '^known')" || exit 0
+IFS=$'\037' read -r -a fields <<< "$invocation"
+if [ -n "${fields[1]}" ]; then
+  cd "${fields[1]}" 2>/dev/null || exit 0
+fi
 
 project_root="$(git rev-parse --show-toplevel 2>/dev/null)"
 [ -n "$project_root" ] || exit 0

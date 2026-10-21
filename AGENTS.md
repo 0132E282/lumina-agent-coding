@@ -47,10 +47,15 @@ Discovers skills/rules from `.agents/`. TOML files in `.codex/agents/` are not A
 | Task | Role / Skill |
 |---|---|
 | Setup tool/library/runtime/app | `setup-agent` |
-| System survey / diagram | `system-understanding`; `system-understanding`; `database` for schema/query |
+| Requirement analysis | `workflow-analyze` / `requirement-analysis-agent` |
+| System survey / diagram | `system-understanding`; `database` for schema/query |
+| Plan | Plan mode + `workflow-plan` / `planner-agent` |
 | Implementation | `coding-agent` — main session never `Edit`/`Write` product code |
+| Debug / bug fix | `debugs` (fix via `coding-agent`) |
+| Test / QA | `workflow-test` / `qa-tester-agent`; unit test: `testing` |
+| Code review | `workflow-review` / `reviewer-agent`; security: `review-web-security` |
 | New UI / redesign | `ux-ui-designer-agent` |
-| SEO | `seo`; content: `seo` |
+| SEO (technical, content, AI search) | `seo` |
 | Data leak check | `leak-hunter` — list suspects only; self-activate only when assigned |
 
 Docs default to `AI-readable` (minimal context, link instead of repeat). `human-readable` only when requested.
@@ -63,4 +68,4 @@ Docs default to `AI-readable` (minimal context, link instead of repeat). `human-
 
 ## Maintaining configuration
 
-Edit in `.agents/`; keep adapters per runtime. Run `python3 scripts/check-agent-config.py`. Copy the full shared structure when moving to another project.
+Edit in `.agents/`; keep adapters per runtime. Run `python3 scripts/check-agent-config.py` (symlinks, adapters, Markdown links/anchors, docs indexes). Copy the full shared structure when moving to another project.
