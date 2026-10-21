@@ -1,30 +1,29 @@
-# Mẫu Báo Cáo Kế Hoạch (Plan Summary)
+# Mẫu báo cáo kế hoạch
 
-Dùng ngay sau khi agent [`planner-agent`](../../../agents/planner-agent.md) `Write` xong plan JSON trong `docs/plans/`, trước khi dừng chờ người dùng duyệt. Copy khối dưới đây và điền — không chép lại nguyên văn plan, chỉ tóm tắt để duyệt nhanh.
+Dùng ngay sau khi `planner-agent` ghi xong plan JSON trong `docs/plans/`, trước khi chờ duyệt. Dạng text, không bảng, không code fence, không `Description`; không chép lại nguyên văn plan.
 
-```markdown
+- Mỗi task một mục, mở đầu bằng dòng phân cách; bullet nêu việc cần làm.
+- `Status` dùng đúng `TODO | IN_PROGRESS | BLOCKED | DONE`.
+- Task có UI: thêm `URL:` (route) và `Ảnh chứng:` khi đã có. Task có API: thêm `API:` khi đã chạy thật.
 
-## 📐 Báo cáo kế hoạch
+`--------------------------------------------------------------------------------`
 
-**Phạm vi**: [tên tính năng/plan] — **File**: `[docs/plans/<title-slug>-<yyyyMMdd>.json]`
+Task: TASK-001 — Tên nêu rõ kết quả
+Status: TODO
+File: path/to/file.ext
 
-| Mục | Số lượng |
-|---|---|
-| Yêu cầu (REQ/BR) | [N] |
-| Task | [N] (P0: [n], P1: [n], P2: [n]) |
-| Câu hỏi mở cần chốt | [N] |
-| Rủi ro còn lại | [N] |
+- Việc cần làm 1
+- Việc cần làm 2
 
-### Câu hỏi mở cần chốt (nếu có — dùng bảng theo [rules/open-questions-table](../../../rules/open-questions-table.md) khi ≥2 câu)
+`--------------------------------------------------------------------------------`
 
-| # | Câu hỏi | Đề xuất mặc định |
-|---|---|---|
-| 1 | [câu hỏi] | [đề xuất, hoặc "Không có đề xuất — cần người dùng quyết"] |
+**Tổng quan**: REQ [N] | Task [N] (P0 [n], P1 [n], P2 [n]) | Câu hỏi mở [N] | Rủi ro [N]. Plan: `docs/plans/<title-slug>-<yyyyMMdd>.json`.
 
-### Rủi ro chính
-- [rủi ro quan trọng nhất + mitigation, nếu có]
+**Câu hỏi mở** (bỏ nếu không có; mỗi câu một mục theo [open-questions-table](../../../rules/open-questions-table.md)):
 
-### Bước tiếp theo
-- [ ] Chờ người dùng xác nhận câu hỏi mở (nếu có) và duyệt kế hoạch.
-- [ ] Sau khi duyệt → giao `coding-agent` theo đúng `executionOrder` trong plan.
-```
+Câu hỏi 1: [nội dung]
+Đề xuất: [mặc định, hoặc "Cần người dùng quyết"]
+
+**Rủi ro chính**: [rủi ro + cách giảm, hoặc `Không có`]
+
+**Bước tiếp theo**: Chờ người dùng chốt câu hỏi mở và duyệt plan; sau đó giao `coding-agent` theo `executionOrder`.

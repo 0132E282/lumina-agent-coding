@@ -48,7 +48,7 @@ Timeout, retry có giới hạn/backoff/jitter, duplicate delivery, dead-letter 
 
 ### 5. Rủi ro & câu hỏi mở
 
-Ảnh hưởng, mitigation, người xác nhận nếu biết. Đánh dấu blocker cần trả lời trước khi triển khai; phần không blocker dùng giả định rõ ràng. Chọn kiểm chứng có giá trị thật theo rủi ro: contract/integration test, quyền truy cập chéo tenant, idempotency, job retry, migration compatibility, load test theo workload, restore test — phân biệt kế hoạch test với kết quả đã chạy. Có ≥2 blocker/câu hỏi mở cần người dùng chốt → trình bày bằng bảng theo [`rules/open-questions-table`](../rules/open-questions-table.md).
+Ảnh hưởng, mitigation, người xác nhận nếu biết. Đánh dấu blocker cần trả lời trước khi triển khai; phần không blocker dùng giả định rõ ràng. Chọn kiểm chứng có giá trị thật theo rủi ro: contract/integration test, quyền truy cập chéo tenant, idempotency, job retry, migration compatibility, load test theo workload, restore test — phân biệt kế hoạch test với kết quả đã chạy. Có ≥2 blocker/câu hỏi mở cần người dùng chốt → trình bày dạng text, mỗi câu một mục theo [`rules/open-questions-table`](../rules/open-questions-table.md).
 
 ### 6. Bàn giao
 

@@ -1,14 +1,12 @@
-# Mẫu Báo Cáo Bug/Feedback
+# Mẫu báo cáo Bug/Feedback
 
-Dùng khi ghi nhận một bug hoặc feedback phát hiện trong lúc làm việc — không phải kết quả review có sẵn (xem [`review-report-template.md`](./review-report-template.md) cho trường hợp đó), và không phải bug ứng dụng phát hiện qua test case (xem mẫu bug report của `qa-tester-agent`). Copy khối dưới và điền.
+Ghi bug hoặc feedback phát hiện lúc làm việc; không thay review có sẵn hay bug report QA. Dạng text.
 
-```markdown
+`--------------------------------------------------------------------------------`
 
--------------
+Title: [Type] tiêu đề ngắn nêu rõ vấn đề (Type tự do: Bug, Feedback, Idea, Missing capability...)
+URL: `file:dòng`, URL hoặc `chưa xác định`
 
-## 🐞 Bug/Feedback
-
-Title: [Type] [tiêu đề ngắn gọn, nêu rõ vấn đề] — Type tự do (Bug, Feedback, Idea, Missing capability, hoặc mô tả ngắn loại vấn đề phù hợp nhất)
-URL: [đường dẫn/vị trí cần sửa — `file:dòng`, URL, hoặc "chưa xác định"]
-Description: [hiện tượng gì xảy ra, đã làm gì để phát hiện, đã xử lý tới đâu]
-```
+- Hiện tượng: [điều gì xảy ra]
+- Cách phát hiện: [đã làm gì]
+- Đã xử lý tới đâu: [trạng thái]

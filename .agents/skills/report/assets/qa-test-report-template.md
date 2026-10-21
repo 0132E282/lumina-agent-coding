@@ -18,6 +18,8 @@ Dùng để tóm tắt kết quả **đã thiết kế/thực thi** bởi agent 
 |---|---|---|---|
 | `TC-xxx` / `BUG-xxx` (P1/P2/P3) | [hành vi sai quan sát được] | [nguyên nhân gốc + cách xử lý, kèm `file:dòng`] | Pass / Fail / Blocked / Skipped / Not Run |
 
+**API** (chỉ khi test API): `METHOD URL`, input thật, response thật và đối chiếu với kỳ vọng.
+
 ### Rủi ro còn lại
 - [Luồng/edge case chưa test và lý do — không ghi "đã test" khi chưa chạy]
 ```

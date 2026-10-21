@@ -32,9 +32,9 @@ metadata:
 
 ## Báo cáo
 
-Với code/luồng xử lý phụ thuộc dữ liệu, dùng template [`change-report-template.md`](../report/assets/change-report-template.md) và ghi Big O Before/After, `n`/`m`, số query, dạng query, record quét/trả về, index/query plan nếu có, I/O/bộ nhớ, hành vi giữ nguyên, kiểm chứng và đánh giá coding. Khi có database, kết hợp kết quả từ skill [`database`](../database/SKILL.md), không tự chạy thao tác ghi/DDL hoặc thay đổi index.
+Với code/luồng xử lý phụ thuộc dữ liệu, dùng template [`change-report-template.md`](../report/assets/change-report-template.md) và ghi `**Big O: ...**` in đậm trong mục file (tiếng Anh, `<độ phức tạp> — Good | needs optimization`; N+1 ghi `N+1 — needs optimization`); phân tích nội bộ vẫn dùng Before/After, `n`/`m`, số query, dạng query, record quét/trả về, index/query plan nếu có, I/O/bộ nhớ, hành vi giữ nguyên, kiểm chứng và đánh giá coding. Khi có database, kết hợp kết quả từ skill [`database`](../database/SKILL.md), không tự chạy thao tác ghi/DDL hoặc thay đổi index.
 
-Với rule, skill, docs, template hoặc config thuần túy, ghi `Không áp dụng — không có thuật toán/runtime phụ thuộc input`; không suy diễn Big O từ việc agent đọc file hoặc số lượng file.
+Với rule, skill, docs, template hoặc config thuần túy, bỏ dòng Big O trong báo cáo; không suy diễn Big O từ việc agent đọc file hoặc số lượng file.
 
 ## Giới hạn
 
