@@ -173,6 +173,16 @@ Khi skill `report` được gọi, hook đọc `transcript_path` bằng [`task-u
 - **Phạm vi**: chỉ Claude Code (Codex không có hook này nên bỏ hai dòng đó khỏi báo cáo).
 - **Độ trễ**: transcript lúc hook chạy chưa gồm các message của lượt hiện tại nên số liệu tính đến lúc gọi skill; lượt đầu của phiên headless chưa có message nào nên hook im lặng. Phiên tương tác đã được kiểm chứng: hook chèn số liệu thật khi gọi `report`; độ lệch đo được trên phiên dài so với số cuối lượt chỉ khoảng 0,7–2,6% (input +1,45%, output +1,81%, cache đọc +2,59%, cache tạo +0,72%).
 
+## report-usage-check — đối chiếu dòng Token trong báo cáo với số hook đã chèn
+
+Chặn việc điền số Token không có nguồn: hook `report-usage` ghi số đã chèn vào `.agents/storage/state/<session_id>.emitted.json`, hook này so dòng `Token:` trong tin nhắn cuối với số đó.
+
+- **Script**: [`scripts/report-usage-check.sh`](./scripts/report-usage-check.sh) (logic ở [`report-usage-check.mjs`](./scripts/report-usage-check.mjs))
+- **Loại hook**: `Stop`; đọc `last_assistant_message` của payload, không có thì lấy tin nhắn cuối từ transcript.
+- **Cách so**: tách 4 số sau `input`, `output`, `cache đọc`, `cache tạo` (dấu `.` `,` và khoảng trắng là phân cách nghìn); lệch hoặc chưa có số hook thì cảnh báo một lần cho mỗi kiểu lệch (`<session_id>.checked`), qua `additionalContext`, không chặn.
+- **Im lặng khi**: không có dòng Token, số khớp, `stop_hook_active` là true, thiếu `node`/`jq` hoặc không parse được.
+- **Giới hạn**: giả định lời văn của template (`input … output … cache đọc … cache tạo …`); viết khác thì hook im lặng, không báo sai.
+
 ## notify-done — phát âm thanh khi làm xong task
 
 Khi Claude Code kết thúc một turn (trả lời xong, không còn việc gì đang chạy), hook này phát một âm thanh thông báo ngắn để biết task đã xong mà không cần nhìn màn hình liên tục.
@@ -223,4 +233,4 @@ Khi cài global, hook được đăng ký ở cả `~/.claude/settings.json` (đ
 
 ## Đã bật sẵn trong chính repo này
 
-`hook/` nằm trong `.claude/hooks/` của repo này, và `.claude/settings.json` đã trỏ cả 18 hook tự viết (`audit-log`, `commit-msg-guard`, `secret-scan`, `protected-branch-guard`, `format-before-push`, `condense-planner-input`, `agent-role-reminder`, `format-on-edit`, `ensure-final-newline`, `lint-on-edit`, `test-reminder`, `missing-test-reminder`, `dependency-audit-reminder`, `ci-workflow-lint`, `remind-cleanup`, `report-reminder`, `report-usage`, `notify-done`) tới đúng path `.claude/hooks/scripts/...` — không cần cài thêm gì để dùng ngay trong repo này. Riêng hook `rtk hook claude` gọi tool ngoài, chỉ chạy được nếu máy đã cài [`rtk`](https://github.com/rtk-ai/rtk) (xem mục riêng ở trên). [`settings.snippet.json`](./settings.snippet.json) có nội dung tương đương, dùng khi copy sang project khác theo hướng dẫn ở trên.
+`hook/` nằm trong `.claude/hooks/` của repo này, và `.claude/settings.json` đã trỏ cả 19 hook tự viết (`audit-log`, `commit-msg-guard`, `secret-scan`, `protected-branch-guard`, `format-before-push`, `condense-planner-input`, `agent-role-reminder`, `format-on-edit`, `ensure-final-newline`, `lint-on-edit`, `test-reminder`, `missing-test-reminder`, `dependency-audit-reminder`, `ci-workflow-lint`, `remind-cleanup`, `report-reminder`, `report-usage`, `report-usage-check`, `notify-done`) tới đúng path `.claude/hooks/scripts/...` — không cần cài thêm gì để dùng ngay trong repo này. Riêng hook `rtk hook claude` gọi tool ngoài, chỉ chạy được nếu máy đã cài [`rtk`](https://github.com/rtk-ai/rtk) (xem mục riêng ở trên). [`settings.snippet.json`](./settings.snippet.json) có nội dung tương đương, dùng khi copy sang project khác theo hướng dẫn ở trên.

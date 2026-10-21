@@ -73,6 +73,11 @@ jq -n --arg msg "$usage_text" '{
   }
 }' || exit 0
 
+# * Lưu số đã phát ra để hook Stop report-usage-check.sh đối chiếu dòng Token trong báo cáo.
+emitted_file="$log_root/.agents/storage/state/$session_id.emitted.json"
+mkdir -p "$(dirname "$emitted_file")" && printf '%s' "$usage_json" | jq -c --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  '{input: .usage.input, output: .usage.output, cacheRead: .usage.cacheRead, cacheCreate: .usage.cacheCreate, ts: $ts}' > "$emitted_file" || true
+
 # * Chỉ dời mốc sau khi đã phát ra số liệu, để lần báo cáo kế tiếp đo từ đây.
 mkdir -p "$(dirname "$marker_file")" && printf '%s' "$usage_json" | jq -c '{lastLine}' > "$marker_file" || true
 exit 0
