@@ -93,7 +93,7 @@
 - Không đối chiếu giao dịch với order, amount, currency, merchant và trạng thái từ nguồn tin cậy.
 - Số âm, overflow, rounding/currency sai hoặc số lượng vượt miền hợp lệ.
 - Bypass bước quy trình; sửa đối tượng đã khóa; thiếu kiểm tra chuyển trạng thái.
-- Race condition, double spending, TOCTOU; thiếu transaction/locking/constraint phù hợp ([`rules/data-safety.md`](../../../rules/data-safety.md)).
+- Race condition, double spending, TOCTOU; thiếu transaction/locking/constraint phù hợp ([`rules/backend.md`](../../../rules/backend.md#an-toàn-dữ-liệu)).
 - Thiếu idempotency hoặc chống replay cho thanh toán, webhook, refund và retry.
 - Refund vượt giá trị, nhiều lần; coupon/referral/multi-account abuse.
 - Exception/timeout làm hệ thống fail-open hoặc ghi dữ liệu một phần.

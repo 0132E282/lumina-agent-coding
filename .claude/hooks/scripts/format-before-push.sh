@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # PreToolUse hook: trước khi `git push`, chạy Prettier MỘT LẦN trên các file đã thay đổi so với remote tracking
 # branch — liên hệ skill git-workflow (mục "Trước khi git push") và
-# rules/quality-assurance.md (format thống nhất trước khi đẩy lên,
+# rules/delivery.md (format thống nhất trước khi đẩy lên,
 # không tranh cãi khoảng trắng khi review PR).
 #
 # Nhận JSON input từ stdin theo schema PreToolUse:

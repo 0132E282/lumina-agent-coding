@@ -26,7 +26,7 @@ Nguồn tham chiếu (ảnh, website, sitemap, recording, HTML, design file) là
 - Không dùng placeholder, ảnh giả, text giả hoặc component generic để che phần chưa hiểu; thiếu asset/hành vi thì ghi rõ giới hạn, giữ cấu trúc tối thiểu.
 - Bảo toàn URL, route, link, query, form action và contract dữ liệu thuộc phạm vi clone. Không đổi backend/API chỉ để thuận tiện frontend.
 - Responsive suy từ viewport/breakpoint có bằng chứng; không tự thêm breakpoint làm đổi UI ngoài nguồn.
-- Không tự áp dụng skill thiết kế khác (`minimalist-ui`, `redesign-existing-projects`...) — chúng có thể làm lệch nguồn clone.
+- Không tự áp dụng skill thiết kế khác (`ui-styles`, `ui-styles`...) — chúng có thể làm lệch nguồn clone.
 
 ## Quy trình
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Validate commit message theo rules/commit-discipline.md:
+# Validate commit message theo rules/git.md:
 #   - Tiêu đề (subject) dạng "<type>: <mô tả>"
 #   - Tiêu đề không quá 75 ký tự
 #
@@ -42,7 +42,7 @@ if [ "$subject_length" -gt "$MAX_SUBJECT_LENGTH" ]; then
 fi
 
 if [ "${#errors[@]}" -gt 0 ]; then
-  echo "❌ Commit message vi phạm rules/commit-discipline.md:" >&2
+  echo "❌ Commit message vi phạm rules/git.md:" >&2
   for e in "${errors[@]}"; do
     echo "  - ${e}" >&2
   done

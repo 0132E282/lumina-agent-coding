@@ -2,7 +2,7 @@
 # PostToolUse hook: sau khi Edit/Write một file nguồn, nếu KHÔNG tìm thấy
 # file test tương ứng (ngược lại với test-reminder.sh — hook đó xử lý
 # trường hợp tìm thấy), nhắc cân nhắc viết test qua additionalContext —
-# liên hệ skill testing-strategy và rules/quality-assurance.md.
+# liên hệ skill testing và rules/delivery.md.
 #
 # Nhận JSON input từ stdin theo schema PostToolUse:
 #   { "tool_name": "Edit", "tool_input": { "file_path": "..." }, ... }
@@ -59,7 +59,7 @@ for c in "${candidates[@]}"; do
   [ -f "$c" ] && exit 0
 done
 
-context="Chưa thấy test tương ứng cho ${file_path}. Nếu file này chứa business logic cần test kỹ thuật, dùng skill testing-strategy để viết (chọn test double đúng loại, cấu trúc Arrange-Act-Assert)."
+context="Chưa thấy test tương ứng cho ${file_path}. Nếu file này chứa business logic cần test kỹ thuật, dùng skill testing để viết (chọn test double đúng loại, cấu trúc Arrange-Act-Assert)."
 
 jq -n --arg ctx "$context" '{
   hookSpecificOutput: {

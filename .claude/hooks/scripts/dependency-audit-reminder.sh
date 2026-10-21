@@ -2,7 +2,7 @@
 # PostToolUse hook: sau khi chạy lệnh cài/thêm dependency (npm/yarn/pnpm,
 # composer, pip) qua tool Bash, tự chạy audit READ-ONLY tương ứng của
 # chính package manager và báo lại cho Claude qua additionalContext —
-# liên hệ skill dependency-audit và rules/database-read-only.md (tinh
+# liên hệ skill dependency-audit và rules/backend.md (tinh
 # thần tương tự: audit tự do, không tự ý upgrade/install thêm).
 #
 # Nhận JSON input từ stdin theo schema PostToolUse:

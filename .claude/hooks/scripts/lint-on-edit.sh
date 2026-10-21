@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # PostToolUse hook: chạy static analysis (linter/type-checker) ngay sau khi
 # Edit/Write một file, báo lỗi lại cho Claude Code qua additionalContext —
-# liên hệ rules/quality-assurance.md (static analysis trước khi báo
+# liên hệ rules/delivery.md (static analysis trước khi báo
 # hoàn thành). Thuần cố vấn (advisory): KHÔNG block, vì tool đã chạy xong.
 #
 # Nhận JSON input từ stdin theo schema PostToolUse:

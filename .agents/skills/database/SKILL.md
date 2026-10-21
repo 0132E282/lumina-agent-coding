@@ -13,7 +13,7 @@ description: >
 ## Quy trình chung
 
 1. Xác định engine, phiên bản, driver/ORM, connection, môi trường — không coi NoSQL là một dialect.
-2. Đọc schema/document model, quan hệ, index, partition/shard key, kiểu dữ liệu; thu thập input/output, ordering, pagination, quyền tenant cần giữ. Khi cần minh họa quan hệ, kết hợp skill [`system-diagrams`](../system-diagrams/SKILL.md) để vẽ ERD từ schema đã xác minh.
+2. Đọc schema/document model, quan hệ, index, partition/shard key, kiểu dữ liệu; thu thập input/output, ordering, pagination, quyền tenant cần giữ. Khi cần minh họa quan hệ, kết hợp skill [`system-understanding`](../system-understanding/references/diagrams.md) để vẽ ERD từ schema đã xác minh.
 3. Xác định quy mô, phân bố dữ liệu, selectivity, tần suất gọi, concurrency, giới hạn latency/tài nguyên — thiếu số liệu thì đánh dấu thiếu, không tự đặt ngưỡng.
 4. Viết truy vấn native có tham số; không bịa field/index — thiếu schema thì cung cấp bản mẫu ghi rõ giả định. Có ORM tương đương khi cần, kiểm tra query thực do ORM phát sinh.
 5. Review tính đúng đắn trước hiệu năng: duplicate, null/missing, cardinality join, count, rounding, timezone, stable ordering, phân trang, filter tenant, consistency, xử lý lỗi.

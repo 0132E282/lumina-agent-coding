@@ -1,6 +1,6 @@
 ---
 name: cleanup-temp-files
-description: Dọn dẹp file tạm/scratch/debug/test thử nghiệm do CHÍNH Claude tạo ra trong lúc làm task (không phải deliverable) để tránh phình dự án — xóa thẳng, không cần hỏi xác nhận vì là file tự tạo trong session hiện tại. KHÔNG xóa test chính thức thuộc bộ test suite của project (unit/integration/regression — xem rules/quality-assurance.md) và KHÔNG xóa file không rõ nguồn gốc/có sẵn trong workspace (việc đó thuộc agent workspace-auditor-agent, luôn phải liệt kê + chờ xác nhận). Dùng ngay trước khi báo "hoàn thành task", hoặc khi người dùng yêu cầu dọn file tạm/rác do Claude tạo ra.
+description: Dọn dẹp file tạm/scratch/debug/test thử nghiệm do CHÍNH Claude tạo ra trong lúc làm task (không phải deliverable) để tránh phình dự án — xóa thẳng, không cần hỏi xác nhận vì là file tự tạo trong session hiện tại. KHÔNG xóa test chính thức thuộc bộ test suite của project (unit/integration/regression — xem rules/delivery.md) và KHÔNG xóa file không rõ nguồn gốc/có sẵn trong workspace (việc đó thuộc agent workspace-auditor-agent, luôn phải liệt kê + chờ xác nhận). Dùng ngay trước khi báo "hoàn thành task", hoặc khi người dùng yêu cầu dọn file tạm/rác do Claude tạo ra.
 license: MIT
 metadata:
   version: "1.0"
@@ -19,7 +19,7 @@ Không chắc một trong hai điều kiện → **không xóa**. Việc quét f
 
 ## Không xóa — test chính thức
 
-Theo [`rules/quality-assurance.md`](../../rules/quality-assurance.md), test thuộc bộ test suite của project (file nằm đúng cấu trúc test của framework, được chạy bởi lệnh test chính thức, đặc biệt regression test viết sau khi fix bug) là **deliverable**, không phải rác — giữ lại trong codebase dù task đã xong.
+Theo [`rules/delivery.md`](../../rules/delivery.md#chất-lượng-và-bằng-chứng), test thuộc bộ test suite của project (file nằm đúng cấu trúc test của framework, được chạy bởi lệnh test chính thức, đặc biệt regression test viết sau khi fix bug) là **deliverable**, không phải rác — giữ lại trong codebase dù task đã xong.
 
 Dấu hiệu phân biệt file test là rác (nên xóa) vs chính thức (giữ lại):
 

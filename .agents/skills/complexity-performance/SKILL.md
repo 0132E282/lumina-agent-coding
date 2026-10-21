@@ -13,7 +13,7 @@ metadata:
 ## Quy trình
 
 1. Xác định đoạn xử lý, input và `n`/`m` đại diện cho dữ liệu nào.
-2. Kiểm tra vòng lặp, traversal, lookup, sort, allocation, query database, network, I/O và retry. Nếu có database, đọc và áp dụng thêm skill [`database`](../database/SKILL.md) cùng rule [`database-read-only`](../../rules/database-read-only.md).
+2. Kiểm tra vòng lặp, traversal, lookup, sort, allocation, query database, network, I/O và retry. Nếu có database, đọc và áp dụng thêm skill [`database`](../database/SKILL.md) cùng rule [`database-read-only`](../../rules/backend.md#database-read-only-mặc-định).
 3. Tính time/space complexity cho đường đi chính, worst case và khởi tạo/preprocessing nếu có.
 4. Với vòng lặp lồng nhau, xác định kích thước từng tập; dùng `O(n × m)` khi chúng độc lập, không mặc định `O(n²)`.
 5. Tìm N+1 query/API call, tải toàn bộ dữ liệu vào RAM, retry vô hạn và thiếu giới hạn page/batch/upload/input.

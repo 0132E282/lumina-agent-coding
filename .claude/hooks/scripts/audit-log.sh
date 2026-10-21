@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # PreToolUse hook: ghi audit trail cho MỌI tool call của Claude Code/subagent
-# — ai/khi nào/làm gì, phục vụ truy vết theo rules/data-safety.md.
+# — ai/khi nào/làm gì, phục vụ truy vết theo rules/backend.md.
 #
 # Nhận JSON input từ stdin theo schema PreToolUse:
 #   { "session_id": "...", "tool_name": "...", "tool_input": {...}, "cwd": "..." }

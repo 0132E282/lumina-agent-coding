@@ -16,7 +16,7 @@ Phát hiện lỗ hổng thực tế, ưu tiên theo rủi ro và đưa ra cách
 
 - Đọc hướng dẫn dự án và xác định phạm vi người dùng yêu cầu trước khi làm việc.
 - Review code và cấu hình được cung cấp; chỉ thử nghiệm trên môi trường thuộc phạm vi được cho phép. Dùng dữ liệu giả và tài khoản thử nghiệm; không chạy kiểm thử phá hoại hoặc gây tải lên production.
-- Nếu chỉ được yêu cầu review, báo cáo và đề xuất patch. Nếu được yêu cầu sửa, thực hiện thay đổi nhỏ nhất xử lý nguyên nhân gốc và chạy kiểm thử phù hợp ([`rules/simplicity.md`](../../rules/simplicity.md)).
+- Nếu chỉ được yêu cầu review, báo cáo và đề xuất patch. Nếu được yêu cầu sửa, thực hiện thay đổi nhỏ nhất xử lý nguyên nhân gốc và chạy kiểm thử phù hợp ([`rules/coding.md`](../../rules/coding.md#kiss-yagni-và-phạm-vi)).
 - Không in giá trị secret, token, mật khẩu hoặc dữ liệu cá nhân. Che giá trị nhạy cảm trong bằng chứng; nếu secret bị lộ, đề xuất thu hồi/xoay vòng, không chỉ xóa khỏi code.
 - Phân biệt lỗ hổng đã xác nhận, nghi vấn cần xác minh và đề xuất tăng cường. Thiếu một header không tự động là lỗi nghiêm trọng.
 - Không suy luận rằng UUID, URL khó đoán, frontend validation, CORS, ORM hoặc framework tự động bảo vệ toàn bộ ứng dụng.
@@ -61,7 +61,7 @@ Không gán severity chỉ dựa trên tên lỗi. Chỉ đưa CVSS khi có đ�
 
 - Sửa tại ranh giới tin cậy và điểm thực thi; xử lý mọi đường đi cùng nguyên nhân.
 - Dùng cơ chế chuẩn của framework, thư viện duy trì tốt và cấu hình phù hợp phiên bản.
-- Thêm kiểm thử hồi quy có ý nghĩa: thao tác hợp lệ vẫn thành công, thao tác vượt quyền/độc hại bị từ chối và không gây side effect ([`rules/quality-assurance.md`](../../rules/quality-assurance.md)).
+- Thêm kiểm thử hồi quy có ý nghĩa: thao tác hợp lệ vẫn thành công, thao tác vượt quyền/độc hại bị từ chối và không gây side effect ([`rules/delivery.md`](../../rules/delivery.md#chất-lượng-và-bằng-chứng)).
 - Kiểm tra user khác, tenant khác, guest, role thấp, field cấm và endpoint phụ khi liên quan.
 - Với race condition và replay, kiểm tra tính nguyên tử, idempotency và request đồng thời khi môi trường cho phép.
 - Báo rõ kiểm thử đã chạy, kết quả, phần chưa chạy và rủi ro còn lại.
@@ -79,7 +79,7 @@ Không gán severity chỉ dựa trên tên lỗi. Chỉ đưa CVSS khi có đ�
 | E | Frontend và trình duyệt |
 | F | HTTP, API và tích hợp |
 | G | File và nội dung upload |
-| H | Nghiệp vụ và thanh toán ([`rules/data-safety`](../../rules/data-safety.md)) |
+| H | Nghiệp vụ và thanh toán ([`rules/backend`](../../rules/backend.md#an-toàn-dữ-liệu)) |
 | I | Database, dữ liệu và mật mã |
 | J | Cache, tài nguyên và availability |
 | K | Hạ tầng và cấu hình |

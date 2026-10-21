@@ -2,7 +2,7 @@
 # PostToolUse hook: sau khi Edit/Write một file workflow CI (GitHub Actions,
 # GitLab CI, Azure Pipelines), chạy linter YAML tương ứng và báo lỗi lại
 # cho Claude qua additionalContext — liên hệ skill ci-pipeline và
-# rules/quality-assurance.md. Thuần cố vấn, không block.
+# rules/delivery.md. Thuần cố vấn, không block.
 #
 # Nhận JSON input từ stdin theo schema PostToolUse:
 #   { "tool_name": "Edit", "tool_input": { "file_path": "..." }, ... }

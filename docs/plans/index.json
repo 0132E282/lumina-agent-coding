@@ -1,0 +1,8 @@
+[
+  {
+    "title": "Rút gọn toàn bộ rule và chuyển chi tiết sang skill",
+    "description": "Tham khảo khi triển khai việc rút gọn toàn bộ .agents/rules, chuyển quy trình/checklist/ví dụ sang skill và đồng bộ reference mà không đổi semantics.",
+    "tags": ["agent-rules", "skills", "configuration", "refactor"],
+    "path": "docs/plans/compact-rules-into-skills-20261021.json"
+  }
+]

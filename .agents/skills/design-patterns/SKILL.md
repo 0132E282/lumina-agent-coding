@@ -1,6 +1,6 @@
 ---
 name: design-patterns
-description: Tra cứu 22 design pattern GoF (phân loại theo Refactoring.Guru) theo 3 nhóm Creational/Structural/Behavioral — ngữ cảnh nên dùng, ví dụ backend, và bảng phân biệt các cặp pattern dễ nhầm (Strategy/State, Factory Method/Abstract Factory, Adapter/Facade, Decorator/Proxy, Bridge/Adapter, Strategy/Template Method). Dùng khi: cần chọn pattern phù hợp cho một vấn đề cụ thể đang lặp lại hoặc khó sửa, cần giải thích một pattern, hoặc phân vân giữa hai pattern trông giống nhau. KHÔNG dùng để tự ý nhồi pattern vào code khi task chưa thực sự cần (xem rules/simplicity.md).
+description: Tra cứu 22 design pattern GoF (phân loại theo Refactoring.Guru) theo 3 nhóm Creational/Structural/Behavioral — ngữ cảnh nên dùng, ví dụ backend, và bảng phân biệt các cặp pattern dễ nhầm (Strategy/State, Factory Method/Abstract Factory, Adapter/Facade, Decorator/Proxy, Bridge/Adapter, Strategy/Template Method). Dùng khi: cần chọn pattern phù hợp cho một vấn đề cụ thể đang lặp lại hoặc khó sửa, cần giải thích một pattern, hoặc phân vân giữa hai pattern trông giống nhau. KHÔNG dùng để tự ý nhồi pattern vào code khi task chưa thực sự cần (xem rules/coding.md). Danh mục kỹ thuật refactor theo code smell: references/refactoring.md.
 license: MIT
 metadata:
   version: "1.1"
@@ -8,9 +8,11 @@ metadata:
 
 # 🧩 Design Patterns (GoF)
 
+Chỉ chọn pattern khi có nhu cầu thay thế/mở rộng thật; ưu tiên composition và KISS/YAGNI theo [`coding-standards`](../coding-standards/SKILL.md).
+
 Phân loại và mô tả theo Refactoring.Guru — 22 pattern trong danh mục của trang này, không phải toàn bộ pattern tồn tại trong lập trình.
 
-> ⚠️ **Trước khi áp dụng bất kỳ pattern nào trong skill này**, đọc lại [`rules/simplicity.md`](../../rules/simplicity.md): chỉ thêm pattern khi nó giải quyết rõ một vấn đề cụ thể đang lặp lại hoặc khó sửa — không đưa pattern vào "phòng khi cần mở rộng" sau này. Không cần đưa đủ 22 pattern vào một dự án.
+> ⚠️ **Trước khi áp dụng bất kỳ pattern nào trong skill này**, đọc lại [`rules/coding.md`](../../rules/coding.md#kiss-yagni-và-phạm-vi): chỉ thêm pattern khi nó giải quyết rõ một vấn đề cụ thể đang lặp lại hoặc khó sửa — không đưa pattern vào "phòng khi cần mở rộng" sau này. Không cần đưa đủ 22 pattern vào một dự án.
 
 ## Tra cứu theo nhóm
 
@@ -40,4 +42,8 @@ Phân loại và mô tả theo Refactoring.Guru — 22 pattern trong danh mục 
 - Đang refactor một đoạn code bị lặp hoặc khó mở rộng, muốn biết có pattern nào đã giải quyết đúng vấn đề này chưa.
 - Cần giải thích một pattern cho người khác, hoặc trong lúc code review.
 - Phân vân giữa hai pattern trông giống nhau — tra bảng "dễ nhầm" ở trên trước khi chọn.
-- **Không** dùng skill này để tự thêm pattern vào code khi task không yêu cầu và chưa có vấn đề thật đang tồn tại — đó là over-engineering (xem [`rules/simplicity.md`](../../rules/simplicity.md)).
+- **Không** dùng skill này để tự thêm pattern vào code khi task không yêu cầu và chưa có vấn đề thật đang tồn tại — đó là over-engineering (xem [`rules/coding.md`](../../rules/coding.md#kiss-yagni-và-phạm-vi)).
+
+## Danh mục refactor
+
+Tra cứu kỹ thuật refactor theo code smell cụ thể (Extract Method, Decompose Conditional, Introduce Parameter Object...), khi nào nên và không nên áp dụng: [references/refactoring.md](./references/refactoring.md).

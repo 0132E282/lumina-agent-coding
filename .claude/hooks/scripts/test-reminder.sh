@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # PostToolUse hook: sau khi Edit/Write một file nguồn, tự tìm và chạy file
 # test tương ứng (nếu có), báo kết quả lại cho Claude qua additionalContext
-# — liên hệ rules/quality-assurance.md (regression test ngay sau khi sửa).
+# — liên hệ rules/delivery.md (regression test ngay sau khi sửa).
 #
 # Nhận JSON input từ stdin theo schema PostToolUse:
 #   { "tool_name": "Edit", "tool_input": { "file_path": "..." }, ... }

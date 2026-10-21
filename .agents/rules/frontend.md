@@ -1,14 +1,15 @@
-# 🖥️ Frontend — Đúng mẫu, dễ dùng, an toàn
+---
+trigger: model_decision
+description: "Áp dụng khi sửa UI/frontend, clone-website hoặc component giao diện"
+---
 
-- Đọc UI/Figma, component, token và contract thật. Không có yêu cầu redesign thì giữ mẫu, layout, hành vi; xin chấp thuận trước khi sửa component/page dùng chung hoặc luồng ngoài phạm vi.
-- **UI change gate**: plan/diff/screenshot hoặc đề xuất của agent chỉ là context, không phải quyền thay đổi. Chỉ sửa đúng route/component/section và hành vi được nêu rõ; không tự thêm, xóa, khôi phục, sắp xếp lại hoặc restyle UI, copy, modal, CTA, asset, route, responsive behavior hay state ngoài scope. File/section đã bị revert hoặc diff mâu thuẫn thì ghi rõ vị trí, dừng phần đó và xin xác nhận.
-- Trước khi sửa UI: ghi rõ file/section trong scope và chụp baseline cùng route/viewport khi có browser. Trước bàn giao: chụp trạng thái cuối cùng cùng viewport, đối chiếu diff và loại mọi thay đổi UI chưa được duyệt.
-- Dựng UI mới cho trang/luồng chưa có spec/source đối chiếu (route ngoài phạm vi đã crawl, hoặc khó crawl như AJAX cart/checkout): dừng và kiểm tra (a) người dùng đã gửi ảnh/design reference cho đúng phần đó chưa — có thì dùng làm source of truth tuyệt đối, không tự dựng layout "hợp lý"/generic; (b) chưa có thì crawl → đo geometry → viết spec ([`clone-website`](../skills/clone-website/SKILL.md)) trước khi code, hoặc hỏi nguồn chuẩn. Không generic hóa UI rồi để người dùng phát hiện sai sau.
-- Tái sử dụng route, state, data fetching hiện có. Không dùng dữ liệu giả che lỗi API, không đổi nội dung đã duyệt, không tạo global state/abstraction khi chưa cần.
-- HTML native đúng vai trò; hỗ trợ responsive, keyboard, focus, label, alt, contrast, reduced motion. Xử lý loading/empty/error/success, validation, pending submit, stale response.
-- Giữ deep link, refresh, điều hướng. Metadata theo route; SEO chỉ cho trang công khai. Không tự đổi CSR/SSR/SSG hay theme.
-- Escape text, sanitize HTML không tin cậy bằng thư viện phù hợp, kiểm soát URL, không lộ secret trong bundle. Tối ưu ảnh/script theo nhu cầu, đo trước khi kết luận hiệu năng.
-- Trước khi hoàn thành: rà route/UI bị ảnh hưởng, vòng lặp render/state/effect và API call N+1 trên mọi framework; kiểm chứng theo [`quality-assurance`](./quality-assurance.md), ghi rõ phần chưa chạy.
-- Trước khi báo hoàn thành UI/frontend (gồm clone-website): chạy app thật, chụp ảnh ở **trạng thái kết quả cuối cùng** (sau khi mọi sửa đổi trong scope xong), đúng route/viewport đã sửa — không chụp giữa chừng. Có trạng thái để so sánh (source đang clone, UI lỗi trước fix, bản thiết kế) thì chụp thêm ảnh "trước" cùng viewport; task tạo mới hoàn toàn chỉ cần ảnh kết quả. Lưu ảnh vào `.agents/storage/evidence/<task-slug>/` (không commit). Change report có `URL:` (route đã kiểm tra) và `Ảnh chứng:` (đường dẫn, nêu rõ `trước`/`kết quả`), không chỉ mô tả bằng lời. Không chạy/chụp được thì ghi rõ lý do cụ thể, không im lặng bỏ qua hay tự nhận đã verify.
+# Frontend — đúng mẫu, dễ dùng, an toàn
 
-> Quy trình UI/CMS chi tiết: [`coding-frontend`](../skills/coding-frontend/SKILL.md). TypeScript: [`type-safety`](./type-safety.md).
+- Chỉ sửa route/component/section và hành vi UI được giao; screenshot, plan, diff hoặc gợi ý chỉ là context. Revert/conflict on-disk phải dừng đúng phần và xin xác nhận.
+- Trước UI edit, nêu file/section và chụp baseline cùng route/viewport nếu browser khả dụng; trước bàn giao chụp final cùng viewport, đối chiếu diff và loại UI ngoài scope.
+- UI mới phải có design/source chuẩn; không tự generic hóa. Giữ route/state/data fetching và content đã duyệt; không dùng dữ liệu giả che lỗi API.
+- Giữ semantic HTML, keyboard/focus/label/alt/contrast, responsive, reduced motion, trạng thái UI, deep link và public SEO boundary.
+- Không lộ secret; escape/sanitize dữ liệu không tin cậy. Rà render/state/effect loop và API-call N+1.
+- Evidence cuối phải có URL và ảnh tại `.agents/storage/evidence/<task-slug>/`; không chạy/chụp được phải ghi rõ.
+
+Quy trình/checklist UI, CMS và kiểm chứng: [`coding-frontend`](../skills/coding-frontend/SKILL.md), [`clone-website`](../skills/clone-website/SKILL.md) và [`type-safety`](./coding.md#an-toàn-type).

@@ -21,7 +21,7 @@ Run only the assigned step. When moving to another project, copy `.agents/`, `.c
 - Code implementation → `coding-agent` via Agent tool; main session never `Edit`/`Write` product code.
 - Tool/library/runtime/app setup → `setup-agent`.
 - Main session may directly edit config/docs (`AGENTS.md`, `CLAUDE.md`, `README.md`, rules/skills).
-- Any task completion → mandatory report via `report` skill ([`rules/mandatory-report`](./.agents/rules/mandatory-report.md)).
+- Any task completion → mandatory report via `report` skill ([`rules/delivery`](./.agents/rules/delivery.md#báo-cáo-bắt-buộc)).
 
 ## Execution discipline
 

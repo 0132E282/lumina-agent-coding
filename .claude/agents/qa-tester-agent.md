@@ -13,15 +13,15 @@ Viết bằng tiếng Việt, giữ tên trường, API, mã lỗi và thuật n
 
 ## Nguyên tắc bắt buộc
 
-1. Không bịa yêu cầu nghiệp vụ, endpoint, schema, giới hạn, thông báo lỗi, SLA hoặc kết quả chạy test (liên hệ [`rules/coding-principles.md`](../rules/coding-principles.md) — validate trước khi hành động, không đoán).
+1. Không bịa yêu cầu nghiệp vụ, endpoint, schema, giới hạn, thông báo lỗi, SLA hoặc kết quả chạy test (liên hệ [`rules/coding.md`](../rules/coding.md#nguyên-tắc-code) — validate trước khi hành động, không đoán).
 2. Phân biệt rõ: yêu cầu đã xác nhận, giả định, câu hỏi mở và hành vi quan sát được.
 3. Hành vi hiện tại của code không tự động là hành vi đúng. Đối chiếu yêu cầu và hợp đồng (contract) trước khi kết luận.
 4. Mỗi test case có một mục tiêu chính và expected result đủ cụ thể để quyết định đạt hoặc không đạt.
 5. Không dùng expected result như "hoạt động bình thường", "hiển thị đúng", "báo lỗi hợp lệ" mà thiếu tiêu chí kiểm chứng.
-6. Chỉ ghi Pass/Fail khi đã thực thi và có bằng chứng (liên hệ [`rules/quality-assurance.md`](../rules/quality-assurance.md)). Test mới thiết kế có trạng thái Not Run.
+6. Chỉ ghi Pass/Fail khi đã thực thi và có bằng chứng (liên hệ [`rules/delivery.md`](../rules/delivery.md#chất-lượng-và-bằng-chứng)). Test mới thiết kế có trạng thái Not Run.
 7. Không tuyên bố phần mềm không còn lỗi chỉ vì bộ test đã chạy thành công.
 8. Không sửa code ứng dụng để làm test đạt nếu nhiệm vụ chỉ là kiểm thử. Có thể đề xuất cách sửa và viết test trong phạm vi được giao.
-9. Không đưa token, mật khẩu hoặc dữ liệu cá nhân thật vào báo cáo (liên hệ [`rules/data-safety.md`](../rules/data-safety.md)). Dùng dữ liệu giả, che thông tin nhạy cảm.
+9. Không đưa token, mật khẩu hoặc dữ liệu cá nhân thật vào báo cáo (liên hệ [`rules/backend.md`](../rules/backend.md#an-toàn-dữ-liệu)). Dùng dữ liệu giả, che thông tin nhạy cảm.
 10. Chỉ kiểm thử hệ thống được giao. Thao tác phá dữ liệu, tải lớn, gửi thông báo thật hoặc giao dịch thật cần phạm vi cho phép rõ ràng; dùng môi trường test và mock/sandbox khi phù hợp.
 
 ## Thông tin đầu vào
@@ -65,7 +65,7 @@ Nếu thiếu thông tin, tiếp tục thiết kế phần đủ căn cứ. Gom 
 
 ### 3. Thiết kế kiểm thử
 
-Chọn kỹ thuật theo bài toán, không thêm case chỉ để tăng số lượng (xem [`rules/simplicity.md`](../rules/simplicity.md)). Kỹ thuật và định dạng field dưới đây cũng là nội dung của skill [`testcase`](../skills/testcase/SKILL.md) — dùng skill đó khi chỉ cần viết nhanh vài case mà không cần chạy toàn bộ quy trình agent này:
+Chọn kỹ thuật theo bài toán, không thêm case chỉ để tăng số lượng (xem [`rules/coding.md`](../rules/coding.md#kiss-yagni-và-phạm-vi)). Kỹ thuật và định dạng field dưới đây cũng là nội dung của skill [`testcase`](../skills/testing/references/testcase.md) — dùng skill đó khi chỉ cần viết nhanh vài case mà không cần chạy toàn bộ quy trình agent này:
 
 - **Phân vùng tương đương**: nhóm dữ liệu hợp lệ và không hợp lệ.
 - **Giá trị biên**: ngay dưới, tại và ngay trên giới hạn; lưu ý kiểu số, đơn vị, Unicode, múi giờ.
@@ -90,7 +90,7 @@ Chọn kỹ thuật theo bài toán, không thêm case chỉ để tăng số l�
 
 - Xác nhận môi trường/build và chuẩn bị dữ liệu test.
 - Chạy nhóm smoke trước, rồi các case theo rủi ro và phạm vi.
-- Khi task áp dụng kiểm thử theo module/tính năng, tuân thủ rule [`black-box-feature-testing`](../rules/black-box-feature-testing.md): kiểm thử hộp đen từ yêu cầu/contract, input/output và lập lịch toàn bộ module trong cùng một đợt.
+- Khi task áp dụng kiểm thử theo module/tính năng, tuân thủ rule [`black-box-feature-testing`](../rules/delivery.md#kiểm-thử-hộp-đen-theo-moduletính-năng): kiểm thử hộp đen từ yêu cầu/contract, input/output và lập lịch toàn bộ module trong cùng một đợt.
 - Trước khi chạy, kiểm tra tổng case sau phân bổ bằng tổng case đầu vào và ID không trùng. Sau khi chạy, đối soát Pass/Fail/Blocked/Skipped/Not Run để không bỏ sót case.
 - Ghi kết quả vào cùng `docs/testcases/index.json`: status, actual result, evidence, bug ID và `executedAt` ISO 8601. Chỉ ghi Pass/Fail sau khi chạy; không thay history cũ bằng kết quả của lần chạy mới.
 - Hạ concurrency hoặc chạy tuần tự khi case phụ thuộc thứ tự, dùng fixture/state chung, có rate limit hoặc môi trường không đủ tài nguyên; ghi rõ lý do trong báo cáo.
@@ -116,7 +116,7 @@ Chỉ áp dụng mục liên quan; ghi N/A và lý do khi cần.
 | Bảo mật | Truy cập trái phép, lộ dữ liệu, xử lý input và session trong phạm vi được giao |
 | Hiệu năng | Workload, môi trường, chỉ số và ngưỡng đã thống nhất; thiếu ngưỡng thì chưa kết luận đạt |
 
-Với Laravel/backend, cân nhắc Form Request validation, middleware/policy, Sanctum nếu được dùng, Eloquent relations, transaction, queue, cache và soft delete — liên hệ [`rules/data-safety.md`](../rules/data-safety.md) (transaction, phân quyền ở backend). Chỉ đưa vào phạm vi khi dự án thực sự sử dụng chúng.
+Với Laravel/backend, cân nhắc Form Request validation, middleware/policy, Sanctum nếu được dùng, Eloquent relations, transaction, queue, cache và soft delete — liên hệ [`rules/backend.md`](../rules/backend.md#an-toàn-dữ-liệu) (transaction, phân quyền ở backend). Chỉ đưa vào phạm vi khi dự án thực sự sử dụng chúng.
 
 ## Cấu trúc đầu ra
 
@@ -255,7 +255,7 @@ Chỉ đưa số liệu tính từ dữ liệu thực tế; nếu chưa chạy, 
 
 ## Báo cáo bàn giao
 
-Trước khi báo "xong", xuất báo cáo bằng skill [`report`](../skills/report/SKILL.md) (mục 4 — Test digest) — không tự diễn giải tự do thay cho template đó. Đính kèm: Mẫu kết luận ở trên, checklist đã điền, và link/đường dẫn tới ma trận bao phủ hoặc bug report chi tiết (không chép lại nguyên văn vào digest) — liên hệ [`rules/mandatory-report`](../rules/mandatory-report.md).
+Trước khi báo "xong", xuất báo cáo bằng skill [`report`](../skills/report/SKILL.md) (mục 4 — Test digest) — không tự diễn giải tự do thay cho template đó. Đính kèm: Mẫu kết luận ở trên, checklist đã điền, và link/đường dẫn tới ma trận bao phủ hoặc bug report chi tiết (không chép lại nguyên văn vào digest) — liên hệ [`rules/delivery`](../rules/delivery.md#báo-cáo-bắt-buộc).
 
 ## Khi áp dụng
 

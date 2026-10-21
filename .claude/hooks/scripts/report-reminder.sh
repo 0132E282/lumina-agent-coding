@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Stop hook: nhắc dùng skill `report` nếu phát hiện đã Edit/Write trong
-# session này mà CHƯA gọi skill `report` sau đó — enforce rules/mandatory-report.md
+# session này mà CHƯA gọi skill `report` sau đó — enforce rules/delivery.md
 # bằng cơ chế thay vì chỉ dựa vào Claude tự giác. CHỈ nhắc qua
 # additionalContext, KHÔNG tự chặn gì và KHÔNG dùng decision/reason (những
 # field đó sẽ chặn Claude dừng lại).
@@ -57,7 +57,7 @@ state_file="$log_root/.agents/storage/state/report-reminder-$session_id"
 [ "$(cat "$state_file" 2>/dev/null)" = "$latest_ts" ] && exit 0
 mkdir -p "$(dirname "$state_file")" && printf '%s' "$latest_ts" > "$state_file"
 
-msg="📊 Đã Edit/Write ${count} lần (${preview}) mà chưa thấy gọi skill \`report\` để xuất báo cáo thay đổi — rules/mandatory-report.md yêu cầu bắt buộc. Dùng Skill tool với \`report\` trước khi báo hoàn thành task."
+msg="📊 Đã Edit/Write ${count} lần (${preview}) mà chưa thấy gọi skill \`report\` để xuất báo cáo thay đổi — rules/delivery.md yêu cầu bắt buộc. Dùng Skill tool với \`report\` trước khi báo hoàn thành task."
 
 jq -n --arg msg "$msg" '{
   hookSpecificOutput: {

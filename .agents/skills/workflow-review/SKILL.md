@@ -5,6 +5,8 @@ description: "Review code theo checklist backend/frontend: cú pháp, rule/codeb
 
 # workflow-review
 
+Trước bàn giao thay đổi, chạy static analysis phù hợp rồi test tương xứng phạm vi. Kiểm tra final newline trên từng file text đổi bằng `node .agents/hooks/scripts/ensure-final-newline.mjs --check <files...>` nếu script tồn tại (nếu không, kiểm tra byte cuối), sau đó chạy `git diff --check`; lệnh diff một mình không chứng minh final newline. Rà diff, regression, render/state/effect loop và N+1 xuyên stack; đếm query/request khi có công cụ, nếu không ghi rõ chỉ rà tĩnh. Không tự sửa lỗi có sẵn ngoài scope.
+
 Claude không có command `/review` riêng — gõ `/review` dùng thẳng built-in code-review/security-review của Claude Code. Codex dùng `$workflow-review`, Antigravity dùng `/workflow-review`; cả hai đọc skill này làm nguồn, không có file command nào để đọc thêm.
 
 - Không argument: review staged/unstaged diff và code untracked hợp lệ của working tree nhánh hiện tại.

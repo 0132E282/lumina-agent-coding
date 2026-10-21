@@ -13,7 +13,7 @@ Trước mỗi lệnh `Bash`, hook này gọi CLI [`rtk`](https://github.com/rtk
 
 ## format-on-edit — tự động format bằng Prettier
 
-Sau mỗi lần Claude Code (hoặc subagent) **Edit/Write** một file, hook này tự động chạy `prettier --write` trên đúng file vừa sửa — tương ứng quy tắc [`rules/quality-assurance.md`](../rules/quality-assurance.md) (format thống nhất, không tranh cãi khoảng trắng trong review).
+Sau mỗi lần Claude Code (hoặc subagent) **Edit/Write** một file, hook này tự động chạy `prettier --write` trên đúng file vừa sửa — tương ứng quy tắc [`rules/delivery.md`](../rules/delivery.md#chất-lượng-và-bằng-chứng) (format thống nhất, không tranh cãi khoảng trắng trong review).
 
 - **Script**: [`scripts/format-on-edit.sh`](./scripts/format-on-edit.sh)
 - **Loại hook**: `PostToolUse`, matcher `Edit|Write`
@@ -36,7 +36,7 @@ Sau mỗi lần Claude Code (hoặc subagent) **Edit/Write** một file, hook n�
 
 ## audit-log — ghi audit trail cho mọi tool call
 
-Trước mỗi lần Claude Code (hoặc subagent) gọi **bất kỳ tool nào** (Edit, Write, Bash, Grep...), hook này ghi một dòng JSON vào log — phục vụ truy vết "ai/khi nào/làm gì", liên hệ [`rules/data-safety.md`](../rules/data-safety.md).
+Trước mỗi lần Claude Code (hoặc subagent) gọi **bất kỳ tool nào** (Edit, Write, Bash, Grep...), hook này ghi một dòng JSON vào log — phục vụ truy vết "ai/khi nào/làm gì", liên hệ [`rules/backend.md`](../rules/backend.md#an-toàn-dữ-liệu).
 
 - **Script**: [`scripts/audit-log.sh`](./scripts/audit-log.sh)
 - **Loại hook**: `PreToolUse`, matcher `.*` (mọi tool)
@@ -57,7 +57,7 @@ jq -s '.' .agents/storage/logs/logs.jsonl
 
 ## commit-msg-guard — chặn commit message sai format
 
-Trước mỗi lần chạy `git commit` (qua tool Bash), hook này trích message sắp dùng và validate bằng chính script `validate-commit-message.sh` của skill `git-workflow`, chặn (deny) nếu sai Conventional Commits — enforce [`rules/commit-discipline.md`](../rules/commit-discipline.md) tự động, không phụ thuộc Claude tự giác.
+Trước mỗi lần chạy `git commit` (qua tool Bash), hook này trích message sắp dùng và validate bằng chính script `validate-commit-message.sh` của skill `git-workflow`, chặn (deny) nếu sai Conventional Commits — enforce [`rules/git.md`](../rules/git.md) tự động, không phụ thuộc Claude tự giác.
 
 - **Script**: [`scripts/commit-msg-guard.sh`](./scripts/commit-msg-guard.sh)
 - **Loại hook**: `PreToolUse`, matcher `Bash`
@@ -67,7 +67,7 @@ Trước mỗi lần chạy `git commit` (qua tool Bash), hook này trích messa
 
 ## secret-scan — chặn hỏi xác nhận khi nghi ngờ lộ secret
 
-Trước mỗi lần `git add`/`git commit`, hook này quét path sắp add hoặc diff đã staged để tìm pattern giống secret (private key, AWS key, `api_key=...`, file `.env`) — liên hệ [`rules/data-safety.md`](../rules/data-safety.md).
+Trước mỗi lần `git add`/`git commit`, hook này quét path sắp add hoặc diff đã staged để tìm pattern giống secret (private key, AWS key, `api_key=...`, file `.env`) — liên hệ [`rules/backend.md`](../rules/backend.md#an-toàn-dữ-liệu).
 
 - **Script**: [`scripts/secret-scan.sh`](./scripts/secret-scan.sh)
 - **Loại hook**: `PreToolUse`, matcher `Bash`
@@ -85,7 +85,7 @@ Trước mỗi lần `git push`, hook này cảnh báo (ask) nếu push thẳng 
 
 ## format-before-push — format lại trước khi push
 
-Trước mỗi lần `git push`, hook này chạy `prettier --write` **một lần** trên các file đã thay đổi so với remote tracking branch (`@{upstream}...HEAD`) — lượt quét cuối trước khi đẩy lên, bổ sung cho `format-on-edit` (chỉ format đúng file vừa Edit/Write, không quét lại toàn bộ diff). Liên hệ skill [`git-workflow`](../skills/git-workflow/SKILL.md) mục "Trước khi git push" và [`rules/quality-assurance.md`](../rules/quality-assurance.md).
+Trước mỗi lần `git push`, hook này chạy `prettier --write` **một lần** trên các file đã thay đổi so với remote tracking branch (`@{upstream}...HEAD`) — lượt quét cuối trước khi đẩy lên, bổ sung cho `format-on-edit` (chỉ format đúng file vừa Edit/Write, không quét lại toàn bộ diff). Liên hệ skill [`git-workflow`](../skills/git-workflow/SKILL.md) mục "Trước khi git push" và [`rules/delivery.md`](../rules/delivery.md#chất-lượng-và-bằng-chứng).
 
 - **Script**: [`scripts/format-before-push.sh`](./scripts/format-before-push.sh)
 - **Loại hook**: `PreToolUse`, matcher `Bash`
@@ -95,7 +95,7 @@ Trước mỗi lần `git push`, hook này chạy `prettier --write` **một l�
 
 ## lint-on-edit — static analysis sau khi Edit/Write
 
-Sau mỗi lần Edit/Write, hook này chạy linter/type-checker tương ứng loại file (`tsc` cho `.ts/.tsx`, `eslint` cho `.js/.jsx`, `ruff`/`flake8` cho `.py`, `phpstan` cho `.php`) và trả lỗi lại cho Claude qua `additionalContext` — liên hệ [`rules/quality-assurance.md`](../rules/quality-assurance.md). Thuần cố vấn, không block vì tool đã chạy xong.
+Sau mỗi lần Edit/Write, hook này chạy linter/type-checker tương ứng loại file (`tsc` cho `.ts/.tsx`, `eslint` cho `.js/.jsx`, `ruff`/`flake8` cho `.py`, `phpstan` cho `.php`) và trả lỗi lại cho Claude qua `additionalContext` — liên hệ [`rules/delivery.md`](../rules/delivery.md#chất-lượng-và-bằng-chứng). Thuần cố vấn, không block vì tool đã chạy xong.
 
 - **Script**: [`scripts/lint-on-edit.sh`](./scripts/lint-on-edit.sh)
 - **Loại hook**: `PostToolUse`, matcher `Edit|Write`
@@ -104,16 +104,16 @@ Sau mỗi lần Edit/Write, hook này chạy linter/type-checker tương ứng l
 
 ## test-reminder — tự chạy test tương ứng sau khi sửa file nguồn
 
-Sau mỗi lần Edit/Write một file nguồn, hook này tìm file test tương ứng theo convention đặt tên phổ biến (`foo.test.ts`, `foo.spec.ts`, `test_foo.py`, `foo_test.py`...) và tự chạy, báo kết quả qua `additionalContext` — liên hệ [`rules/quality-assurance.md`](../rules/quality-assurance.md) (regression test ngay sau khi sửa).
+Sau mỗi lần Edit/Write một file nguồn, hook này tìm file test tương ứng theo convention đặt tên phổ biến (`foo.test.ts`, `foo.spec.ts`, `test_foo.py`, `foo_test.py`...) và tự chạy, báo kết quả qua `additionalContext` — liên hệ [`rules/delivery.md`](../rules/delivery.md#chất-lượng-và-bằng-chứng) (regression test ngay sau khi sửa).
 
 - **Script**: [`scripts/test-reminder.sh`](./scripts/test-reminder.sh)
 - **Loại hook**: `PostToolUse`, matcher `Edit|Write`
-- **Phạm vi**: chỉ JS/TS (`jest`/`vitest`) và Python (`pytest`) — hai stack phổ biến nhất, không cố cover mọi ngôn ngữ (xem [`rules/simplicity.md`](../rules/simplicity.md)).
+- **Phạm vi**: chỉ JS/TS (`jest`/`vitest`) và Python (`pytest`) — hai stack phổ biến nhất, không cố cover mọi ngôn ngữ (xem [`rules/coding.md`](../rules/coding.md#kiss-yagni-và-phạm-vi)).
 - **An toàn**: không tìm thấy test tương ứng, hoặc thiếu test runner → bỏ qua êm.
 
 ## missing-test-reminder — nhắc viết test khi chưa có test tương ứng
 
-Sau mỗi lần Edit/Write một file nguồn (JS/TS, Python), nếu **không** tìm thấy file test tương ứng theo convention đặt tên (ngược lại với `test-reminder` — hook đó xử lý trường hợp **có** tìm thấy), hook này nhắc cân nhắc viết test qua `additionalContext`, trỏ tới skill [`testing-strategy`](../skills/testing-strategy/SKILL.md) — liên hệ [`rules/quality-assurance.md`](../rules/quality-assurance.md).
+Sau mỗi lần Edit/Write một file nguồn (JS/TS, Python), nếu **không** tìm thấy file test tương ứng theo convention đặt tên (ngược lại với `test-reminder` — hook đó xử lý trường hợp **có** tìm thấy), hook này nhắc cân nhắc viết test qua `additionalContext`, trỏ tới skill [`testing`](../skills/testing/references/unit-testing.md) — liên hệ [`rules/delivery.md`](../rules/delivery.md#chất-lượng-và-bằng-chứng).
 
 - **Script**: [`scripts/missing-test-reminder.sh`](./scripts/missing-test-reminder.sh)
 - **Loại hook**: `PostToolUse`, matcher `Edit|Write`
@@ -123,7 +123,7 @@ Sau mỗi lần Edit/Write một file nguồn (JS/TS, Python), nếu **không** 
 
 ## dependency-audit-reminder — tự audit dependency sau khi cài
 
-Sau mỗi lần chạy lệnh cài/thêm dependency (`npm install`, `yarn add`, `pnpm add`, `composer require`, `pip install`...) qua tool Bash, hook này tự chạy lệnh audit **read-only** tương ứng của chính package manager (`npm audit`, `composer audit`, `pip-audit`...) và báo kết quả lại cho Claude qua `additionalContext`, trỏ tới skill [`dependency-audit`](../skills/dependency-audit/SKILL.md) — liên hệ [`rules/database-read-only.md`](../rules/database-read-only.md) (tinh thần tương tự áp cho package manager: audit tự do, không tự upgrade).
+Sau mỗi lần chạy lệnh cài/thêm dependency (`npm install`, `yarn add`, `pnpm add`, `composer require`, `pip install`...) qua tool Bash, hook này tự chạy lệnh audit **read-only** tương ứng của chính package manager (`npm audit`, `composer audit`, `pip-audit`...) và báo kết quả lại cho Claude qua `additionalContext`, trỏ tới skill [`dependency-audit`](../skills/dependency-audit/SKILL.md) — liên hệ [`rules/backend.md`](../rules/backend.md#database-read-only-mặc-định) (tinh thần tương tự áp cho package manager: audit tự do, không tự upgrade).
 
 - **Script**: [`scripts/dependency-audit-reminder.sh`](./scripts/dependency-audit-reminder.sh)
 - **Loại hook**: `PostToolUse`, matcher `Bash`
@@ -133,7 +133,7 @@ Sau mỗi lần chạy lệnh cài/thêm dependency (`npm install`, `yarn add`, 
 
 ## ci-workflow-lint — lint file workflow CI sau khi sửa
 
-Sau mỗi lần Edit/Write một file workflow CI (`.github/workflows/*.yml`, `.gitlab-ci.yml`, `azure-pipelines.yml`), hook này chạy linter YAML tương ứng (`actionlint` cho GitHub Actions, `yamllint` fallback) và báo lỗi lại qua `additionalContext`, trỏ tới skill [`ci-pipeline`](../skills/ci-pipeline/SKILL.md) — liên hệ [`rules/quality-assurance.md`](../rules/quality-assurance.md). Thuần cố vấn, không block.
+Sau mỗi lần Edit/Write một file workflow CI (`.github/workflows/*.yml`, `.gitlab-ci.yml`, `azure-pipelines.yml`), hook này chạy linter YAML tương ứng (`actionlint` cho GitHub Actions, `yamllint` fallback) và báo lỗi lại qua `additionalContext`, trỏ tới skill [`ci-pipeline`](../skills/ci-pipeline/SKILL.md) — liên hệ [`rules/delivery.md`](../rules/delivery.md#chất-lượng-và-bằng-chứng). Thuần cố vấn, không block.
 
 - **Script**: [`scripts/ci-workflow-lint.sh`](./scripts/ci-workflow-lint.sh)
 - **Loại hook**: `PostToolUse`, matcher `Edit|Write`
@@ -152,7 +152,7 @@ Khi Claude Code kết thúc một turn, hook này tìm file đã `Write` trong s
 
 ## report-reminder — nhắc dùng skill `report` nếu chưa báo cáo thay đổi
 
-Khi Claude Code kết thúc một turn, hook này tìm trong `.agents/storage/logs/logs.jsonl` các lần `Edit`/`Write` của session hiện tại (giới hạn `cwd` đúng dự án) xảy ra **sau** lần gọi skill `report` gần nhất (hoặc từ đầu session nếu chưa gọi lần nào) — có thì nhắc qua `additionalContext`. Đây là lớp enforce cơ chế cho [`rules/mandatory-report.md`](../rules/mandatory-report.md), thay vì chỉ dựa vào Claude tự giác nhớ gọi skill `report`.
+Khi Claude Code kết thúc một turn, hook này tìm trong `.agents/storage/logs/logs.jsonl` các lần `Edit`/`Write` của session hiện tại (giới hạn `cwd` đúng dự án) xảy ra **sau** lần gọi skill `report` gần nhất (hoặc từ đầu session nếu chưa gọi lần nào) — có thì nhắc qua `additionalContext`. Đây là lớp enforce cơ chế cho [`rules/delivery.md`](../rules/delivery.md#báo-cáo-bắt-buộc), thay vì chỉ dựa vào Claude tự giác nhớ gọi skill `report`.
 
 - **Script**: [`scripts/report-reminder.sh`](./scripts/report-reminder.sh)
 - **Loại hook**: `Stop`

@@ -350,7 +350,11 @@ test('global install preserves user configuration and resolves hooks from anothe
   const settings = JSON.parse(await fs.readFile(path.join(options.target, '.claude/settings.json'), 'utf8'));
   assert.equal(settings.model, 'existing-model');
   const command = settings.hooks.PreToolUse[0].hooks[0].command;
-  assert.equal(command, 'bash "$(git rev-parse --show-toplevel)/.agents/hooks/scripts/audit-log.sh"');
+  const scriptPath = path.join(options.target, '.claude/hooks/scripts/audit-log.sh');
+  assert.equal(command, `bash '${scriptPath.replaceAll("'", "'\\''")}'`);
+  const resolved = await executeFile('sh', ['-c', command.replace(/^bash /, 'printf %s ')], { cwd: os.tmpdir() });
+  assert.equal(resolved.stdout, scriptPath);
+  await fs.stat(scriptPath);
   assert.equal((await installFromSource(options)).changes, 0);
 });
 

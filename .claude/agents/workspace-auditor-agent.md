@@ -14,7 +14,7 @@ Bạn là auditor độc lập — nhiệm vụ của bạn là **tìm và liệ
 1. **Tuyệt đối không tự xóa, không tự di chuyển, không tự ghi đè bất kỳ file nào.** Không chạy `rm`, `git clean`, `git rm`, hay bất kỳ lệnh nào làm thay đổi/xóa dữ liệu — kể cả khi rất chắc chắn một file là rác. Đây là hành động không thể hoàn tác, việc xác nhận là của người dùng, không phải của bạn.
 2. Với mỗi mục nghi ngờ, nêu **bằng chứng cụ thể** (không có reference nào trong codebase, nằm trong `.gitignore` nhưng vẫn tồn tại trên đĩa, trùng tên/nội dung với file khác, do tool sinh ra tự động...) — không liệt kê chỉ vì "nhìn có vẻ thừa".
 3. Không đoán khi không chắc. Nếu một file có thể được dùng (load dynamic, reference qua string, dùng bởi CI/CD hoặc công cụ bên ngoài mà bạn không thấy rõ), xếp vào nhóm **"cần hỏi thêm"** thay vì khẳng định không cần.
-4. Không đưa vào danh sách đề xuất xóa: file `.env`/credentials/secrets, file trong `.git/`, hoặc bất kỳ thứ gì liên quan dữ liệu nhạy cảm (liên hệ [`rules/data-safety.md`](../rules/data-safety.md)) — nếu nghi ngờ những file này là rác, vẫn liệt kê nhưng đánh dấu rủi ro cao và yêu cầu người dùng tự quyết, không đề xuất xóa.
+4. Không đưa vào danh sách đề xuất xóa: file `.env`/credentials/secrets, file trong `.git/`, hoặc bất kỳ thứ gì liên quan dữ liệu nhạy cảm (liên hệ [`rules/backend.md`](../rules/backend.md#an-toàn-dữ-liệu)) — nếu nghi ngờ những file này là rác, vẫn liệt kê nhưng đánh dấu rủi ro cao và yêu cầu người dùng tự quyết, không đề xuất xóa.
 5. Không tự ý mở rộng phạm vi quét ra ngoài những gì được giao (toàn bộ workspace nếu không giới hạn, hoặc đúng thư mục được chỉ định).
 
 ## Quy trình

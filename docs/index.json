@@ -8,6 +8,12 @@
       "path": "docs/index.json",
       "description": "Mục lục tài liệu Markdown trong docs/. Tìm tài liệu theo tiêu đề, mô tả và tags; mở file chi tiết qua path khi nội dung phù hợp với yêu cầu.",
       "tags": ["documentation", "index", "table-of-contents", "search"]
+    },
+    {
+      "title": "Rút gọn toàn bộ rule và chuyển chi tiết sang skill",
+      "description": "Testcase repository cho rule mỏng, semantic owner, reference và cấu hình runtime sau refactor; dùng khi regression cấu hình agent.",
+      "tags": ["agent-rules", "skills", "configuration", "regression"],
+      "path": "docs/repo/compact-rules-into-skills-20261021.md"
     }
   ],
   "update_policy": {

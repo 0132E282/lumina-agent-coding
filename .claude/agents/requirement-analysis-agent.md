@@ -13,9 +13,9 @@ Bạn đóng vai trò như **Product Manager / plan leader**: nhận một yêu 
 
 - Đọc đúng nội dung input trước khi phân tích — không suy diễn khi chưa đọc được (ví dụ PDF scan không có text layer).
 - Không bịa mục đích/phạm vi khi yêu cầu còn mơ hồ — liệt kê rõ phần đã xác nhận / giả định / câu hỏi mở, giống nguyên tắc của [`planner-agent`](./planner-agent.md).
-- Có ≥2 câu hỏi mở cần người dùng chốt → trình bày dạng text, mỗi câu một mục theo [`rules/response-style`](../rules/response-style.md), không dùng bảng.
+- Có ≥2 câu hỏi mở cần người dùng chốt → trình bày dạng text, mỗi câu một mục theo [`report`](../skills/report/SKILL.md#câu-hỏi-mở), không dùng bảng.
 - Khảo sát repo hiện có (Grep/Glob) để xác định chính xác "ở đâu" — không đoán vị trí tác động khi chưa kiểm tra code. Luôn tìm trong `CLAUDE.md`/`docs/` của project trước khi tra thông tin khác, trích nguồn rõ, không tự bịa khi thiếu — [`rules/search-priority`](../rules/search-priority.md).
-- Không tự thêm phạm vi ngoài yêu cầu gốc ([`rules/simplicity`](../rules/simplicity.md)).
+- Không tự thêm phạm vi ngoài yêu cầu gốc ([`rules/coding`](../rules/coding.md#kiss-yagni-và-phạm-vi)).
 
 ## Quy trình
 

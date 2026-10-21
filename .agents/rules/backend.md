@@ -1,16 +1,34 @@
 ---
 trigger: model_decision
-description: "Áp dụng khi nhiệm vụ liên quan: ⚙️ Backend — Contract + Nội dung + Bảo mật"
+description: "Áp dụng khi sửa backend, API, database hoặc xử lý dữ liệu/phân quyền"
 ---
 
-# ⚙️ Backend — Contract, nội dung và bảo mật
+# Quy tắc backend và dữ liệu
 
-- Đọc stack, schema, route và contract thật; chỉ sửa hành vi trong phạm vi yêu cầu. Xin chấp thuận trước khi đổi contract, module dùng chung hoặc luồng ngoài phạm vi.
-- Trước khi thêm route/API hoàn toàn mới (tự xây hoặc tích hợp bên thứ ba), phải có URL/tài liệu tham chiếu cụ thể làm nguồn (API thật để gọi thử/crawl, spec/Postman/OpenAPI, hoặc URL do người dùng cung cấp) — không tự bịa schema/endpoint/response khi chưa có nguồn xác nhận. Chưa có thì hỏi người dùng nguồn nào dùng làm chuẩn trước khi code.
-- Validate tại boundary; kiểm tra quyền/tenant ở backend; allowlist field ghi và parameterize query. Không lộ secret, PII hoặc stack trace.
-- Chỉ public nội dung được phép truy cập. Giữ URL, status, cache và metadata nhất quán; draft/preview cần quyền. Không dùng robots/noindex thay authentication.
-- Tránh N+1, phân trang ổn định, chọn field cần thiết, index theo truy vấn thật; tách cache theo tenant/quyền/locale và invalidate sau commit khi cần.
-- Kiểm tra upload theo quyền, kích thước và loại file thực; sanitize HTML bằng thư viện phù hợp. Giới hạn timeout/retry, dùng idempotency khi cần; transaction cho nhóm thao tác phải thành công cùng nhau.
-- Database mặc định read-only theo [`database-read-only`](./database-read-only.md). Kiểm chứng hành vi bị ảnh hưởng theo [`quality-assurance`](./quality-assurance.md), ghi rõ phần chưa chạy.
+## Backend — contract, nội dung và bảo mật
 
-> Quy trình CMS/SEO/API chi tiết: [`coding-backend`](../skills/coding-backend/SKILL.md). TypeScript: [`type-safety`](./type-safety.md). Chỉ áp dụng phần liên quan task.
+- Đọc stack/schema/route/contract thật; không đổi contract, module dùng chung hoặc luồng ngoài phạm vi khi chưa được chấp thuận.
+- API/route mới phải có URL hoặc tài liệu tham chiếu xác minh được; không tự bịa schema, endpoint hay response.
+- Validate tại boundary; authorization/tenant ở backend; allowlist field ghi, parameterize query; không lộ secret, PII hoặc stack trace.
+- Chỉ public nội dung được phép; preview/draft cần quyền, robots/noindex không thay authentication.
+- Tránh N+1; transaction, cache, upload, HTML, timeout/retry và idempotency phải bảo toàn tính toàn vẹn và boundary bảo mật.
+- Database mặc định read-only theo [`database-read-only`](#database-read-only-mặc-định).
+
+Quy trình/checklist: [`coding-backend`](../skills/coding-backend/SKILL.md), [`database`](../skills/database/SKILL.md), [`review-web-security`](../skills/review-web-security/SKILL.md).
+
+## An toàn dữ liệu
+
+- Authorization luôn ở backend, càng sớm càng tốt và đúng resource/action/owner; UI chỉ là UX, không phải kiểm soát quyền.
+- Nhóm thao tác ghi phải cùng thành công hoặc thất bại phải dùng transaction.
+- Không đặt side effect không thể rollback bên trong transaction.
+
+Quy trình/checklist theo engine và security boundary: [`database`](../skills/database/SKILL.md), [`coding-backend`](../skills/coding-backend/SKILL.md), [`review-web-security`](../skills/review-web-security/SKILL.md).
+
+## Database read-only mặc định
+
+- Mọi database thật mặc định chỉ được đọc: không tự chạy write, DDL, migration, seed, đổi index/schema/collection hoặc flush production cache.
+- Được soạn migration/script ghi khi được yêu cầu, nhưng viết xong không cấp quyền chạy.
+- Chỉ chạy đúng mutation khi người dùng yêu cầu rõ cả thiết kế và thực thi; không suy rộng từ yêu cầu đọc/phân tích.
+- Chỉ coi test/sandbox là ngoại lệ khi người dùng xác nhận rõ.
+
+Phạm vi lệnh và quy trình theo engine: [`database`](../skills/database/SKILL.md). Transaction/authorization: [`data-safety`](#an-toàn-dữ-liệu). Explicit authorization tương tự Git: [`git`](./git.md).

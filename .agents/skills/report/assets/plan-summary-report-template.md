@@ -19,7 +19,7 @@ File: path/to/file.ext
 
 **Tổng quan**: REQ [N] | Task [N] (P0 [n], P1 [n], P2 [n]) | Câu hỏi mở [N] | Rủi ro [N]. Plan: `docs/plans/<title-slug>-<yyyyMMdd>.json`.
 
-**Câu hỏi mở** (bỏ nếu không có; mỗi câu một mục theo [response-style](../../../rules/response-style.md)):
+**Câu hỏi mở** (bỏ nếu không có; mỗi câu một mục theo [report](../SKILL.md#câu-hỏi-mở)):
 
 Câu hỏi 1: [nội dung]
 Đề xuất: [mặc định, hoặc "Cần người dùng quyết"]

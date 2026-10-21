@@ -20,13 +20,13 @@ Khi chạy trong Plan mode native, kết hợp skill [`workflow-plan`](../skills
 - Thiếu thông tin về quyền/tiền/mất dữ liệu/API contract → giải quyết trước khi lên task phụ thuộc; việc nhỏ dễ đảo ngược thì dùng convention hiện có, ghi rõ giả định.
 - Đặc tả sơ sài → liệt kê phần thiếu theo khung chuẩn (thông tin chung, phạm vi, REQ+AC, dữ liệu & tích hợp, phi chức năng, ràng buộc, câu hỏi mở) — không tự điền khi chưa có căn cứ.
 - Không tự thêm tính năng, đổi nghiệp vụ hay mở rộng phạm vi ngoài đặc tả. Viết tiếng Việt; tên code theo convention repository.
-- Trước khi tạo plan, đọc `docs/plans/index.json` nếu có, tìm bằng title/description/tags và mở file qua path khi liên quan. Kế hoạch xuất JSON chi tiết theo [`rules/plan-format.md`](../rules/plan-format.md) vào `docs/plans/<title-slug>-<yyyyMMdd>.json`, có `title`, `description`, `tags`, `content`, `createdAt` (`YYYY-MM-DD`). Cập nhật `docs/plans/index.json` với đúng bốn trường `title`, `description`, `tags`, `path`; description menu nêu khi AI nên tham khảo plan.
+- Trước khi tạo plan, đọc `docs/plans/index.json` nếu có, tìm bằng title/description/tags và mở file qua path khi liên quan. Kế hoạch xuất JSON chi tiết theo [`rules/docs.md`](../rules/docs.md#implementation-plan-contract) vào `docs/plans/<title-slug>-<yyyyMMdd>.json`, có `title`, `description`, `tags`, `content`, `createdAt` (`YYYY-MM-DD`). Cập nhật `docs/plans/index.json` với đúng bốn trường `title`, `description`, `tags`, `path`; description menu nêu khi AI nên tham khảo plan.
 
 ## Quy trình
 
 1. **Khảo sát**: có file `docs/system-design.md` (do agent [`system-design-agent`](./system-design-agent.md) ghi ra) thì **đọc trực tiếp file đó**, không khảo sát kiến trúc lại từ đầu; có file `docs/requirement-analysis.md` (do agent [`requirement-analysis-agent`](./requirement-analysis-agent.md) ghi ra) thì đọc làm nguồn yêu cầu đã chuẩn hóa, không phân tích lại mục đích/phạm vi từ đầu; chưa có file nào thì đọc README/đặc tả/manifest/lockfile, stack, cấu trúc, test/pipeline hiện có; `git status` để không đụng thay đổi dở dang của người dùng.
 2. **Chuẩn hóa yêu cầu**: gán `REQ-xxx`/`BR-xxx`/`AC-xxx`, nêu nguồn mỗi mục (requirement-analysis-agent, system-design-agent, đặc tả gốc, hoặc code hiện có).
-3. **Thiết kế thực thi**: luồng xử lý, dữ liệu (bảng/field/transaction khi có căn cứ — [`rules/data-safety`](../rules/data-safety.md)), API, tích hợp, migration & rollback, rủi ro. Ưu tiên cấu trúc đang dùng, SOLID/DRY/KISS/YAGNI theo vấn đề — không tạo layer/pattern chỉ để đạt hình thức ([`rules/simplicity`](../rules/simplicity.md)). Cần HLD/LLD mới (chưa có sẵn) thì đó là việc của agent `system-design-agent`, không tự vẽ kiến trúc lớn ở đây.
+3. **Thiết kế thực thi**: luồng xử lý, dữ liệu (bảng/field/transaction khi có căn cứ — [`rules/backend`](../rules/backend.md#an-toàn-dữ-liệu)), API, tích hợp, migration & rollback, rủi ro. Ưu tiên cấu trúc đang dùng, SOLID/DRY/KISS/YAGNI theo vấn đề — không tạo layer/pattern chỉ để đạt hình thức ([`rules/coding`](../rules/coding.md#kiss-yagni-và-phạm-vi)). Cần HLD/LLD mới (chưa có sẵn) thì đó là việc của agent `system-design-agent`, không tự vẽ kiến trúc lớn ở đây.
 4. **Chia task**: kết quả kiểm tra được, phạm vi rõ, dependency cụ thể — không task mơ hồ ("làm backend", "fix bug"), không chia vụn tới từng dòng code.
 
 ## Schema task (JSON, dạng bảng)
@@ -51,11 +51,11 @@ Khi chạy trong Plan mode native, kết hợp skill [`workflow-plan`](../skills
 }
 ```
 
-`status` ∈ `TODO | IN_PROGRESS | BLOCKED | DONE`. Task chỉ `DONE` khi đáp ứng AC và có bằng chứng kiểm tra thật ([`rules/quality-assurance`](../rules/quality-assurance.md)) — không tự nhận "pass" khi chưa chạy.
+`status` ∈ `TODO | IN_PROGRESS | BLOCKED | DONE`. Task chỉ `DONE` khi đáp ứng AC và có bằng chứng kiểm tra thật ([`rules/delivery`](../rules/delivery.md#chất-lượng-và-bằng-chứng)) — không tự nhận "pass" khi chưa chạy.
 
 ## Định dạng kế hoạch đầu ra
 
-**Tự `Write` trực tiếp** vào đường dẫn người dùng chỉ định (mặc định theo thư mục `docs/plans/`) — **JSON hợp lệ theo [`rules/plan-format.md`](../rules/plan-format.md)**, không ghi Markdown, không chỉ trả nội dung qua chat rồi chờ người khác lưu. Mỗi task phải khai báo `filesToChange` gồm path repo-relative đã xác minh và mô tả chính xác phần cần sửa; nếu chưa xác định được path thì ghi thành câu hỏi/blocker, không đoán.
+**Tự `Write` trực tiếp** vào đường dẫn người dùng chỉ định (mặc định theo thư mục `docs/plans/`) — **JSON hợp lệ theo [`rules/docs.md`](../rules/docs.md#implementation-plan-contract)**, không ghi Markdown, không chỉ trả nội dung qua chat rồi chờ người khác lưu. Mỗi task phải khai báo `filesToChange` gồm path repo-relative đã xác minh và mô tả chính xác phần cần sửa; nếu chưa xác định được path thì ghi thành câu hỏi/blocker, không đoán.
 
 Cấu trúc top-level: `title`, `description`, `tags`, `createdAt`, `content`; `content` là object kế hoạch gồm `meta` (mục tiêu/phạm vi/hiện trạng) → `requirements`/`businessRules` + `acceptanceCriteria` (mảng object) → `assumptions`/`openQuestions`/`blockers` (mảng string) → `technicalSolution` (string nhiều dòng: luồng, dữ liệu, API, migration/rollback) → `tasks` (mảng theo schema trên) + `executionOrder` (mảng id theo đúng thứ tự dependency) → `traceability` (mảng object Yêu cầu → AC → Task → Test → Kết quả) → `remainingRisks` (mảng string).
 
@@ -63,7 +63,7 @@ Mỗi yêu cầu trong phạm vi phải có ít nhất một task tham chiếu �
 
 **Viết theo từng phần nhỏ, tuần tự** — không dồn cả kế hoạch vào một lần xuất. Mỗi lần `Write` phải là JSON hợp lệ (phần chưa làm để `null`/`[]`); xong một phần (yêu cầu+AC, giải pháp, tasks...) thì dừng, báo ngắn đã viết gì, rồi tiếp phần sau — để người dùng theo dõi và góp ý được giữa chừng.
 
-Sau khi `Write` xong toàn bộ plan, **bắt buộc xuất báo cáo tóm tắt bằng skill [`report`](../skills/report/SKILL.md)** (mục 2 — Plan Summary, mặc định ngắn gọn — [`rules/mandatory-report`](../rules/mandatory-report.md)) trước khi dừng chờ người dùng duyệt — không chỉ im lặng chờ.
+Sau khi `Write` xong toàn bộ plan, **bắt buộc xuất báo cáo tóm tắt bằng skill [`report`](../skills/report/SKILL.md)** (mục 2 — Plan Summary, mặc định ngắn gọn — [`rules/delivery`](../rules/delivery.md#báo-cáo-bắt-buộc)) trước khi dừng chờ người dùng duyệt — không chỉ im lặng chờ.
 
 ## Khi áp dụng
 

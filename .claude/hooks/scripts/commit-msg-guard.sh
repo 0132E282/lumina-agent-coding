@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # PreToolUse hook: chặn lệnh `git commit` nếu message không đúng format
-# Conventional Commits — enforce rules/commit-discipline.md tự động,
+# Conventional Commits — enforce rules/git.md tự động,
 # không phụ thuộc Claude Code tự giác tuân theo rule.
 #
 # Nhận JSON input từ stdin theo schema PreToolUse:

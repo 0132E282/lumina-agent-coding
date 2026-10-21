@@ -1,0 +1,351 @@
+{
+  "title": "Rút gọn toàn bộ rule và chuyển chi tiết sang skill",
+  "description": "Kế hoạch dùng khi triển khai việc rút gọn toàn bộ .agents/rules mà vẫn giữ nguyên semantics và đồng bộ mọi reference trong repository.",
+  "tags": ["agent-rules", "skills", "configuration", "refactor"],
+  "createdAt": "2026-10-21",
+  "content": {
+    "meta": {
+      "objective": "Rút gọn mọi file .agents/rules/*.md để rule chỉ giữ điều kiện áp dụng, ràng buộc cốt lõi và liên kết tới nguồn chi tiết; chuyển quy trình, checklist, ví dụ và format chi tiết sang skill hoặc role phù hợp mà không đổi hành vi.",
+      "inScope": "Toàn bộ rule trong .agents/rules; skill, role, workflow, hook documentation, root instructions, contract, README, script/test cấu hình và mọi reference bị ảnh hưởng; tạo/cập nhật tài liệu kế hoạch và index.",
+      "outOfScope": "Không đổi hành vi sản phẩm hoặc CLI, không thiết kế thêm policy, không nới/siết ràng buộc, không cài dependency, không commit/push/deploy, không sửa dirty changes ngoài phần reference bắt buộc và không triển khai nội dung plan trong lượt planning.",
+      "currentState": "Đã khảo sát 18 rule hiện hữu, toàn bộ cây .agents/skills, role Claude/Codex, hook docs/scripts, AGENTS.md, CLAUDE.md, CONTRACT.md, README.md, scripts/check-agent-config.py, package scripts và reference bằng rg. Worktree đang dirty: đợt gộp git rule chạm .agents/rules/git.md, CONTRACT.md, git-workflow và hook; database/dependency audit cũng đang sửa; bin/lumina-agent.mjs và tests/lumina-agent.test.mjs có thay đổi người dùng cần bảo vệ. docs/plans chưa có trước plan này."
+    },
+    "requirements": [
+      {
+        "id": "REQ-001",
+        "description": "Rút gọn toàn bộ .agents/rules/*.md trên toàn repository.",
+        "source": "Yêu cầu trực tiếp của người dùng: toàn bộ repo."
+      },
+      {
+        "id": "REQ-002",
+        "description": "Rule sau rút gọn chỉ giữ điều kiện áp dụng, ràng buộc/policy cốt lõi và pointer tới skill hoặc role sở hữu chi tiết.",
+        "source": "Yêu cầu trực tiếp của người dùng: rút gọn những phần không quan trọng trong rule và biến thành skill."
+      },
+      {
+        "id": "REQ-003",
+        "description": "Chuyển quy trình, checklist, ví dụ và format chi tiết sang skill tương ứng hoặc trỏ tới nguồn hiện có; chỉ tạo skill mới khi chưa có owner phù hợp.",
+        "source": "Yêu cầu người dùng và convention shared source trong AGENTS.md."
+      },
+      {
+        "id": "REQ-004",
+        "description": "Đồng bộ mọi reference và adapter liên quan trong toàn repo để không còn link sai, nội dung trùng hoặc hướng dẫn trái nhau.",
+        "source": "AGENTS.md mục Sources and rules, Maintaining configuration và docs-sync."
+      },
+      {
+        "id": "REQ-005",
+        "description": "Bảo vệ toàn bộ dirty changes hiện hữu, đặc biệt bin/lumina-agent.mjs và tests/lumina-agent.test.mjs; không commit hoặc push.",
+        "source": "Phạm vi giao từ agent điều phối và git status tại thời điểm khảo sát."
+      }
+    ],
+    "businessRules": [
+      {
+        "id": "BR-001",
+        "description": "Semantics trước và sau phải tương đương: không thêm, xóa, nới hoặc siết hành vi; mỗi đoạn được chuyển phải còn một nguồn chuẩn có trigger rõ.",
+        "source": "Yêu cầu đã xác nhận của người dùng và CONTRACT.md."
+      },
+      {
+        "id": "BR-002",
+        "description": "Chỉ sửa shared source trong .agents; .claude/rules và .codex/rules là symlink, không chỉnh bản sao.",
+        "source": "AGENTS.md mục Sources and rules."
+      },
+      {
+        "id": "BR-003",
+        "description": "Mọi thay đổi trên file đang dirty phải giữ hunk người dùng và hợp nhất theo nội dung hiện tại, không phục hồi file đã xóa hoặc ghi đè phiên bản cũ.",
+        "source": "Rule implementation/simplicity và git status đã xác minh."
+      },
+      {
+        "id": "BR-004",
+        "description": "Rule/skill/docs/config task không cần complexity-performance; báo cáo theo format setup/template dạng File, Description, Trigger condition.",
+        "source": "AGENTS.md mục Sources and rules."
+      }
+    ],
+    "acceptanceCriteria": [
+      {
+        "id": "AC-001",
+        "requirements": ["REQ-001", "REQ-002", "BR-001"],
+        "description": "Cả 18 rule được phân loại và rút gọn; mỗi file còn trigger/phạm vi, policy cốt lõi và pointer cần thiết, không còn ví dụ code, checklist hoặc quy trình dài không thuộc lớp policy.",
+        "source": "Yêu cầu người dùng và inventory .agents/rules."
+      },
+      {
+        "id": "AC-002",
+        "requirements": ["REQ-003", "BR-001"],
+        "description": "Mọi nội dung chi tiết bị lấy khỏi rule tồn tại nguyên nghĩa trong skill/role owner đã định; không có đoạn semantics nào chỉ bị xóa.",
+        "source": "Yêu cầu giữ nguyên semantics."
+      },
+      {
+        "id": "AC-003",
+        "requirements": ["REQ-004", "BR-002"],
+        "description": "Tất cả relative links và textual references tới rule/skill/role mới đều resolve; không còn reference tới file cũ hoặc phần đã chuyển sai owner.",
+        "source": "AGENTS.md và cấu trúc symlink hiện tại."
+      },
+      {
+        "id": "AC-004",
+        "requirements": ["REQ-004"],
+        "description": "AGENTS.md, CLAUDE.md, CONTRACT.md, README.md, agent docs, workflow/skill docs và hook docs/scripts phản ánh đúng mô hình rule mỏng + skill chi tiết mà không lặp lại chi tiết không cần thiết.",
+        "source": "docs-sync và yêu cầu toàn repo."
+      },
+      {
+        "id": "AC-005",
+        "requirements": ["REQ-005", "BR-003"],
+        "description": "Diff cuối không làm mất hoặc ghi đè dirty changes có sẵn; bin/lumina-agent.mjs và tests/lumina-agent.test.mjs chỉ được chạm nếu reference bắt buộc và từng hunk có truy vết, nếu không phải giữ nguyên.",
+        "source": "Git status và phạm vi bảo vệ được giao."
+      },
+      {
+        "id": "AC-006",
+        "requirements": ["REQ-001", "REQ-003", "REQ-004"],
+        "description": "Các check cấu hình, syntax/test hiện có, link/reference scan, newline check và git diff --check hoàn tất với bằng chứng thật; lỗi có sẵn được tách rõ, không khai Pass giả.",
+        "source": "AGENTS.md Hooks and format, quality-assurance và package scripts."
+      }
+    ],
+    "assumptions": [
+      "Không cần HLD/LLD vì đây là refactor tài liệu cấu hình, không đổi kiến trúc runtime.",
+      "Ưu tiên mở rộng skill/role hiện có; chỉ tạo coding-standards skill nếu chi tiết cross-cutting của coding-principles/comments/type-safety không có owner duy nhất mà không gây trùng lặp.",
+      "Các rule mang tính hành vi toàn phiên như response-style, search-priority và simplicity vẫn là rule; chỉ bỏ ví dụ hoặc chuyển thao tác chi tiết, không ép toàn bộ nội dung thành skill.",
+      "File git.md hiện là kết quả dirty của yêu cầu ngay trước đó và là baseline cần hợp nhất, không được thay bằng hai rule đã xóa."
+    ],
+    "openQuestions": [],
+    "blockers": [],
+    "technicalSolution": "Thực hiện theo mô hình policy thin layer + operational owner. Trước khi sửa, chụp lại từng rule thành semantic inventory gồm trigger, invariant, procedure, checklist, example, output format và mọi inbound/outbound reference. Với từng đoạn: invariant/authorization/safety/default bắt buộc ở rule; procedure/checklist/example/format chuyển vào skill hoặc role đang sở hữu tác vụ; nội dung chỉ mang tính minh họa bị bỏ khỏi rule sau khi xác nhận không chứa constraint riêng. Mapping chuẩn: backend→coding-backend (+database/review-web-security khi liên quan); frontend→coding-frontend (+clone-website/html-to-component); black-box-feature-testing→testcase/testing-strategy/workflow-test và qa-tester-agent; coding-principles/comments/type-safety→coding-backend/coding-frontend/testing-strategy/refactoring-catalog, hoặc một skill coding-standards mới nếu cần một owner cross-cutting duy nhất; data-safety/database-read-only→database/coding-backend/review-web-security; docs-sync/documentation-reading-and-toc→docs (+testcase/workflow-plan cho artifact riêng); git→git-workflow/workflow-git và hook docs; implementation→workflow-implement/coding-agent; mandatory-report→report/workflow-report; plan-format→workflow-plan/planner-agent/docs template; quality-assurance→testing-strategy/testcase/workflow-test/workflow-review; search-priority→researcher-agent/system-understanding nhưng giữ no-fabrication/local-first core ở rule; simplicity→workflow-implement/refactoring/design skills nhưng giữ scope authorization core ở rule; response-style giữ core ở rule và chuyển format report-specific vào report. Không đổi tên/xóa rule nếu còn là target công khai; ưu tiên giữ path ổn định để giảm migration reference. Sau khi chuyển, quét toàn repo để sửa liên kết/diễn giải thực sự sai, không sửa file chỉ vì nó có link vẫn hợp lệ. Không có data/API/migration. Rollback theo từng cluster bằng diff có phạm vi; tuyệt đối không reset worktree và không phục hồi commit-discipline.md hoặc pull-request-conflict.md đã được hợp nhất vào git.md.",
+    "tasks": [
+      {
+        "id": "TASK-001",
+        "title": "Chốt ma trận semantics và owner cho 18 rule",
+        "status": "DONE",
+        "priority": "P0",
+        "priorityReason": "Ngăn mất hoặc đổi nghĩa trước khi di chuyển nội dung trên diện rộng.",
+        "requirements": ["REQ-001", "REQ-002", "REQ-003", "BR-001", "BR-003"],
+        "acceptanceCriteria": ["AC-001", "AC-002", "AC-005"],
+        "inScope": "Đối chiếu từng đoạn trong 18 rule với skill/role owner và ghi quyết định keep/move/deduplicate; chụp baseline dirty hunks liên quan.",
+        "outOfScope": "Không sửa rule/skill trong task inventory; không khôi phục file rule Git đã xóa.",
+        "dependencies": [],
+        "approach": "1. Lưu git status/diff theo path. 2. Với từng rule, phân loại trigger/invariant/procedure/checklist/example/format. 3. Đối chiếu owner hiện hữu và đánh dấu nội dung cần bổ sung trước khi rút rule. 4. Chỉ cho phép tạo coding-standards nếu owner hiện hữu sẽ gây mất trigger hoặc nhân bản semantics. 5. Ghi các hunk dirty phải bảo toàn, đặc biệt git/database/dependency/hook/bin/tests.",
+        "filesToChange": [
+          {
+            "path": "docs/plans/compact-rules-into-skills-20261021.json",
+            "changes": "Dùng mapping trong technicalSolution làm nguồn truy vết; nếu inventory triển khai phát hiện owner khác, cập nhật plan trước khi sửa nội dung và giữ nguyên REQ/AC."
+          }
+        ],
+        "test": "Đếm đủ 18 file .agents/rules/*.md; mỗi rule có owner/pointer, danh sách invariants giữ lại và danh sách chi tiết chuyển đi; so sánh git diff baseline để không nhận nhầm dirty change là thay đổi mới.",
+        "doneWhen": "18/18 rule có quyết định truy vết được và mọi file dirty liên quan có chiến lược merge/preserve."
+      },
+      {
+        "id": "TASK-002",
+        "title": "Chuyển chi tiết Git, thực thi, plan và report sang workflow owner",
+        "status": "DONE",
+        "priority": "P0",
+        "priorityReason": "Các rule này điều phối mọi bước làm việc và đang có dirty changes cần hợp nhất trước.",
+        "requirements": ["REQ-001", "REQ-002", "REQ-003", "REQ-005", "BR-001", "BR-003"],
+        "acceptanceCriteria": ["AC-001", "AC-002", "AC-005"],
+        "inScope": "Rút gọn git.md, implementation.md, mandatory-report.md, plan-format.md; chuyển checklist/schema/quy trình vào skill/workflow/role/template tương ứng; bảo toàn đợt gộp Git hiện tại.",
+        "outOfScope": "Không chạy Git mutation, không đổi default commit-all, không đổi schema plan/report hoặc authorization gate.",
+        "dependencies": ["TASK-001"],
+        "approach": "Cập nhật owner trước rồi mới rút rule. Giữ explicit authorization/conflict invariant ở git rule; quy trình commit/push/PR ở git-workflow. Giữ delegation/scope/finish gates ở implementation; chi tiết ở workflow-implement/coding-agent. Giữ report mandatory invariant; format ở report. Giữ plan handoff invariant; schema đầy đủ ở workflow-plan/planner/template.",
+        "filesToChange": [
+          {"path": ".agents/rules/git.md", "changes": "Giữ authorization, commit/push/conflict invariants và pointer; bỏ checklist/procedure đã có owner mà không làm mất nội dung dirty hiện tại."},
+          {"path": ".agents/skills/git-workflow/SKILL.md", "changes": "Nhận toàn bộ quy trình/checklist Git chi tiết và tiếp tục là nguồn chuẩn cho commit/push/PR/conflict."},
+          {"path": ".agents/skills/workflow-git/SKILL.md", "changes": "Trỏ và điều phối git-workflow/rule mỏng, không duy trì quy trình song song."},
+          {"path": ".agents/rules/implementation.md", "changes": "Giữ scope authorization, delegation và completion gates; chuyển trình tự vận hành sang workflow/role."},
+          {"path": ".agents/skills/workflow-implement/SKILL.md", "changes": "Nhận quy trình triển khai chi tiết và pointer tới coding-agent/owner kiểm chứng."},
+          {"path": ".claude/agents/coding-agent.md", "changes": "Nhận/đồng bộ chi tiết vai trò triển khai nếu hiện nằm độc quyền trong implementation rule."},
+          {"path": ".codex/agents/coding-agent.toml", "changes": "Đồng bộ adapter nếu source role thay đổi semantics được nhúng; không chỉnh metadata ngoài phạm vi."},
+          {"path": ".agents/rules/mandatory-report.md", "changes": "Chỉ giữ điều kiện bắt buộc, trạng thái không được báo DONE và pointer report."},
+          {"path": ".agents/skills/report/SKILL.md", "changes": "Nhận timing, selection và format/report procedure chi tiết."},
+          {"path": ".agents/skills/workflow-report/SKILL.md", "changes": "Giữ entry point mỏng trỏ report, không lặp policy."},
+          {"path": ".agents/rules/plan-format.md", "changes": "Chỉ giữ contract artifact/index/schema owner và pointer."},
+          {"path": ".agents/skills/workflow-plan/SKILL.md", "changes": "Nhận luồng lưu plan, index, schema/task requirements và handoff chi tiết."},
+          {"path": ".claude/agents/planner-agent.md", "changes": "Đồng bộ nguồn role với schema/quy trình plan chi tiết, loại bỏ dependency ngược không cần thiết vào rule dài."},
+          {"path": ".codex/agents/planner-agent.toml", "changes": "Đồng bộ adapter planner nếu nội dung role nguồn được mirror."},
+          {"path": ".agents/skills/docs/assets/implementation-plan-template.json", "changes": "Giữ template schema đầy đủ là nguồn máy đọc cho plan."},
+          {"path": ".claude/hooks/README.md", "changes": "Cập nhật diễn giải/pointer Git/report nếu mục tiêu section trong rule chuyển sang skill."},
+          {"path": ".claude/hooks/scripts/commit-msg-guard.sh", "changes": "Chỉ cập nhật comment/reference khi cần; giữ nguyên logic dirty hiện tại."},
+          {"path": ".agents/skills/git-workflow/scripts/validate-commit-message.sh", "changes": "Chỉ cập nhật comment/reference khi cần; giữ nguyên validator dirty hiện tại."}
+        ],
+        "test": "So sánh semantic matrix trước/sau cho bốn cluster; rg không còn hướng dẫn chi tiết trái nguồn; validate JSON template và TOML adapters; xác nhận git status không xuất hiện commit/push và deleted Git rules vẫn deleted.",
+        "doneWhen": "Bốn rule cluster mỏng, mọi chi tiết còn đủ ở owner, adapter/reference hợp lệ và dirty Git work không bị ghi đè."
+      },
+      {
+        "id": "TASK-003",
+        "title": "Rút gọn rule coding, frontend/backend và an toàn dữ liệu",
+        "status": "DONE",
+        "priority": "P0",
+        "priorityReason": "Nhóm này chứa nhiều constraint kỹ thuật được tham chiếu rộng và dễ đổi nghĩa nếu chỉ xóa ví dụ.",
+        "requirements": ["REQ-001", "REQ-002", "REQ-003", "BR-001"],
+        "acceptanceCriteria": ["AC-001", "AC-002"],
+        "inScope": "backend.md, frontend.md, coding-principles.md, comments.md, type-safety.md, data-safety.md, database-read-only.md, simplicity.md và các skill kỹ thuật owner.",
+        "outOfScope": "Không đổi coding conventions, security posture, DB read-only default, UI gate hoặc thêm abstraction vào product code.",
+        "dependencies": ["TASK-001"],
+        "approach": "Bổ sung skill owner theo semantic matrix trước; rút rule còn trigger và invariants. Giữ scope/YAGNI authorization ở simplicity. Nếu tạo coding-standards, nó chỉ gom procedure/example cross-stack và coding-backend/frontend/testing/refactoring trỏ vào đó; không tạo rule mới hoặc behavior mới.",
+        "filesToChange": [
+          {"path": ".agents/rules/backend.md", "changes": "Giữ backend boundary/security/contract invariants và pointer coding-backend/database/security."},
+          {"path": ".agents/skills/coding-backend/SKILL.md", "changes": "Nhận quy trình/checklist backend, query/cache/upload/API verification chi tiết."},
+          {"path": ".agents/rules/frontend.md", "changes": "Giữ UI scope/baseline/final evidence và accessibility/data boundary invariants; pointer coding-frontend."},
+          {"path": ".agents/skills/coding-frontend/SKILL.md", "changes": "Nhận quy trình/checklist frontend, responsive/accessibility/render/network verification."},
+          {"path": ".agents/rules/coding-principles.md", "changes": "Giữ DRY/SRP/fail-fast/readability invariants, bỏ diễn giải/ví dụ sau khi owner nhận đủ."},
+          {"path": ".agents/rules/comments.md", "changes": "Giữ default/no stale-comment invariants và pointer; chuyển label/example/length procedure sang coding owner."},
+          {"path": ".agents/rules/type-safety.md", "changes": "Giữ cấm any/lách type và reuse/domain ownership core; chuyển ví dụ/checklist vào coding owner."},
+          {"path": ".agents/rules/simplicity.md", "changes": "Giữ scope authorization/KISS/YAGNI core; bỏ ví dụ và chuyển operational guidance sang implementation/refactor/design owners."},
+          {"path": ".agents/skills/refactoring-catalog/SKILL.md", "changes": "Nhận chi tiết refactor/DRY/comment/readability phù hợp."},
+          {"path": ".agents/skills/design-patterns/SKILL.md", "changes": "Nhận guidance composition/abstraction khi phù hợp, không đổi trigger."},
+          {"path": ".agents/skills/testing-strategy/SKILL.md", "changes": "Nhận chi tiết coding conventions dành cho test/helper nếu đang ở rule chung."},
+          {"path": ".agents/skills/html-to-component/SKILL.md", "changes": "Cập nhật pointer/chi tiết DRY/type/frontend nếu owner thay đổi."},
+          {"path": ".agents/rules/data-safety.md", "changes": "Giữ authorization/transaction/side-effect invariants; chuyển ví dụ/procedure sang database/backend/security."},
+          {"path": ".agents/rules/database-read-only.md", "changes": "Giữ read-only default và explicit execution authorization; chuyển engine/procedure sang database skill, bảo toàn dirty edit hiện tại."},
+          {"path": ".agents/skills/database/SKILL.md", "changes": "Nhận quy trình transaction/read-only/migration detail theo engine."},
+          {"path": ".agents/skills/review-web-security/SKILL.md", "changes": "Nhận checklist authorization/data exposure chi tiết liên quan."},
+          {"path": ".agents/skills/dependency-audit/SKILL.md", "changes": "Chỉ cập nhật analogy/reference database/git nếu wording rule thay đổi; giữ dirty changes."},
+          {"path": ".agents/skills/coding-standards/SKILL.md", "changes": "Tạo có điều kiện sau TASK-001 nếu cần owner cross-cutting cho procedure/example của coding-principles/comments/type-safety; không tạo nếu skill hiện hữu bao phủ đủ."}
+        ],
+        "test": "Semantic diff từng invariant; scan các từ khóa any, authorization, transaction, Rule of Three, comment labels, UI evidence để chứng minh vẫn có owner; config checker nhận skill mới nếu được tạo; không có product-code diff.",
+        "doneWhen": "Chín rule kỹ thuật mỏng, mọi constraint chi tiết tìm được từ pointer và không thay đổi policy kỹ thuật."
+      },
+      {
+        "id": "TASK-004",
+        "title": "Rút gọn rule tài liệu, kiểm thử, tìm kiếm và phản hồi",
+        "status": "DONE",
+        "priority": "P1",
+        "priorityReason": "Hoàn thiện các rule còn lại và loại bỏ format/checklist trùng giữa rule, skill và role.",
+        "requirements": ["REQ-001", "REQ-002", "REQ-003", "BR-001"],
+        "acceptanceCriteria": ["AC-001", "AC-002"],
+        "inScope": "black-box-feature-testing.md, docs-sync.md, documentation-reading-and-toc.md, quality-assurance.md, search-priority.md, response-style.md và owner tương ứng.",
+        "outOfScope": "Không đổi schema testcase/docs index, không đổi tiêu chí Pass/Fail, không chạy test nghiệp vụ hoặc web research.",
+        "dependencies": ["TASK-001", "TASK-002"],
+        "approach": "Đưa scheduler/case accounting vào testing skills/QA role; registry/TOC/schema procedure vào docs; QA command/checklist vào testing/workflow skills; research procedure vào researcher/system-understanding; report-specific response format vào report. Giữ core no-fabrication, evidence, concise response và test truthfulness ở rule.",
+        "filesToChange": [
+          {"path": ".agents/rules/black-box-feature-testing.md", "changes": "Giữ black-box and complete-accounting invariants; chuyển scheduler/checklist/report detail sang test owner."},
+          {"path": ".agents/skills/testcase/SKILL.md", "changes": "Nhận kỹ thuật, scheduler, accounting và artifact detail cho black-box cases."},
+          {"path": ".agents/skills/testing-strategy/SKILL.md", "changes": "Nhận execution grouping/concurrency/dependency guidance."},
+          {"path": ".agents/skills/workflow-test/SKILL.md", "changes": "Nhận workflow lưu/chạy/kết luận test theo phạm vi."},
+          {"path": ".claude/agents/qa-tester-agent.md", "changes": "Đồng bộ role với owner test, tránh lặp rule dài nhưng giữ đầy đủ trách nhiệm."},
+          {"path": ".codex/agents/qa-tester-agent.toml", "changes": "Đồng bộ adapter nếu role source thay đổi phần được mirror."},
+          {"path": ".agents/rules/quality-assurance.md", "changes": "Giữ evidence/no fabricated pass, proportional checks và out-of-scope defect gates; chuyển commands/checklist vào skill."},
+          {"path": ".agents/skills/workflow-review/SKILL.md", "changes": "Nhận review/static/diff checklist chi tiết liên quan."},
+          {"path": ".agents/rules/docs-sync.md", "changes": "Giữ docs-in-DoD và sync-owner invariants; chuyển artifact procedure vào docs/testcase."},
+          {"path": ".agents/rules/documentation-reading-and-toc.md", "changes": "Giữ registry-first/index contract core; chuyển schema/TOC procedure vào docs skill."},
+          {"path": ".agents/skills/docs/SKILL.md", "changes": "Nhận đầy đủ registry, TOC, sync, AI-readable/human-readable và artifact routing procedure."},
+          {"path": ".agents/rules/search-priority.md", "changes": "Giữ local-first, citation/no-fabrication core; bỏ code example và trỏ research owners."},
+          {"path": ".claude/agents/researcher-agent.md", "changes": "Nhận/giữ quy trình tìm nguồn và phân loại fact/assumption/open question."},
+          {"path": ".codex/agents/researcher-agent.toml", "changes": "Đồng bộ adapter nếu role source thay đổi phần được mirror."},
+          {"path": ".agents/skills/system-understanding/SKILL.md", "changes": "Nhận local repository discovery procedure phù hợp."},
+          {"path": ".agents/rules/response-style.md", "changes": "Giữ concise/context fidelity/open-question invariant; chuyển example/format chuyên biệt sang report."},
+          {"path": ".agents/skills/report/SKILL.md", "changes": "Nhận question/report formatting detail còn lại."}
+        ],
+        "test": "Đối chiếu schemas của docs/testcase trước-sau; đếm đủ case accounting semantics; scan no-fabrication/citation/Pass-Fail/TOC/index constraints; JSON artifacts vẫn parse.",
+        "doneWhen": "Sáu rule còn lại mỏng và mọi quy trình/format/checklist vẫn tồn tại đúng owner."
+      },
+      {
+        "id": "TASK-005",
+        "title": "Đồng bộ reference toàn repo và kiểm chứng cấu hình",
+        "status": "DONE",
+        "priority": "P0",
+        "priorityReason": "Thay đổi chỉ hoàn tất khi toàn bộ runtime adapter và tài liệu còn dẫn tới nguồn chuẩn hợp lệ.",
+        "requirements": ["REQ-004", "REQ-005", "BR-002", "BR-003", "BR-004"],
+        "acceptanceCriteria": ["AC-003", "AC-004", "AC-005", "AC-006"],
+        "inScope": "Quét và sửa reference/wording bị ảnh hưởng; cập nhật root docs/contract khi cần; chạy toàn bộ check cấu hình và test repo hiện có; review diff theo scope.",
+        "outOfScope": "Không sửa unrelated failures, không format/rewrite file ngoài scope, không commit/push, không chỉnh bin/tests nếu thay đổi rule không đòi hỏi hành vi installer/test mới.",
+        "dependencies": ["TASK-002", "TASK-003", "TASK-004"],
+        "approach": "1. rg inbound/outbound rule references và kiểm tra relative links. 2. Đồng bộ root instructions/contract/README chỉ ở câu mô tả ownership/trigger bị sai. 3. Chạy checker, syntax/test, newline và diff checks. 4. So sánh final diff với baseline dirty hunks và semantic matrix. 5. Báo Not Run/Fail trung thực và chỉ sửa lỗi do diff hiện tại.",
+        "filesToChange": [
+          {"path": "AGENTS.md", "changes": "Cập nhật mô tả mô hình rule mỏng/skill owner hoặc pointer chỉ nếu hiện trạng sau refactor làm câu hiện tại sai."},
+          {"path": "CLAUDE.md", "changes": "Đồng bộ source/skill/workflow wording bị ảnh hưởng, giữ runtime-specific hook behavior."},
+          {"path": "CONTRACT.md", "changes": "Giữ tám hard constraints; cập nhật pointer/diễn giải tối thiểu khi owner thay đổi, bảo toàn dirty Git merge."},
+          {"path": "README.md", "changes": "Đồng bộ mô tả installed rules/skills hoặc maintenance instructions nếu cần."},
+          {"path": ".claude/hooks/README.md", "changes": "Xác nhận mọi rule/skill pointer của hooks đúng owner."},
+          {"path": "scripts/check-agent-config.py", "changes": "Chỉ thay đổi nếu cần kiểm tra cấu trúc mới; ưu tiên dùng nguyên checker hiện có."},
+          {"path": "bin/lumina-agent.mjs", "changes": "Bảo vệ dirty changes; chỉ sửa nếu reference/hardcoded inventory thực sự bắt buộc và có hunk riêng truy vết được."},
+          {"path": "tests/lumina-agent.test.mjs", "changes": "Bảo vệ dirty changes; chỉ sửa nếu hành vi cấu hình cài đặt thay đổi bắt buộc, không thêm test ngoài scope."},
+          {"path": "docs/plans/index.json", "changes": "Thêm entry bốn field cho plan này."}
+        ],
+        "test": "Chạy python3 scripts/check-agent-config.py; npm run check; npm test; parse mọi JSON/TOML/YAML có thay đổi bằng checker sẵn có; rg các tên rule cũ/anchor cũ và kiểm tra relative links; node .agents/hooks/scripts/ensure-final-newline.mjs --check trên toàn bộ file text đã đổi nếu script tồn tại, nếu không kiểm tra byte cuối; git diff --check; git status --short; git diff và git diff --cached để xác nhận không có out-of-scope/secret và dirty hunks được giữ.",
+        "doneWhen": "Reference resolve, checks có bằng chứng thật, diff chỉ gồm thay đổi được phép, plan/index hợp lệ, bin/tests không mất hunk và không có commit/push."
+      }
+    ],
+    "executionOrder": ["TASK-001", "TASK-002", "TASK-003", "TASK-004", "TASK-005"],
+    "traceability": [
+      {
+        "requirementId": "REQ-001",
+        "acceptanceCriteria": ["AC-001", "AC-006"],
+        "tasks": ["TASK-001", "TASK-002", "TASK-003", "TASK-004", "TASK-005"],
+        "test": "Inventory đủ 18 rule, semantic diff và final rule scan/checks.",
+        "result": "Passed — inventory đủ 18 rule; rule còn 8–21 dòng, giữ invariant và pointer owner; config/test/diff checks đạt."
+      },
+      {
+        "requirementId": "REQ-002",
+        "acceptanceCriteria": ["AC-001"],
+        "tasks": ["TASK-001", "TASK-002", "TASK-003", "TASK-004"],
+        "test": "Mỗi rule chỉ còn trigger/core invariants/pointer; không còn procedure/checklist/example dài.",
+        "result": "Passed — 18 rule đã bỏ procedure/checklist/example dài; chi tiết cross-stack chuyển vào coding-standards và skill/role owner hiện hữu."
+      },
+      {
+        "requirementId": "REQ-003",
+        "acceptanceCriteria": ["AC-002", "AC-006"],
+        "tasks": ["TASK-001", "TASK-002", "TASK-003", "TASK-004", "TASK-005"],
+        "test": "Trace từng đoạn move tới skill/role owner và scan constraint keywords/schema.",
+        "result": "Passed — keyword/reference scan xác nhận Git, scope/report/plan, type/comment, UI/DB/test/docs/search semantics còn ở owner."
+      },
+      {
+        "requirementId": "REQ-004",
+        "acceptanceCriteria": ["AC-003", "AC-004", "AC-006"],
+        "tasks": ["TASK-002", "TASK-003", "TASK-004", "TASK-005"],
+        "test": "Reference scan, link resolution, config checker, syntax/test và root docs comparison.",
+        "result": "Passed — config checker, JSON validation, npm check/test, stale-reference scan, newline và diff checks đạt."
+      },
+      {
+        "requirementId": "REQ-005",
+        "acceptanceCriteria": ["AC-005", "AC-006"],
+        "tasks": ["TASK-001", "TASK-002", "TASK-005"],
+        "test": "So sánh baseline/final git diff cho mọi dirty path; xác nhận bin/tests và Git merge hunks còn nguyên; git status không có commit/push side effect.",
+        "result": "Passed — baseline dirty Git/database/dependency/hook/bin/tests được bảo toàn; không commit/push."
+      },
+      {
+        "requirementId": "BR-001",
+        "acceptanceCriteria": ["AC-001", "AC-002"],
+        "tasks": ["TASK-001", "TASK-002", "TASK-003", "TASK-004"],
+        "test": "Semantic matrix before/after không có invariant mất hoặc mới.",
+        "result": "Passed — semantic mapping giữ authorization/safety/default tại rule và procedure tại skill/role owner."
+      },
+      {
+        "requirementId": "BR-002",
+        "acceptanceCriteria": ["AC-003"],
+        "tasks": ["TASK-005"],
+        "test": "scripts/check-agent-config.py xác nhận symlink .claude/.codex trỏ shared source.",
+        "result": "Passed — scripts/check-agent-config.py xác nhận shared source, symlink và Codex adapters hợp lệ."
+      },
+      {
+        "requirementId": "BR-003",
+        "acceptanceCriteria": ["AC-005"],
+        "tasks": ["TASK-001", "TASK-002", "TASK-005"],
+        "test": "Baseline/final dirty diff comparison.",
+        "result": "Passed — final status/diff giữ các hunk dirty ban đầu và Git rule merge đang thực hiện."
+      },
+      {
+        "requirementId": "BR-004",
+        "acceptanceCriteria": ["AC-006"],
+        "tasks": ["TASK-005"],
+        "test": "Final report uses config-task File/Description/Trigger condition format and does not claim Big O.",
+        "result": "Passed — thay đổi chỉ là rule/skill/docs/config; báo cáo không yêu cầu Big O."
+      }
+    ],
+    "remainingRisks": [
+      {
+        "description": "Rút rule quá mạnh có thể làm skill không tự kích hoạt và khiến constraint không còn được nạp toàn phiên.",
+        "mitigation": "Giữ mọi authorization/safety/default invariant ở rule; skill chỉ sở hữu procedure/checklist/example và rule có pointer/trigger rõ."
+      },
+      {
+        "description": "Chi tiết đang trùng ở rule, skill và role có thể lệch wording sau khi chuyển.",
+        "mitigation": "Chọn một owner duy nhất theo mapping, biến nguồn còn lại thành pointer, rồi scan các câu khóa semantics trước/sau."
+      },
+      {
+        "description": "Worktree dirty có thể bị ghi đè, nhất là đợt gộp Git và thay đổi bin/tests không thuộc task.",
+        "mitigation": "Chụp baseline diff theo path, edit theo hunk nhỏ, không dùng reset/checkout, không phục hồi file deleted và final diff comparison bắt buộc."
+      },
+      {
+        "description": "Tạo skill coding-standards không cần thiết có thể tăng số nguồn và trái mục tiêu gọn.",
+        "mitigation": "Chỉ tạo sau inventory nếu không có owner hiện hữu; nếu tạo thì các skill khác trỏ tới nó thay vì sao chép nội dung."
+      },
+      {
+        "description": "Test repo có thể fail do dirty changes có sẵn hoặc môi trường, không phải refactor tài liệu.",
+        "mitigation": "Chạy check thật, lưu output, phân biệt lỗi baseline với lỗi do diff và không sửa lỗi ngoài phạm vi."
+      }
+    ]
+  }
+}

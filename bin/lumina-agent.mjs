@@ -134,6 +134,15 @@ function parseSettings(content, label) {
   }
 }
 
+const repositoryRelativeHook = /^(bash|node) "\$\(git rev-parse --show-toplevel\)\/\.agents\/hooks\/scripts\/([^"$`\\]+)"$/;
+
+function absoluteHookCommand(command, target) {
+  const match = repositoryRelativeHook.exec(command);
+  if (!match) return command;
+  const filename = path.join(target, '.claude/hooks/scripts', match[2]);
+  return `${match[1]} '${filename.replaceAll("'", "'\\''")}'`;
+}
+
 class InstallConflictError extends Error {
   constructor(relative) {
     super(`Conflict at ${relative}`);
@@ -260,6 +269,7 @@ export async function installFromSource({ source, target, dryRun = false, global
       for (const [event, groups] of Object.entries(object(settings.hooks ?? {}, 'Source hooks'))) {
         for (const group of hookGroups(groups, event)) {
           for (const hook of group.hooks) {
+            if (hook.type === 'command' && typeof hook.command === 'string') hook.command = absoluteHookCommand(hook.command, target);
             if (hook.type === 'command' && typeof hook.command === 'string' && hook.command.startsWith('bash .claude/hooks/')) {
               const filename = path.join(target, hook.command.slice(5));
               hook.command = `bash '${filename.replaceAll("'", "'\\''")}'`;

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # PreToolUse hook: quét `git add`/`git commit` để phát hiện nội dung giống
 # secret/credential (API key, private key, file .env) trước khi được stage
-# hoặc commit — liên hệ rules/data-safety.md.
+# hoặc commit — liên hệ rules/backend.md.
 #
 # Nhận JSON input từ stdin theo schema PreToolUse:
 #   { "tool_name": "Bash", "tool_input": { "command": "..." }, ... }
@@ -65,7 +65,7 @@ fi
 
 [ "${#flagged[@]}" -eq 0 ] && exit 0
 
-reason="Phát hiện nội dung giống secret/credential: $(printf '%s; ' "${flagged[@]}"). Xác nhận lại với người dùng trước khi tiếp tục (rules/data-safety.md)."
+reason="Phát hiện nội dung giống secret/credential: $(printf '%s; ' "${flagged[@]}"). Xác nhận lại với người dùng trước khi tiếp tục (rules/backend.md)."
 jq -n --arg reason "$reason" '{
   hookSpecificOutput: {
     hookEventName: "PreToolUse",
