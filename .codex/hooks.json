@@ -1,18 +1,6 @@
 {
   "description": "Register the repository hooks from .agents/hooks for Codex.",
   "hooks": {
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/markitdown.sh\"",
-            "timeout": 120,
-            "additionalContextLimit": 8000
-          }
-        ]
-      }
-    ],
     "PreToolUse": [
       {
         "hooks": [

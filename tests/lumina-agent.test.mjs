@@ -349,10 +349,10 @@ test('global install preserves user configuration and resolves hooks from anothe
   await assert.rejects(fs.stat(path.join(options.target, 'CLAUDE.md')), { code: 'ENOENT' });
   const settings = JSON.parse(await fs.readFile(path.join(options.target, '.claude/settings.json'), 'utf8'));
   assert.equal(settings.model, 'existing-model');
-  const command = settings.hooks.UserPromptSubmit[0].hooks[0].command;
+  const command = settings.hooks.PreToolUse[0].hooks[0].command;
   assert.ok(command.includes(options.target.replaceAll("'", "'\\''")));
   const resolved = await executeFile('sh', ['-c', `set -- ${command}; printf '%s' "$2"`], { cwd: options.temporary });
-  assert.equal(resolved.stdout, path.join(options.target, '.claude/hooks/scripts/markitdown.sh'));
+  assert.equal(resolved.stdout, path.join(options.target, '.claude/hooks/scripts/audit-log.sh'));
   assert.equal((await installFromSource(options)).changes, 0);
 });
 

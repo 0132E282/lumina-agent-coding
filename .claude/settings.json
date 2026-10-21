@@ -1,15 +1,5 @@
 {
   "hooks": {
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/markitdown.sh\""
-          }
-        ]
-      }
-    ],
     "PreToolUse": [
       {
         "matcher": ".*",

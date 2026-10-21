@@ -191,18 +191,6 @@ Mỗi lần gọi Agent tool, hook này luôn báo rõ tên `subagent_type` đan
 - **An toàn**: thiếu `jq` hoặc không phải tool `Agent` → không làm gì.
 - **Phụ thuộc**: cần `jq`.
 
-## markitdown — tự convert file đính kèm sang Markdown
-
-Khi gửi prompt có đính kèm file PDF/HTML/ảnh, hook này tự chạy CLI `markitdown` convert file đó sang Markdown rồi bơm nội dung vào context trước khi Claude xử lý — không cần tự gọi skill [`markitdown`](../skills/markitdown/SKILL.md) bằng tay mỗi lần dán tài liệu.
-
-- **Script**: [`scripts/markitdown.sh`](./scripts/markitdown.sh)
-- **Loại hook**: `UserPromptSubmit` (không cần `matcher`)
-- **Phạm vi file**: lấy từ `files[]`/`images[]` trong input, chỉ convert đúng phần mở rộng `.pdf .html .htm .png .jpg .jpeg .gif .webp`.
-- **Cơ chế**: convert mỗi file vào `.agents/storage/attachments/<session_id>/` (tài nguyên của session, cùng chỗ với log Claude khác, đã ignore qua `.gitignore` — không tự xoá), neo theo `CLAUDE_PROJECT_DIR` (fallback `pwd`) để không ghi lạc vào thư mục con khi session đổi cwd. Cắt mỗi file còn tối đa 8000 ký tự rồi trả qua `hookSpecificOutput.additionalContext`. File cùng tên đã convert rồi (còn tồn tại) thì tái dùng, không convert lại.
-- **Ảnh (PNG/JPG/GIF/WEBP)**: `markitdown` mặc định không OCR ảnh thường (chỉ đọc EXIF) nếu không cấu hình Azure/LLM — hook tự fallback sang `tesseract -l vie+eng` (OCR offline, không cần key/API) khi `markitdown` ra rỗng. Độ chính xác phụ thuộc chất lượng ảnh/cỡ chữ, không đảm bảo hoàn hảo.
-- **An toàn**: luôn `exit 0`; thiếu `jq`/`markitdown`, không có file đính kèm phù hợp, hoặc convert lỗi từng file → bỏ qua êm, không chặn prompt.
-- **Phụ thuộc**: cần `jq` và CLI `markitdown` (`uv tool install "markitdown[all]"` hoặc `pip install "markitdown[all]"`) trong `PATH`. Tuỳ chọn: `tesseract` kèm gói ngôn ngữ `vie`+`eng` (`brew install tesseract tesseract-lang` / `apt install tesseract-ocr tesseract-ocr-vie`) để OCR ảnh — thiếu thì phần ảnh chỉ im lặng bỏ qua, không lỗi; thiếu riêng gói `vie` thì OCR vẫn chạy nhưng sai dấu tiếng Việt.
-
 ## test-token-usage — usage sau lệnh test trên Claude
 
 - **Script**: [`scripts/test-token-usage.mjs`](./scripts/test-token-usage.mjs); Node có sẵn, không thêm dependency.
@@ -222,4 +210,4 @@ Khi gửi prompt có đính kèm file PDF/HTML/ảnh, hook này tự chạy CLI 
 
 ## Đã bật sẵn trong chính repo này
 
-`hook/` nằm trong `.claude/hooks/` của repo này, và `.claude/settings.json` đã trỏ cả 19 hook tự viết (`markitdown`, `audit-log`, `commit-msg-guard`, `secret-scan`, `protected-branch-guard`, `format-before-push`, `condense-planner-input`, `agent-role-reminder`, `format-on-edit`, `ensure-final-newline`, `lint-on-edit`, `test-reminder`, `missing-test-reminder`, `dependency-audit-reminder`, `test-token-usage`, `ci-workflow-lint`, `remind-cleanup`, `report-reminder`, `notify-done`) tới đúng path `.claude/hooks/scripts/...` — không cần cài thêm gì để dùng ngay trong repo này. Riêng hook `rtk hook claude` gọi tool ngoài, chỉ chạy được nếu máy đã cài [`rtk`](https://github.com/rtk-ai/rtk) (xem mục riêng ở trên). [`settings.snippet.json`](./settings.snippet.json) có nội dung tương đương, dùng khi copy sang project khác theo hướng dẫn ở trên.
+`hook/` nằm trong `.claude/hooks/` của repo này, và `.claude/settings.json` đã trỏ cả 18 hook tự viết (`audit-log`, `commit-msg-guard`, `secret-scan`, `protected-branch-guard`, `format-before-push`, `condense-planner-input`, `agent-role-reminder`, `format-on-edit`, `ensure-final-newline`, `lint-on-edit`, `test-reminder`, `missing-test-reminder`, `dependency-audit-reminder`, `test-token-usage`, `ci-workflow-lint`, `remind-cleanup`, `report-reminder`, `notify-done`) tới đúng path `.claude/hooks/scripts/...` — không cần cài thêm gì để dùng ngay trong repo này. Riêng hook `rtk hook claude` gọi tool ngoài, chỉ chạy được nếu máy đã cài [`rtk`](https://github.com/rtk-ai/rtk) (xem mục riêng ở trên). [`settings.snippet.json`](./settings.snippet.json) có nội dung tương đương, dùng khi copy sang project khác theo hướng dẫn ở trên.
