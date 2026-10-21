@@ -159,6 +159,7 @@ Khi Claude Code kết thúc một turn, hook này tìm trong `.agents/storage/lo
 - **Chỉ nhắc, không tự gọi skill giùm**: dùng `hookSpecificOutput.additionalContext`, không dùng `decision`/`reason` (sẽ chặn Claude dừng lại).
 - **An toàn**: luôn `exit 0`; không có Edit/Write nào chưa báo cáo, thiếu `jq`, hoặc thiếu log thì im lặng, không báo gì.
 - **Phụ thuộc**: cần `jq`; dựa vào log của hook `audit-log` (field `input.skill`) nên phải bật hook đó cùng lúc.
+- **Token và lãng phí**: khi nhắc, hook còn đọc `transcript_path` bằng [`task-usage.mjs`](../skills/report/scripts/task-usage.mjs) và đưa vào context số token thật (input, output, cache đọc, cache tạo) cùng các vi phạm tiêu chí lãng phí kèm bằng chứng, để báo cáo ghi `Token:` và `Issue lãng phí:`. Ngưỡng ở [`waste-criteria.json`](../skills/report/assets/waste-criteria.json) (mặc định: đọc lại cùng file ≥ 3 lần, lặp cùng lệnh ≥ 3 lần, một kết quả tool > 20.000 ký tự, ≥ 3 lần gọi subagent, cache tạo mới > cache đọc khi ≥ 50.000 token). Cửa sổ đo tính từ mốc lần nhắc trước, lưu ở `.agents/storage/state/<session_id>.json`; lần đầu là cả phiên. Không đọc được transcript thì im lặng về token, không ghi N/A hay ước lượng.
 
 ## notify-done — phát âm thanh khi làm xong task
 

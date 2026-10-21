@@ -1,0 +1,8 @@
+{
+  "rereadFile": 3,
+  "repeatCommand": 3,
+  "bigToolResultChars": 20000,
+  "subagentCalls": 3,
+  "cacheCreateOverRead": 1.0,
+  "cacheMinTokens": 50000
+}

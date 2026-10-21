@@ -59,6 +59,34 @@ mkdir -p "$(dirname "$state_file")" && printf '%s' "$latest_ts" > "$state_file"
 
 msg="📊 Đã Edit/Write ${count} lần (${preview}) mà chưa thấy gọi skill \`report\` để xuất báo cáo thay đổi — rules/delivery.md yêu cầu bắt buộc. Dùng Skill tool với \`report\` trước khi báo hoàn thành task."
 
+# Best-effort: thiếu node/transcript/usage thì bỏ qua, không in N/A hay ước lượng.
+usage_script="$log_root/.agents/skills/report/scripts/task-usage.mjs"
+transcript_path="$(printf '%s' "$input" | jq -r '.transcript_path // ""' 2>/dev/null)"
+if command -v node >/dev/null 2>&1 && [ -f "$usage_script" ] && [ -f "$transcript_path" ]; then
+  marker_file="$log_root/.agents/storage/state/$session_id.json"
+  since_line="$(jq -r '.lastLine // 0' "$marker_file" 2>/dev/null || true)"
+  window_label="từ mốc báo cáo trước"
+  if [ -z "$since_line" ] || [ "$since_line" = "0" ]; then
+    since_line=0
+    window_label="cả phiên"
+  fi
+  usage_json="$(node "$usage_script" --transcript "$transcript_path" --since-line "$since_line" 2>/dev/null || true)"
+  usage_text="$(printf '%s' "$usage_json" | jq -r --arg label "$window_label" '
+    (if .usage.messages > 0 then
+      "📈 Token (\($label), nguồn transcript): input \(.usage.input) | output \(.usage.output) | cache đọc \(.usage.cacheRead) | cache tạo \(.usage.cacheCreate)."
+    else empty end),
+    (if (.waste | length) > 0 then
+      "Issue lãng phí: \(.waste | length) — " + (.waste | map("\(.rule): \(.evidence) (×\(.count))") | join("; "))
+    else "Issue lãng phí: Không phát hiện." end),
+    "Khi báo cáo thêm hai dòng Token: và Issue lãng phí: theo template change."
+  ' 2>/dev/null || true)"
+  measured_messages="$(printf '%s' "$usage_json" | jq -r '.usage.messages // 0' 2>/dev/null || true)"
+  if [ -n "$usage_text" ] && [ "${measured_messages:-0}" -gt 0 ] 2>/dev/null; then
+    msg="$msg"$'\n'"$usage_text"
+    mkdir -p "$(dirname "$marker_file")" && printf '%s' "$usage_json" | jq -c '{lastLine}' > "$marker_file" || true
+  fi
+fi
+
 jq -n --arg msg "$msg" '{
   hookSpecificOutput: {
     hookEventName: "Stop",

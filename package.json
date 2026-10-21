@@ -17,7 +17,7 @@
     "check": "node --check bin/lumina-agent.mjs",
     "design:lint": "designmd lint",
     "design:spec": "designmd spec",
-    "test": "node --test tests/lumina-agent.test.mjs"
+    "test": "node --test tests/*.test.mjs"
   },
   "repository": {
     "type": "git",

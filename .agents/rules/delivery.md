@@ -39,5 +39,6 @@ Kỹ thuật thiết kế, scheduler, dependency group, concurrency và artifact
 - Toàn plan/nhóm task chỉ có một báo cáo tổng hợp cuối sau khi mọi task/AC/check bắt buộc có bằng chứng; subagent chỉ bàn giao nội bộ.
 - Còn TODO/IN_PROGRESS, AC chưa đạt hoặc check bắt buộc Fail/Blocked/Not Run thì không tuyên bố hoàn thành; chỉ báo blocker cụ thể. Testcase repo được yêu cầu thiết kế `Not Run` không phải check thực thi.
 - Report chỉ trình bày kết quả đã có, không thay thế review/phân tích/test và không biến lỗi môi trường thành Pass.
+- Báo cáo thay đổi có `Token:` và `Issue lãng phí:` khi hook cuối lượt cung cấp số liệu thật; nêu rõ vi phạm tiêu chí lãng phí (đọc lại file, lặp lệnh, kết quả tool quá lớn, nhiều subagent) kèm bằng chứng. Không có số liệu thì bỏ dòng, không ước lượng.
 
 Timing, chọn loại và format nguồn chuẩn: [`report`](../skills/report/SKILL.md); entry point: [`workflow-report`](../skills/workflow-report/SKILL.md).
