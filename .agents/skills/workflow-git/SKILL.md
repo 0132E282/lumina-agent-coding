@@ -13,6 +13,4 @@ description: "Workflow Git chung cho Codex: commit all mặc định, merge và 
 - `main [tên repo] [into current|main] [from nhánh-nguồn]`: chuẩn bị repo và PR, mặc định nhánh chính; hỏi trước merge.
 - `help`: chỉ hướng dẫn/trạng thái repo.
 
-Giữ nguyên loại trừ file tạm/rác/secret, validator commit, kiểm tra toàn bộ lịch sử sắp push, quyền push và điểm duyệt merge PR từ workflow nguồn. Merge local được cho phép khi người dùng gọi chế độ `merge`; không nhầm với xác nhận merge PR. Tên file có chữ test không đủ để kết luận là rác; giữ test chính thức. Lời yêu cầu sửa workflow này không phải lệnh thực hiện commit/push/merge.
-
-Trước xử lý conflict với remote, fetch ref mới và chốt SHA/merge-base. So từng hunk với merge-base: người dùng không sửa thì nhận incoming; người dùng đã sửa và conflict thì ưu tiên bản người dùng, giữ incoming không conflict. Xác định phía người dùng theo scope/diff, không theo nhãn ours/theirs. Bảo vệ working tree/index và giữ điểm hỏi khi thiếu căn cứ theo rule conflict.
+Mọi quy tắc còn lại (loại trừ file tạm/rác/secret, validator commit, kiểm tra lịch sử trước push, điểm duyệt merge PR, xử lý conflict theo merge-base) lấy từ workflow nguồn `.claude/commands/git.md` và [`git-workflow`](../git-workflow/SKILL.md); không lặp lại ở đây. Lời yêu cầu sửa workflow này không phải lệnh thực hiện commit/push/merge.

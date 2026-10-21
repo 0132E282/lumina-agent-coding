@@ -1,6 +1,6 @@
 ---
 name: cleanup-temp-files
-description: Dọn dẹp file tạm/scratch/debug/test thử nghiệm do CHÍNH Claude tạo ra trong lúc làm task (không phải deliverable) để tránh phình dự án — xóa thẳng, không cần hỏi xác nhận vì là file tự tạo trong session hiện tại. KHÔNG xóa test chính thức thuộc bộ test suite của project (unit/integration/regression — xem rules/delivery.md) và KHÔNG xóa file không rõ nguồn gốc/có sẵn trong workspace (việc đó thuộc agent workspace-auditor-agent, luôn phải liệt kê + chờ xác nhận). Dùng ngay trước khi báo "hoàn thành task", hoặc khi người dùng yêu cầu dọn file tạm/rác do Claude tạo ra.
+description: "Dọn file tạm/scratch/debug do chính Claude tạo trong task (xóa thẳng, không phải deliverable). Không xóa test chính thức hay file không rõ nguồn gốc (việc của workspace-auditor-agent). Dùng ngay trước khi báo hoàn thành task hoặc khi người dùng yêu cầu dọn file tạm."
 license: MIT
 metadata:
   version: "1.0"

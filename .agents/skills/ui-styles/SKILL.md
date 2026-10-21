@@ -1,6 +1,6 @@
 ---
 name: ui-styles
-description: "Phong cách thiết kế UI: minimalist editorial, industrial brutalist, hoặc nâng cấp giao diện hiện có không phá chức năng. Yêu cầu người dùng, accessibility và design system hiện có được ưu tiên hơn phong cách."
+description: "Phong cách thiết kế UI: minimalist editorial, industrial brutalist, hoặc nâng cấp giao diện hiện có không phá chức năng. Dùng khi cần chọn phong cách cho UI mới hoặc redesign; yêu cầu người dùng, accessibility và design system hiện có được ưu tiên hơn."
 license: MIT
 metadata:
   version: "1.0"

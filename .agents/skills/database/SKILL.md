@@ -1,11 +1,6 @@
 ---
 name: database
-description: >
-  Chuyển yêu cầu nghiệp vụ thành truy vấn database, review tính đúng đắn,
-  phân tích độ phức tạp và tải, tìm query nặng và đề xuất tối ưu có bằng chứng.
-  Dùng cho SQL (MySQL, PostgreSQL, SQLite, SQL Server) và NoSQL
-  (MongoDB, Redis, DynamoDB, Cassandra, Elasticsearch và engine khác),
-  khi viết query, aggregation, filter, index, phân trang hoặc điều tra hiệu năng.
+description: "Chuyển yêu cầu nghiệp vụ thành truy vấn SQL/NoSQL, review tính đúng, phân tích độ phức tạp/tải, tìm query nặng và đề xuất tối ưu có bằng chứng. Dùng khi viết query, aggregation, filter, index, phân trang hoặc điều tra hiệu năng (MySQL, PostgreSQL, MongoDB, Redis...)."
 ---
 
 # Database Query Analyzer

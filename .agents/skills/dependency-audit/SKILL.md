@@ -1,6 +1,6 @@
 ---
 name: dependency-audit
-description: Rà soát dependency (npm/yarn/pnpm, composer, pip/poetry, cargo, go mod...) tìm bản lỗi thời hoặc có lỗ hổng (CVE) đã biết bằng audit tool có sẵn của chính ecosystem (npm audit, composer audit, pip-audit, cargo audit, govulncheck), đề xuất upgrade tối thiểu giữ tương thích. Dùng trước khi thêm dependency mới, khi review PR có đổi package.json/composer.json/requirements.txt/go.mod, hoặc khi người dùng hỏi dependency có an toàn không. KHÔNG tự ý chạy upgrade/install — chỉ báo cáo và đề xuất lệnh, người dùng tự quyết chạy.
+description: "Rà soát dependency (npm, composer, pip, cargo, go mod...) tìm bản lỗi thời hoặc CVE bằng audit tool của ecosystem, đề xuất upgrade tối thiểu. Dùng trước khi thêm dependency, khi review PR đổi manifest/lockfile hoặc khi hỏi dependency có an toàn không. Không tự chạy upgrade/install."
 license: MIT
 metadata:
   version: "1.1"

@@ -1,6 +1,6 @@
 ---
 name: coding-standards
-description: Checklist code cross-stack về DRY/SOLID/SRP/fail-fast, comment, TypeScript strict typing, readability và KISS/YAGNI.
+description: "Checklist code cross-stack: DRY/SOLID/SRP/fail-fast, comment, TypeScript strict, readability, KISS/YAGNI. Dùng khi viết, sửa hoặc review code và cần đối chiếu chuẩn code."
 ---
 
 # Coding standards

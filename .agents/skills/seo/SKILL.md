@@ -1,6 +1,6 @@
 ---
 name: seo
-description: "SEO website: audit/triển khai SEO kỹ thuật (on-page, crawl/index, metadata, sitemap, structured data, hiệu năng) và lập kế hoạch, viết, tối ưu nội dung theo người đọc và mục đích tìm kiếm. Không tối ưu index cho trang admin hoặc nội dung riêng tư."
+description: "SEO website: audit/triển khai SEO kỹ thuật (on-page, crawl/index, metadata, sitemap, structured data, hiệu năng) và lập kế hoạch, viết, tối ưu nội dung theo mục đích tìm kiếm. Dùng khi tối ưu website công khai; không tối ưu index cho trang admin hoặc nội dung riêng tư."
 license: MIT
 metadata:
   version: "1.0"

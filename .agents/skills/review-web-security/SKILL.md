@@ -1,6 +1,6 @@
 ---
 name: review-web-security
-description: Review bảo mật website, backend, frontend, API, database và cấu hình triển khai. Dùng khi người dùng yêu cầu security review, audit code, tìm lỗ hổng, kiểm tra xác thực/phân quyền, upload, thanh toán, hoặc sửa lỗi bảo mật. Đưa ra bằng chứng trong code, điều kiện khai thác, mức độ ảnh hưởng, bản sửa và kiểm thử hồi quy; hỗ trợ mọi stack, gồm Laravel và React. KHÔNG tự ý chạy kiểm thử phá hoại/quét ngoài phạm vi cho phép, không tự thực thi migration hay đổi kiến trúc ngoài yêu cầu.
+description: "Review bảo mật website, backend, frontend, API, database và cấu hình triển khai, có bằng chứng, điều kiện khai thác, mức ảnh hưởng, bản sửa và test hồi quy. Dùng khi yêu cầu security review, audit, tìm lỗ hổng, kiểm tra xác thực/phân quyền/upload/thanh toán. Không chạy kiểm thử phá hoại hay quét ngoài phạm vi."
 license: MIT
 metadata:
   version: "1.2"

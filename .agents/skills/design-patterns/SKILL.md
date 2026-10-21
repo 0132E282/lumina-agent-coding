@@ -1,6 +1,6 @@
 ---
 name: design-patterns
-description: Tra cứu 22 design pattern GoF (phân loại theo Refactoring.Guru) theo 3 nhóm Creational/Structural/Behavioral — ngữ cảnh nên dùng, ví dụ backend, và bảng phân biệt các cặp pattern dễ nhầm (Strategy/State, Factory Method/Abstract Factory, Adapter/Facade, Decorator/Proxy, Bridge/Adapter, Strategy/Template Method). Dùng khi: cần chọn pattern phù hợp cho một vấn đề cụ thể đang lặp lại hoặc khó sửa, cần giải thích một pattern, hoặc phân vân giữa hai pattern trông giống nhau. KHÔNG dùng để tự ý nhồi pattern vào code khi task chưa thực sự cần (xem rules/coding.md). Danh mục kỹ thuật refactor theo code smell: references/refactoring.md.
+description: "Tra cứu 22 design pattern GoF (Creational/Structural/Behavioral), cách phân biệt các cặp dễ nhầm và danh mục refactor theo code smell (references/refactoring.md). Dùng khi cần chọn hoặc giải thích pattern, hoặc chọn kỹ thuật refactor cho smell cụ thể. Không nhồi pattern khi chưa cần (rules/coding.md)."
 license: MIT
 metadata:
   version: "1.1"

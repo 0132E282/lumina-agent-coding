@@ -1,6 +1,6 @@
 ---
 name: git-workflow
-description: Thực thi quy tắc git bắt buộc — commit, push, pull request và resolve conflict (rules/git.md). Tuyệt đối không tự ý git commit khi chưa có lệnh rõ ràng, không commit vụn vặt, message theo Conventional Commits (tiêu đề "<type>: mô tả" ≤ 75 ký tự); trước khi push format lại diff so với remote; khi tạo PR phải check conflict và biết nhánh nào được ưu tiên giữ. Dùng ngay trước khi chạy git commit, git push, tạo/update PR, hoặc resolve conflict. Đi kèm script validate-commit-message.sh để kiểm tra message tự động.
+description: "Thực thi quy tắc git (rules/git.md): commit, push, PR, resolve conflict; commit chỉ khi có lệnh rõ ràng, message Conventional Commits tối đa 75 ký tự, format Prettier, check conflict. Dùng ngay trước git commit, git push, tạo hoặc cập nhật PR, resolve conflict; có validate-commit-message.sh."
 license: MIT
 metadata:
   version: "1.4"

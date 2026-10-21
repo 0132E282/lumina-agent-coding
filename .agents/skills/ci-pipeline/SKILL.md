@@ -1,6 +1,6 @@
 ---
 name: ci-pipeline
-description: Soạn/review pipeline CI (GitHub Actions, GitLab CI...) đảm bảo lint + test + build chạy trước khi merge — thứ tự job fail-fast, cache dependency, trigger push/pull_request hợp lý, secret injection an toàn qua biến CI (không hardcode). Dùng khi thêm workflow CI mới, sửa workflow hiện có, hoặc review PR có đổi .github/workflows. KHÔNG tự ý trigger deploy/production job hoặc chạy workflow thật — chỉ soạn/review file cấu hình, việc chạy thật do CI platform hoặc người dùng xác nhận.
+description: "Soạn/review pipeline CI (GitHub Actions, GitLab CI...) để lint + test + build chạy trước merge: job fail-fast, cache, trigger hợp lý, secret qua biến CI. Dùng khi thêm hoặc sửa workflow CI, hoặc review PR đổi .github/workflows. Chỉ soạn file cấu hình, không trigger deploy hay chạy workflow thật."
 license: MIT
 metadata:
   version: "1.1"

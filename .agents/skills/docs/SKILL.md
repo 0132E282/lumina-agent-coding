@@ -1,6 +1,6 @@
 ---
 name: docs
-description: Viết hoặc đồng bộ tài liệu dự án (README.md, CLAUDE.md, docs/) — (1) ĐỒNG BỘ khi đã có tài liệu, đối chiếu với trạng thái THỰC TẾ của codebase, phát hiện phần lỗi thời/sai và sửa lại; (2) VIẾT MỚI khi project/module chưa có gì để đối chiếu — quét stack/lệnh/convention thật rồi viết gọn, giống `/init` nhưng tối ưu hơn (không liệt kê dư). Mặc định viết theo chế độ AI-readable để agent đọc và truy vết; chỉ dùng human-readable khi người dùng yêu cầu tài liệu cho người đọc. Khi tài liệu cần sơ đồ cấu trúc, ERD hoặc user/system flow, kết hợp skill `system-understanding`; không dùng `docs` để tự thiết kế HLD/LLD mới.
+description: "Viết hoặc đồng bộ tài liệu dự án (README.md, CLAUDE.md, docs/): đồng bộ khi đã có tài liệu (đối chiếu codebase, sửa phần lỗi thời) hoặc viết mới khi chưa có. Mặc định AI-readable. Dùng khi cần tạo hoặc cập nhật tài liệu; sơ đồ dùng system-understanding; không tự thiết kế HLD/LLD."
 license: MIT
 metadata:
   version: '1.4'
