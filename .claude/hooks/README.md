@@ -171,7 +171,7 @@ Khi skill `report` được gọi, hook đọc `transcript_path` bằng [`task-u
 - **Cửa sổ đo**: từ lần gọi `report` trước (mốc lưu ở `.agents/storage/state/<session_id>.json`); lần đầu là cả phiên.
 - **An toàn**: luôn `exit 0`, không chặn; thiếu `jq`/`node`/script hoặc không đọc được transcript thì im lặng, không ghi N/A hay ước lượng.
 - **Phạm vi**: chỉ Claude Code (Codex không có hook này nên bỏ hai dòng đó khỏi báo cáo).
-- **Độ trễ**: transcript lúc hook chạy chưa gồm các message của lượt hiện tại nên số liệu tính đến lúc gọi skill; lượt đầu của phiên headless chưa có message nào nên hook im lặng. Phiên tương tác đã được kiểm chứng: hook chèn số liệu thật khi gọi `report`.
+- **Độ trễ**: transcript lúc hook chạy chưa gồm các message của lượt hiện tại nên số liệu tính đến lúc gọi skill; lượt đầu của phiên headless chưa có message nào nên hook im lặng. Phiên tương tác đã được kiểm chứng: hook chèn số liệu thật khi gọi `report`; độ lệch đo được trên phiên dài so với số cuối lượt chỉ khoảng 0,7–2,6% (input +1,45%, output +1,81%, cache đọc +2,59%, cache tạo +0,72%).
 
 ## notify-done — phát âm thanh khi làm xong task
 

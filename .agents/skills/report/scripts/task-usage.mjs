@@ -37,6 +37,17 @@ function truncate(text) {
   return text.length > 80 ? `${text.slice(0, 77)}...` : text;
 }
 
+function subagentLabel(block) {
+  const label = block.input?.description || block.input?.subagent_type || block.name;
+  return String(label).length > 40 ? `${String(label).slice(0, 39)}…` : String(label);
+}
+
+function subagentEvidence(labels) {
+  const text = `${labels.length} lần gọi subagent`;
+  if (labels.every(label => subagentToolNames.has(label))) return text;
+  return `${text}: ${labels.slice(0, 5).join(' | ')}${labels.length > 5 ? ' | …' : ''}`;
+}
+
 function resultLength(content) {
   if (typeof content === 'string') return content.length;
   if (!Array.isArray(content)) return 0;
@@ -48,7 +59,7 @@ function measure(lines, sinceLine, criteria) {
   const reads = new Map();
   const commands = new Map();
   const bigResults = [];
-  let subagentCalls = 0;
+  const subagentLabels = [];
   lines.forEach((line, offset) => {
     const lineNumber = offset + 1;
     if (lineNumber <= sinceLine || !line.trim()) return;
@@ -67,7 +78,7 @@ function measure(lines, sinceLine, criteria) {
         if (block?.type !== 'tool_use') continue;
         if (block.name === 'Read' && typeof block.input?.file_path === 'string') count(reads, block.input.file_path);
         if (block.name === 'Bash' && typeof block.input?.command === 'string') count(commands, block.input.command);
-        if (subagentToolNames.has(block.name)) subagentCalls += 1;
+        if (subagentToolNames.has(block.name)) subagentLabels.push(subagentLabel(block));
       }
     } else if (event?.type === 'user' && Array.isArray(content)) {
       for (const block of content) {
@@ -78,6 +89,7 @@ function measure(lines, sinceLine, criteria) {
     }
   });
 
+  const subagentCalls = subagentLabels.length;
   const usage = { input: 0, output: 0, cacheRead: 0, cacheCreate: 0, messages: 0 };
   for (const recorded of messages.values()) {
     if (!recorded) continue;
@@ -96,7 +108,7 @@ function measure(lines, sinceLine, criteria) {
     if (times >= criteria.repeatCommand) waste.push({ rule: 'repeatCommand', evidence: truncate(command), count: times });
   }
   for (const size of bigResults) waste.push({ rule: 'bigToolResult', evidence: `${size} ký tự`, count: 1 });
-  if (subagentCalls >= criteria.subagentCalls) waste.push({ rule: 'subagentCalls', evidence: `${subagentCalls} lần gọi subagent`, count: subagentCalls });
+  if (subagentCalls >= criteria.subagentCalls) waste.push({ rule: 'subagentCalls', evidence: subagentEvidence(subagentLabels), count: subagentCalls });
   if (usage.cacheCreate >= criteria.cacheMinTokens && usage.cacheCreate > criteria.cacheCreateOverRead * usage.cacheRead) {
     waste.push({ rule: 'cacheCreateOverRead', evidence: `cache tạo ${usage.cacheCreate} > cache đọc ${usage.cacheRead}`, count: 1 });
   }

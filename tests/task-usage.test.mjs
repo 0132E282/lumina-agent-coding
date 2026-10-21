@@ -85,6 +85,27 @@ test('subagent calls trigger at three', context => {
   assert.deepEqual(rules(run(['--transcript', writeTranscript(root, calls(3))]).json), ['subagentCalls']);
 });
 
+test('subagent evidence lists the first five labels with truncation and ellipsis', context => {
+  const inputs = [
+    { description: 'Fix 2 stale installer tests' },
+    { description: 'y'.repeat(60) },
+    { subagent_type: 'coding-agent' },
+    { prompt: 'no label' },
+    { description: 'four' },
+    { description: 'six' },
+  ];
+  const events = inputs.map((input, index) => assistant(`l${index}`, smallUsage, [toolUse('Agent', input)]));
+  const [item] = run(['--transcript', writeTranscript(workspace(context), events)]).json.waste;
+  assert.equal(item.count, 6);
+  assert.equal(item.evidence, `6 lần gọi subagent: Fix 2 stale installer tests | ${'y'.repeat(39)}… | coding-agent | Agent | four | …`);
+});
+
+test('subagent evidence omits the colon and ellipsis when no call has a label', context => {
+  const events = Array.from({ length: 3 }, (_, index) => assistant(`n${index}`, smallUsage, [toolUse('Agent', { prompt: 'p' })]));
+  const [item] = run(['--transcript', writeTranscript(workspace(context), events)]).json.waste;
+  assert.equal(item.evidence, '3 lần gọi subagent');
+});
+
 test('cache rule needs ratio exceeded and the minimum tokens', context => {
   const root = workspace(context);
   const usage = (cacheCreate, cacheRead) => [assistant('c', { input_tokens: 1, output_tokens: 1, cache_creation_input_tokens: cacheCreate, cache_read_input_tokens: cacheRead })];
