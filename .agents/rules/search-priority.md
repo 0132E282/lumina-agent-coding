@@ -6,6 +6,7 @@ description: "Áp dụng khi tìm kiếm, nghiên cứu hoặc đưa ra dữ ki�
 # Local-first và không bịa
 
 - Tìm theo thứ tự: file đang mở/diff → code/test trong repo → `CLAUDE.md`, `docs/`, README → nguồn chính thức bên ngoài; dừng ở tầng đủ trả lời.
+- Nguồn ngoài: ưu tiên MCP đang kết nối đúng hệ thống (GitHub: PR/CI/issue; Supabase: schema/log/advisor; Vercel: deploy/runtime log; Figma: design; docs MCP như Microsoft Learn) trước web search, chỉ khi tầng local chưa đủ. Chỉ dùng thao tác đọc trừ khi được yêu cầu rõ (database theo [`backend`](./backend.md#database-read-only-mặc-định)); không đưa secret/PII vào tham số; MCP lỗi/chưa kết nối thì báo rõ, không đoán kết quả.
 - Dữ kiện quan trọng phải có file path hoặc URL để kiểm chứng.
 - Không tìm thấy thì nói rõ; phân biệt dữ kiện đã xác minh, giả định và câu hỏi mở, không trình bày giả định như sự thật.
 - Thông tin có thể đã đổi (phiên bản, giá, API, model, CVE) phải kiểm bằng nguồn chính thức; không trả lời từ trí nhớ và ghi ngày kiểm.

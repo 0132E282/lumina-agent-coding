@@ -6,9 +6,9 @@ Hook phụ trợ cho các subagent trong [`agents/`](../agents) — tự động
 
 Trước mỗi lệnh `Bash`, hook này gọi CLI [`rtk`](https://github.com/rtk-ai/rtk) để viết lại các lệnh dev phổ biến (đọc file, grep, git...) sang dạng tiết kiệm token hơn — không phải script tự viết trong repo này.
 
-- **Lệnh**: `rtk hook claude`
+- **Lệnh**: `command -v rtk >/dev/null 2>&1 || exit 0; rtk hook claude`
 - **Loại hook**: `PreToolUse`, matcher `Bash`
-- **Khác biệt với các hook còn lại**: đây là **tool bên ngoài**, không đi kèm framework — máy chưa cài `rtk` thì lệnh sẽ báo "command not found" ở mỗi lần chạy Bash (không chặn, chỉ ồn log). Cài theo [hướng dẫn chính thức](https://github.com/rtk-ai/rtk/blob/master/INSTALL.md), rồi chạy `rtk init -g` (hoặc `rtk init` trong 1 project) để đăng ký hook — khi copy project này sang máy khác, tự cân nhắc giữ hay bỏ dòng `rtk hook claude` trong `settings.json` tuỳ máy đó có cài `rtk` hay không.
+- **Khác biệt với các hook còn lại**: đây là **tool bên ngoài**, không đi kèm framework — máy chưa cài `rtk` thì hook tự bỏ qua (exit 0, không báo lỗi). Cài theo [hướng dẫn chính thức](https://github.com/rtk-ai/rtk/blob/master/INSTALL.md), rồi chạy `rtk init -g` (hoặc `rtk init` trong 1 project) để đăng ký hook.
 - **Kiểm tra mức tiết kiệm**: `rtk gain`.
 
 ## format-on-edit — tự động format bằng Prettier

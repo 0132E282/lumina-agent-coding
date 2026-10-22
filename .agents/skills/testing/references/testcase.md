@@ -1,6 +1,6 @@
 # 🧪 Test Case Writer
 
-Khi thiết kế hoặc thực thi test hộp đen theo module/tính năng, áp dụng thêm rule [`black-box-feature-testing`](../../../rules/delivery.md#kiểm-thử-hộp-đen-theo-moduletính-năng).
+Khi thiết kế hoặc thực thi test hộp đen theo module/tính năng, áp dụng [mục 7.1](#71-hộp-đen-và-lập-lịch-khi-thực-thi).
 
 Skill viết **test case có cấu trúc** cho một hành vi/luồng cụ thể, dùng ngay trong phiên hiện tại. Khác agent [`qa-tester`](../../../agents/qa-tester.md) — agent đó làm toàn bộ quy trình (phân tích yêu cầu diện rộng, đánh giá rủi ro P0–P3, thực thi, bug report, bàn giao) cho một feature; skill này là lớp kỹ thuật "viết đúng định dạng, đúng kỹ thuật" khi chỉ cần vài test case nhanh, không cần spawn agent riêng. Dùng chung field/định dạng với `qa-tester` để hai bên tương thích.
 
@@ -57,7 +57,9 @@ Dùng để **ghi nhận kết quả đã chạy** (không chỉ thiết kế) �
 
 ## 7.1. Hộp đen và lập lịch khi thực thi
 
-Khi test theo module/tính năng, áp dụng rule [`black-box-feature-testing`](../../../rules/delivery.md#kiểm-thử-hộp-đen-theo-moduletính-năng); không lặp lại hoặc tự đặt giới hạn khác trong test case.
+- Đánh giá từ requirement/contract, input, output quan sát được và side effect được phép; không dùng implementation nội bộ để quyết định Pass/Fail.
+- Mọi case phải truy vết requirement và expected input/output; toàn bộ module/case trong scope phải được lập lịch và đối soát đủ, không bỏ hoặc chạy trùng.
+- Tổng Pass/Fail/Blocked/Skipped/Not Run phải giải thích đủ đầu vào.
 - Helper phải kiểm tra `đã phân bổ = tổng case đầu vào`, ID không trùng, và ghi nhận đủ `Pass/Fail/Blocked/Skipped/Not Run` sau mỗi batch.
 - Nếu chưa có framework/runner hỗ trợ, chỉ ghi rõ kế hoạch batch và trạng thái `Not Run`; không tự thêm dependency để tạo chạy song song.
 

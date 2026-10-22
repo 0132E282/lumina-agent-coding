@@ -8,7 +8,6 @@ description: "Áp dụng khi triển khai, kiểm thử/kiểm chứng và báo 
 ## Triển khai theo yêu cầu
 
 - Triển khai/sửa code phải theo vai trò [`coder`](../agents/coder.md), đúng task/plan, dependency và file/hành vi đã được duyệt.
-- Quyền thay đổi, scope mơ hồ, revert/conflict và thay đổi ngoài phạm vi theo [`coding`](./coding.md#kiss-yagni-và-phạm-vi).
 - Trước bàn giao, loại hunk ngoài scope, kiểm chứng luồng bị ảnh hưởng, sync docs/testcase repo và dùng [`report`](../skills/report/SKILL.md); không tự review/commit.
 
 Trình tự đọc plan, triển khai, kiểm chứng và bàn giao: [`workflow-implement`](../skills/workflow-implement/SKILL.md).
@@ -21,15 +20,7 @@ Trình tự đọc plan, triển khai, kiểm chứng và bàn giao: [`workflow-
 - Lỗi do diff hoặc thuộc scope phải sửa và kiểm lại; lỗi có sẵn ngoài scope chỉ báo vị trí/tác động và xin phép.
 - Bug fix theo [`rules/bug-fix`](./bug-fix.md); tôn trọng yêu cầu không chạy test/check.
 
-Lệnh, checklist và artifact: [`testing`](../skills/testing/references/unit-testing.md), [`workflow-test`](../skills/workflow-test/SKILL.md), [`workflow-review`](../skills/workflow-review/SKILL.md). Kiểm thử module: [`black-box-feature-testing`](#kiểm-thử-hộp-đen-theo-moduletính-năng).
-
-## Kiểm thử hộp đen theo module/tính năng
-
-- Đánh giá từ requirement/contract, input, output quan sát được và side effect được phép; không dùng implementation nội bộ để quyết định Pass/Fail.
-- Mọi case phải truy vết requirement và expected input/output; toàn bộ module/case trong scope phải được lập lịch và đối soát đủ, không bỏ hoặc chạy trùng.
-- Tổng Pass/Fail/Blocked/Skipped/Not Run phải giải thích đủ đầu vào.
-
-Kỹ thuật thiết kế, scheduler, dependency group, concurrency và artifact: [`testcase`](../skills/testing/references/testcase.md), [`testing`](../skills/testing/references/unit-testing.md), [`workflow-test`](../skills/workflow-test/SKILL.md).
+Lệnh, checklist và artifact: [`testing`](../skills/testing/references/unit-testing.md), [`workflow-test`](../skills/workflow-test/SKILL.md), [`workflow-review`](../skills/workflow-review/SKILL.md). Kiểm thử hộp đen theo module: [`testcase`](../skills/testing/references/testcase.md#71-hộp-đen-và-lập-lịch-khi-thực-thi).
 
 ## Báo cáo bắt buộc
 
