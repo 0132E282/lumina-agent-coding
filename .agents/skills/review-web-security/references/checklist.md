@@ -29,6 +29,7 @@
 
 - IDOR/BOLA: truy cập đối tượng của người khác qua ID hoặc quan hệ.
 - BFLA: role thấp gọi chức năng quản trị; chỉ kiểm tra quyền ở UI.
+- Endpoint thiếu xác thực: route mới mặc định cho phép thay vì mặc định chặn; middleware auth gắn từng route nên dễ sót; route API/admin/internal gọi được khi chưa đăng nhập.
 - Thiếu quyền đọc/sửa field; mass assignment role, owner, tenant, giá hoặc trạng thái.
 - Tin user_id/tenant_id/role từ client thay vì danh tính và ngữ cảnh được xác minh.
 - Thiếu tenant scope ở query, cache, storage, search, export hoặc job.

@@ -16,7 +16,7 @@ Xây dựng hiểu biết có căn cứ về hệ thống hiện có trước kh
 2. Xác định stack, entry point, module, service, job, CLI, route và dependency chính bằng file thật; không suy đoán theo tên thư mục.
 3. Truy vết một luồng đại diện từ input → validation/auth → business logic → database/external service → output/side effect.
 4. Ghi boundary và ownership: module nào chịu trách nhiệm, contract nào được dùng, dữ liệu chuẩn nằm ở đâu, tenant/authz và transaction boundary nào áp dụng.
-5. Khi cần sơ đồ, kết hợp skill [`system-understanding`](../system-understanding/references/diagrams.md); khi có database, kết hợp [`database`](../database/SKILL.md); khi có bottleneck hoặc dữ liệu lớn, kết hợp [`complexity-performance`](../complexity-performance/SKILL.md).
+5. Khi cần sơ đồ, theo [references/diagrams.md](./references/diagrams.md); khi có database, kết hợp [`database`](../database/SKILL.md); khi có bottleneck hoặc dữ liệu lớn, kết hợp [`complexity-performance`](../complexity-performance/SKILL.md).
 6. Phân biệt rõ dữ kiện đã đọc, giả định, điểm chưa biết và tác động dự kiến; trích path/file/dòng khi có thể.
 7. Chỉ ra thay đổi có thể ảnh hưởng module nào, test/CI/docs nào và thứ tự kiểm chứng phù hợp.
 
@@ -26,7 +26,7 @@ Xây dựng hiểu biết có căn cứ về hệ thống hiện có trước kh
 - **Bản đồ thành phần**: module/entry point/dependency và trách nhiệm chính.
 - **Luồng chính**: request/data flow và side effect.
 - **Dữ liệu & contract**: schema/API/event, quyền, transaction và nguồn dữ liệu chuẩn nếu xác định được.
-- **Sơ đồ**: dùng skill [`system-understanding`](../system-understanding/references/diagrams.md) để vẽ cấu trúc thư mục, ERD hoặc user/system flow theo phạm vi.
+- **Sơ đồ**: theo [references/diagrams.md](./references/diagrams.md) để vẽ cấu trúc thư mục, ERD hoặc user/system flow theo phạm vi.
 - **Rủi ro/tác động**: coupling, điểm lỗi, query/API fan-out, cache, retry, consistency hoặc vùng chưa có bằng chứng.
 - **Bước tiếp theo**: coding, database review, complexity review, system design hoặc planner; không tự chuyển vai trò ngoài yêu cầu.
 
