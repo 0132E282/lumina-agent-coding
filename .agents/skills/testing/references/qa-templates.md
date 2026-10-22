@@ -1,6 +1,6 @@
 # QA templates và ví dụ
 
-Mẫu dùng cho `qa-tester-agent`: checklist chọn phạm vi, ma trận bao phủ, mẫu test case, bản ghi thực thi, mẫu bug report và ví dụ minh họa. Mở khi cần soạn artifact tương ứng.
+Mẫu dùng cho `qa-tester`: checklist chọn phạm vi, ma trận bao phủ, mẫu test case, bản ghi thực thi, mẫu bug report và ví dụ minh họa. Mở khi cần soạn artifact tương ứng.
 
 ## Checklist lựa chọn phạm vi
 

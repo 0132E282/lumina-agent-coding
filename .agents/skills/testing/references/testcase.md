@@ -2,7 +2,7 @@
 
 Khi thiết kế hoặc thực thi test hộp đen theo module/tính năng, áp dụng thêm rule [`black-box-feature-testing`](../../../rules/delivery.md#kiểm-thử-hộp-đen-theo-moduletính-năng).
 
-Skill viết **test case có cấu trúc** cho một hành vi/luồng cụ thể, dùng ngay trong phiên hiện tại. Khác agent [`qa-tester-agent`](../../../agents/qa-tester-agent.md) — agent đó làm toàn bộ quy trình (phân tích yêu cầu diện rộng, đánh giá rủi ro P0–P3, thực thi, bug report, bàn giao) cho một feature; skill này là lớp kỹ thuật "viết đúng định dạng, đúng kỹ thuật" khi chỉ cần vài test case nhanh, không cần spawn agent riêng. Dùng chung field/định dạng với `qa-tester-agent` để hai bên tương thích.
+Skill viết **test case có cấu trúc** cho một hành vi/luồng cụ thể, dùng ngay trong phiên hiện tại. Khác agent [`qa-tester`](../../../agents/qa-tester.md) — agent đó làm toàn bộ quy trình (phân tích yêu cầu diện rộng, đánh giá rủi ro P0–P3, thực thi, bug report, bàn giao) cho một feature; skill này là lớp kỹ thuật "viết đúng định dạng, đúng kỹ thuật" khi chỉ cần vài test case nhanh, không cần spawn agent riêng. Dùng chung field/định dạng với `qa-tester` để hai bên tương thích.
 
 ## 1. Mục tiêu và phạm vi
 
@@ -93,4 +93,4 @@ Nếu test case được review độc lập, review report thuộc `docs/review
 ## Khi áp dụng
 
 - Cần viết nhanh một vài test case cho tính năng/API/bug cụ thể ngay trong phiên hiện tại.
-- Không dùng cho việc thiết kế + thực thi toàn bộ bộ test có risk assessment, ma trận bao phủ REQ→AC và bug report đầy đủ cho một feature lớn — giao cho agent [`qa-tester-agent`](../../../agents/qa-tester-agent.md).
+- Không dùng cho việc thiết kế + thực thi toàn bộ bộ test có risk assessment, ma trận bao phủ REQ→AC và bug report đầy đủ cho một feature lớn — giao cho agent [`qa-tester`](../../../agents/qa-tester.md).

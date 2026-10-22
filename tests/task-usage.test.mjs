@@ -89,7 +89,7 @@ test('subagent evidence lists the first five labels with truncation and ellipsis
   const inputs = [
     { description: 'Fix 2 stale installer tests' },
     { description: 'y'.repeat(60) },
-    { subagent_type: 'coding-agent' },
+    { subagent_type: 'coder' },
     { prompt: 'no label' },
     { description: 'four' },
     { description: 'six' },
@@ -97,7 +97,7 @@ test('subagent evidence lists the first five labels with truncation and ellipsis
   const events = inputs.map((input, index) => assistant(`l${index}`, smallUsage, [toolUse('Agent', input)]));
   const [item] = run(['--transcript', writeTranscript(workspace(context), events)]).json.waste;
   assert.equal(item.count, 6);
-  assert.equal(item.evidence, `6 lần gọi subagent: Fix 2 stale installer tests | ${'y'.repeat(39)}… | coding-agent | Agent | four | …`);
+  assert.equal(item.evidence, `6 lần gọi subagent: Fix 2 stale installer tests | ${'y'.repeat(39)}… | coder | Agent | four | …`);
 });
 
 test('subagent evidence omits the colon and ellipsis when no call has a label', context => {

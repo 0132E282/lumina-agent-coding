@@ -9,7 +9,7 @@ import test from 'node:test';
 const repoRoot = fileURLToPath(new URL('..', import.meta.url));
 const SUCCESS = /Shared rules\/skills, symlinks, Codex agent adapters, Markdown links and docs indexes are valid\./;
 const DOCS_ENTRY = { title: 'Documentation index', description: 'Index.', tags: ['index'], path: 'docs/index.json' };
-const TOML = 'name = "coding-agent"\ndescription = "Implements code."\ndeveloper_instructions = "Read .claude/agents/coding-agent.md"\n';
+const TOML = 'name = "coder"\ndescription = "Implements code."\ndeveloper_instructions = "Read .claude/agents/coder.md"\n';
 
 function write(root, relativePath, content) {
   const file = path.join(root, relativePath);
@@ -33,9 +33,9 @@ function validTree(context) {
   write(root, 'AGENTS.md', '# Agents\n\nSee [delivery](.agents/rules/delivery.md#báo-cáo-bắt-buộc) and [skill](.claude/skills/report/SKILL.md).\n');
   write(root, '.agents/rules/delivery.md', '# Delivery\n\n## Báo cáo bắt buộc\n');
   write(root, '.agents/skills/report/SKILL.md', '# Report\n\n[rule](../../rules/delivery.md)\n');
-  write(root, '.claude/agents/coding-agent.md', '# Coding agent\n');
+  write(root, '.claude/agents/coder.md', '# Coding agent\n');
   write(root, '.claude/hooks/scripts/hook.sh', '#!/usr/bin/env bash\n');
-  write(root, '.codex/agents/coding-agent.toml', TOML);
+  write(root, '.codex/agents/coder.toml', TOML);
   for (const tool of ['.claude', '.codex']) {
     for (const folder of ['rules', 'skills']) link(root, `../.agents/${folder}`, `${tool}/${folder}`);
   }
@@ -112,14 +112,14 @@ test('a Codex adapter without a matching .claude/agents role source is reported'
 
 test('a Codex adapter missing name/description/developer_instructions is reported', context => {
   const root = validTree(context);
-  write(root, '.codex/agents/coding-agent.toml', 'name = "coding-agent"\ndescription = ""\ndeveloper_instructions = "x"\n');
-  assertFails(root, /^Missing agent fields: coding-agent\.toml$/m);
+  write(root, '.codex/agents/coder.toml', 'name = "coder"\ndescription = ""\ndeveloper_instructions = "x"\n');
+  assertFails(root, /^Missing agent fields: coder\.toml$/m);
 });
 
 test('an invalid TOML adapter is reported with its file name', context => {
   const root = validTree(context);
-  write(root, '.codex/agents/coding-agent.toml', 'name = "coding-agent\n');
-  assertFails(root, /^coding-agent\.toml: /m);
+  write(root, '.codex/agents/coder.toml', 'name = "coder\n');
+  assertFails(root, /^coder\.toml: /m);
 });
 
 test('broken Markdown link targets and anchors are reported', context => {

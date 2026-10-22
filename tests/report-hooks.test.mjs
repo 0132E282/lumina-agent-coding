@@ -133,7 +133,7 @@ test('report-reminder ignores Edit/Write made by subagents (audit-log records ag
     session_id: 'session-1', cwd: root, tool_name: 'Edit', tool_input: { file_path: filePath }, ...extra,
   });
 
-  const subagentAudit = runHook(auditHook, root, editPayload('subagent.txt', { agent_id: 'agent-abc', agent_type: 'coding-agent' }));
+  const subagentAudit = runHook(auditHook, root, editPayload('subagent.txt', { agent_id: 'agent-abc', agent_type: 'coder' }));
   assert.equal(subagentAudit.status, 0);
   const logFile = path.join(root, '.agents/storage/logs/logs.jsonl');
   const [subagentEntry] = fs.readFileSync(logFile, 'utf8').trim().split('\n').map(line => JSON.parse(line));

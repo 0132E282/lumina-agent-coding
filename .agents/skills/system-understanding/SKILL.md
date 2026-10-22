@@ -8,7 +8,7 @@ metadata:
 
 # System Understanding
 
-Xây dựng hiểu biết có căn cứ về hệ thống hiện có trước khi đề xuất thay đổi. Skill này phục vụ khảo sát và bàn giao context; thiết kế HLD/LLD mới thuộc agent `system-design-agent`.
+Xây dựng hiểu biết có căn cứ về hệ thống hiện có trước khi đề xuất thay đổi. Skill này phục vụ khảo sát và bàn giao context; thiết kế HLD/LLD mới thuộc agent `architect`.
 
 ## Quy trình
 
@@ -35,7 +35,7 @@ Xây dựng hiểu biết có căn cứ về hệ thống hiện có trước kh
 - Không tự code, migrate, đổi schema/index, gọi API production hoặc thay đổi dữ liệu.
 - Không biến một quan sát cục bộ thành kết luận kiến trúc toàn hệ thống nếu chưa truy vết đủ.
 - Không dùng dữ liệu giả để che phần chưa đọc; ghi rõ thiếu file, quyền truy cập hoặc môi trường.
-- Không trùng vai trò với `system-design-agent`: nếu cần HLD/LLD, phương án kiến trúc mới hoặc tài liệu thiết kế, bàn giao cho agent đó.
+- Không trùng vai trò với `architect`: nếu cần HLD/LLD, phương án kiến trúc mới hoặc tài liệu thiết kế, bàn giao cho agent đó.
 
 ## Sơ đồ
 

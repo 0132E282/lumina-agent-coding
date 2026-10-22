@@ -3,7 +3,7 @@ description: Kiểm thử tính năng theo plan, repository hoặc PR; lưu test
 argument-hint: "[tính năng|repo [nhánh]|pr [URL|#số]]"
 ---
 
-Giao cho agent `qa-tester-agent` kiểm thử: $ARGUMENTS
+Giao cho agent `qa-tester` kiểm thử: $ARGUMENTS
 
 ## Scope
 

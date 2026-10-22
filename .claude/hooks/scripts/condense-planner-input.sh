@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 # PreToolUse hook: LƯỚI AN TOÀN CUỐI (safety net) chặn trường hợp
-# tool_input.prompt gọi Agent "planner-agent" lọt lưới, dài bất thường — KHÔNG
+# tool_input.prompt gọi Agent "planner" lọt lưới, dài bất thường — KHÔNG
 # phải cơ chế rút gọn context chính. Việc chọn giữ phần nào/bỏ phần nào cần
-# hiểu ngữ nghĩa (system-design-agent nói gì, phần nào planner-agent thật sự cần) —
-# bash không làm được, nên trách nhiệm đó thuộc về bước gọi `planner-agent`
+# hiểu ngữ nghĩa (architect nói gì, phần nào planner thật sự cần) —
+# bash không làm được, nên trách nhiệm đó thuộc về bước gọi `planner`
 # (session điều phối đã đọc toàn văn tài liệu, tự chọn lọc phần liên quan
 # trước khi đưa vào prompt — xem skills/workflow-plan/SKILL.md). Hook này chỉ cắt cơ học
 # khi prompt vượt ngưỡng rất lớn, phòng trường hợp dán nhầm nguyên văn tài
 # liệu dài mà quên chọn lọc.
 #
 # Nhận JSON input từ stdin theo schema PreToolUse:
-#   { "tool_name": "Agent", "tool_input": { "subagent_type": "planner-agent", "prompt": "..." }, ... }
+#   { "tool_name": "Agent", "tool_input": { "subagent_type": "planner", "prompt": "..." }, ... }
 #
 # Sửa tool_input qua hookSpecificOutput.updatedInput — field này cho phép
 # PreToolUse hook thay nội dung trước khi tool thực sự chạy.
@@ -20,7 +20,7 @@
 # giữa, chèn dòng đánh dấu — không gọi LLM tóm tắt, chỉ cắt theo độ dài.
 #
 # Best-effort: thiếu jq, không phải tool Agent, không phải subagent_type
-# "planner-agent", hoặc prompt chưa vượt ngưỡng -> không sửa gì (không có
+# "planner", hoặc prompt chưa vượt ngưỡng -> không sửa gì (không có
 # hookSpecificOutput trong output).
 
 # ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
@@ -41,7 +41,7 @@ tool_name="$(printf '%s' "$input" | jq -r '.tool_name // ""' 2>/dev/null)"
 [ "$tool_name" = "Agent" ] || exit 0
 
 subagent_type="$(printf '%s' "$input" | jq -r '.tool_input.subagent_type // ""' 2>/dev/null)"
-[ "$subagent_type" = "planner-agent" ] || exit 0
+[ "$subagent_type" = "planner" ] || exit 0
 
 prompt="$(printf '%s' "$input" | jq -r '.tool_input.prompt // ""' 2>/dev/null)"
 [ -z "$prompt" ] && exit 0

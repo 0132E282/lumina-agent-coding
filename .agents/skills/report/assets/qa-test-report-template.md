@@ -1,6 +1,6 @@
 # Mẫu Báo Cáo Test (digest)
 
-Dùng để tóm tắt kết quả **đã thiết kế/thực thi** bởi agent [`qa-tester-agent`](../../../agents/qa-tester-agent.md) thành bản ngắn dễ copy vào PR/commit — không thay thế ma trận bao phủ, mẫu test case chi tiết hay bug report đầy đủ mà `qa-tester-agent` đã tạo riêng.
+Dùng để tóm tắt kết quả **đã thiết kế/thực thi** bởi agent [`qa-tester`](../../../agents/qa-tester.md) thành bản ngắn dễ copy vào PR/commit — không thay thế ma trận bao phủ, mẫu test case chi tiết hay bug report đầy đủ mà `qa-tester` đã tạo riêng.
 
 ```markdown
 
@@ -24,4 +24,4 @@ Dùng để tóm tắt kết quả **đã thiết kế/thực thi** bởi agent 
 - [Luồng/edge case chưa test và lý do — không ghi "đã test" khi chưa chạy]
 ```
 
-Chưa thực thi → ghi rõ "Chưa thực thi kiểm thử", không suy ra Pass từ việc đã thiết kế xong. Cột "Nguyên nhân & Cách xử lý" chỉ điền khi đã xác nhận fix thật (không suy đoán); mỗi dòng bảng cần truy ngược được về test case/bug report gốc của `qa-tester-agent` khi cần.
+Chưa thực thi → ghi rõ "Chưa thực thi kiểm thử", không suy ra Pass từ việc đã thiết kế xong. Cột "Nguyên nhân & Cách xử lý" chỉ điền khi đã xác nhận fix thật (không suy đoán); mỗi dòng bảng cần truy ngược được về test case/bug report gốc của `qa-tester` khi cần.

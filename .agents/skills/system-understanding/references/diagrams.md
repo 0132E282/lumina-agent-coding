@@ -39,6 +39,6 @@ flowchart TD
 
 ## Giới hạn
 
-- Không tự thiết kế HLD/LLD mới; khi cần phương án kiến trúc, bàn giao cho `system-design-agent`.
+- Không tự thiết kế HLD/LLD mới; khi cần phương án kiến trúc, bàn giao cho `architect`.
 - Không chạy migration, đổi schema/index hoặc truy cập database production để vẽ sơ đồ.
 - Không kết luận ownership, cardinality, quyền hoặc flow chỉ từ tên file.

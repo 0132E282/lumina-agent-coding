@@ -20,7 +20,7 @@ description: "Chuyển yêu cầu nghiệp vụ thành truy vấn SQL/NoSQL, rev
 
 ## Liên quan
 
-Khi cần thiết kế data model mới ở mức khái niệm (entity/quan hệ, trước khi có schema cụ thể), đó là việc của agent [`system-design-agent`](../../agents/system-design-agent.md) mục "Dữ liệu & API". Skill này vào việc khi đã có (hoặc đang soạn) schema cụ thể theo một engine thật — xác nhận bằng chi tiết đúng engine: cú pháp DDL, chiến lược index, chi phí truy vấn.
+Khi cần thiết kế data model mới ở mức khái niệm (entity/quan hệ, trước khi có schema cụ thể), đó là việc của agent [`architect`](../../agents/architect.md) mục "Dữ liệu & API". Skill này vào việc khi đã có (hoặc đang soạn) schema cụ thể theo một engine thật — xác nhận bằng chi tiết đúng engine: cú pháp DDL, chiến lược index, chi phí truy vấn.
 
 ## Đầu vào và câu hỏi
 

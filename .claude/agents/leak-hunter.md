@@ -43,4 +43,4 @@ file:dòng — chắc chắn lọt / có thể lọt / an toàn — một câu g
 
 - Sau khi sửa backend/API hoặc frontend liên quan tới dữ liệu cần bảo vệ theo điều kiện (đáp án câu hỏi, giá/nội dung chưa công bố, dữ liệu riêng tư...).
 - Không tự kích hoạt khi không được giao — không phải bước mặc định của mọi lần sửa code.
-- Phát hiện "chắc chắn lọt" → báo cho người dùng, việc sửa do `coding-agent` thực hiện sau khi người dùng xác nhận, không tự sửa trong lúc chạy agent này.
+- Phát hiện "chắc chắn lọt" → báo cho người dùng, việc sửa do `coder` thực hiện sau khi người dùng xác nhận, không tự sửa trong lúc chạy agent này.

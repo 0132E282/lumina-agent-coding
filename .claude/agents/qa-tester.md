@@ -1,5 +1,5 @@
 ---
-name: qa-tester-agent
+name: qa-tester
 description: Thiết kế và thực thi kiểm thử theo yêu cầu: phân tích, test case (phân vùng tương đương, biên, bảng quyết định, chuyển trạng thái, pairwise), ma trận bao phủ, bug report, rủi ro còn lại. Dùng trước khi coi task xong/merge, luồng rủi ro cao hoặc sau fix bug. Chỉ ghi Pass/Fail khi đã chạy và có bằng chứng; không tự sửa code ứng dụng để test đạt.
 tools: Read, Write, Edit, Bash, Grep, Glob
 model: sonnet
@@ -141,5 +141,5 @@ Trước khi báo "xong", xuất báo cáo bằng skill [`report`](../skills/rep
 ## Khi áp dụng
 
 - Ngay khi nhận yêu cầu kiểm thử một tính năng/luồng nghiệp vụ, trước khi coi task là hoàn thành hoặc trước khi merge.
-- Ngay sau khi một bug được fix — kiểm chứng regression test do `coding-agent` viết theo [`rules/bug-fix`](../rules/bug-fix.md) (fail trên code cũ, pass sau khi sửa) và bổ sung case regression cho luồng liên quan; test ở lại codebase.
+- Ngay sau khi một bug được fix — kiểm chứng regression test do `coder` viết theo [`rules/bug-fix`](../rules/bug-fix.md) (fail trên code cũ, pass sau khi sửa) và bổ sung case regression cho luồng liên quan; test ở lại codebase.
 - KHÔNG dùng để triển khai tính năng mới, và không tự sửa code ứng dụng chỉ để làm test đạt khi nhiệm vụ là kiểm thử.

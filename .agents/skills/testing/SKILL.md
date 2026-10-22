@@ -1,6 +1,6 @@
 ---
 name: testing
-description: "Kiểm thử: viết test case có cấu trúc (UI/API/nghiệp vụ/database) và unit test kỹ thuật khi implement (test double, Arrange-Act-Assert, cách ly dependency). Thiết kế và thực thi bộ test lớn có ma trận bao phủ thuộc qa-tester-agent."
+description: "Kiểm thử: viết test case có cấu trúc (UI/API/nghiệp vụ/database) và unit test kỹ thuật khi implement (test double, Arrange-Act-Assert, cách ly dependency). Thiết kế và thực thi bộ test lớn có ma trận bao phủ thuộc qa-tester."
 license: MIT
 metadata:
   version: "1.1"

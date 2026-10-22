@@ -12,4 +12,4 @@ description: "Áp dụng khi tìm kiếm, nghiên cứu hoặc đưa ra dữ ki�
 - Trước khi khẳng định một file/hàm/flag còn tồn tại, kiểm lại trong repo; ghi nhớ cũ chỉ là gợi ý.
 - Nguồn mâu thuẫn thì nêu cả hai và nguồn nào thắng (code chạy thật > tài liệu); không chọn ngầm.
 
-Quy trình discovery và tổng hợp nguồn: [`system-understanding`](../skills/system-understanding/SKILL.md) và [`researcher-agent`](../agents/researcher-agent.md).
+Quy trình discovery và tổng hợp nguồn: [`system-understanding`](../skills/system-understanding/SKILL.md) và [`researcher`](../agents/researcher.md).

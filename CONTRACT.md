@@ -4,7 +4,7 @@ Các điều dưới đây **bắt buộc tuyệt đối** — không vi phạm 
 
 1. Không `git commit`/`git push` khi chưa có lệnh rõ ràng từ người dùng trong lượt hiện tại ([`rules/git`](./.agents/rules/git.md)).
 2. Không ghi/xoá dữ liệu vào database thật (`INSERT`/`UPDATE`/`DELETE`/DDL, migration, seed) nếu chưa được yêu cầu rõ ràng ([`rules/backend`](./.agents/rules/backend.md#database-read-only-mặc-định)).
-3. Không tự `Edit`/`Write` code triển khai tính năng ở phiên chính — luôn giao `coding-agent`, trừ sửa file cấu hình/docs ([`AGENTS.md`](./AGENTS.md)).
+3. Không tự `Edit`/`Write` code triển khai tính năng ở phiên chính — luôn giao `coder`, trừ sửa file cấu hình/docs ([`AGENTS.md`](./AGENTS.md)).
 4. Khi resolve git conflict, không tự kéo thêm logic từ nhánh đích vào nhánh nguồn ngoài phần bắt buộc để hết conflict ([`rules/git`](./.agents/rules/git.md)).
 5. Không bịa kết quả test/benchmark/tool chưa thực sự chạy ([`rules/search-priority`](./.agents/rules/search-priority.md)).
 6. Không commit/push file chứa secret (`.env`, credentials, private key, API key).

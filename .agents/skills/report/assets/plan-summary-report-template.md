@@ -1,6 +1,6 @@
 # Mẫu báo cáo kế hoạch
 
-Dùng ngay sau khi `planner-agent` ghi xong plan JSON trong `docs/plans/`, trước khi chờ duyệt. Dạng text, không bảng, không code fence, không `Description`; không chép lại nguyên văn plan.
+Dùng ngay sau khi `planner` ghi xong plan JSON trong `docs/plans/`, trước khi chờ duyệt. Dạng text, không bảng, không code fence, không `Description`; không chép lại nguyên văn plan.
 
 - Mỗi task một mục, mở đầu bằng dòng phân cách; bullet nêu việc cần làm.
 - `Status` dùng đúng `TODO | IN_PROGRESS | BLOCKED | DONE`.
@@ -26,4 +26,4 @@ Câu hỏi 1: [nội dung]
 
 **Rủi ro chính**: [rủi ro + cách giảm, hoặc `Không có`]
 
-**Bước tiếp theo**: Chờ người dùng chốt câu hỏi mở và duyệt plan; sau đó giao `coding-agent` theo `executionOrder`.
+**Bước tiếp theo**: Chờ người dùng chốt câu hỏi mở và duyệt plan; sau đó giao `coder` theo `executionOrder`.

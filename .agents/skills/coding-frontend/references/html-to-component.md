@@ -6,7 +6,7 @@ Chuyển HTML/CSS tĩnh có sẵn trong project thành component của framework
 
 ## Phạm vi
 
-- Input: file `.html`/`.css` (và `.js` nếu có) **đã có sẵn trong repository**. Không áp dụng cho ảnh, URL hoặc design reference — các trường hợp đó dùng [clone-website](../../clone-website/SKILL.md)/`agent-clone`.
+- Input: file `.html`/`.css` (và `.js` nếu có) **đã có sẵn trong repository**. Không áp dụng cho ảnh, URL hoặc design reference — các trường hợp đó dùng [clone-website](../../clone-website/SKILL.md)/`ui-cloner`.
 - Target framework do người dùng chỉ định mỗi lần (React, Vue, Angular, Svelte...); không tự chọn mặc định. Chưa rõ framework đích thì hỏi trước khi convert.
 - Giữ nguyên nội dung, layout, style, text và hành vi JS quan sát được trong file nguồn, cùng nguyên tắc với [frontend](../../../rules/frontend.md). Nếu file nguồn là kết quả của một lần clone trước đó, áp dụng thêm [ràng buộc fidelity của clone-website](../../clone-website/SKILL.md#ràng-buộc-fidelity) khi đối chiếu.
 

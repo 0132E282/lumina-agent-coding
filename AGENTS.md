@@ -32,7 +32,7 @@ Follow [implementation](./.agents/rules/delivery.md#triển-khai-theo-yêu-cầu
 - Before any UI edit, state the exact files/sections in scope and capture the baseline screenshot when a browser is available. Before handoff, capture the final screenshot at the same route/viewport and verify the diff contains no unapproved UI changes.
 - Before completing: check diff for N+1, render/state/effect loops, and out-of-scope changes across the stack.
 - Full plan completion: create `docs/repo/<title-slug>-<yyyyMMdd>.md` (Not Run); update `docs/repo/index.json` and `docs/index.json`.
-- Small, clear task → `coding-agent` directly. Plan/subagent/review only when truly warranted.
+- Small, clear task → `coder` directly. Plan/subagent/review only when truly warranted.
 
 ## Hooks and format
 
@@ -46,15 +46,15 @@ Discovers skills/rules from `.agents/`. TOML files in `.codex/agents/` are not A
 
 | Task | Role / Skill |
 |---|---|
-| Setup tool/library/runtime/app | `setup-agent` |
-| Requirement analysis | `workflow-analyze` / `requirement-analysis-agent` |
+| Setup tool/library/runtime/app | `setup` |
+| Requirement analysis | `workflow-analyze` / `analyst` |
 | System survey / diagram | `system-understanding`; `database` for schema/query |
-| Plan | Plan mode + `workflow-plan` / `planner-agent` |
-| Implementation | `coding-agent` — main session never `Edit`/`Write` product code |
-| Debug / bug fix | `debugs` (fix via `coding-agent`) |
-| Test / QA | `workflow-test` / `qa-tester-agent`; unit test: `testing` |
-| Code review | `workflow-review` / `reviewer-agent`; security: `review-web-security` |
-| New UI / redesign | `ux-ui-designer-agent` |
+| Plan | Plan mode + `workflow-plan` / `planner` |
+| Implementation | `coder` — main session never `Edit`/`Write` product code |
+| Debug / bug fix | `debugs` (fix via `coder`) |
+| Test / QA | `workflow-test` / `qa-tester`; unit test: `testing` |
+| Code review | `workflow-review` / `reviewer`; security: `review-web-security` |
+| New UI / redesign | `designer` |
 | SEO (technical, content, AI search) | `seo` |
 | Data leak check | `leak-hunter` — list suspects only; self-activate only when assigned |
 

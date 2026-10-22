@@ -45,4 +45,4 @@ Bảng yêu cầu theo nhóm (nội dung/CMS, dữ liệu SEO, URL/slug, canonic
 - [database](../database/SKILL.md) khi viết/review query, index hoặc đo hiệu năng theo engine thật.
 - [seo](../seo/references/website.md) khi cần audit SEO, kiểm chứng crawl/index hoặc tra hướng dẫn SEO hiện hành.
 - [testing](../testing/references/unit-testing.md) khi viết test; [coding-frontend](../coding-frontend/SKILL.md) để đối chiếu contract render/metadata khi nhiệm vụ có cả frontend.
-- Thiết kế kiến trúc mới do [system-design-agent](../../agents/system-design-agent.md) xử lý; không tự mở rộng nhiệm vụ code thành thiết kế lại hệ thống.
+- Thiết kế kiến trúc mới do [architect](../../agents/architect.md) xử lý; không tự mở rộng nhiệm vụ code thành thiết kế lại hệ thống.

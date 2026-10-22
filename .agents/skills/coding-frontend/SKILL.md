@@ -30,7 +30,7 @@ Triển khai giao diện đúng đặc tả, hiển thị nội dung đáng tin 
 4. **Kiểm chứng**: kiểm tra luồng chính, dữ liệu thiếu, lỗi API, route trực tiếp và responsive; chạy test/lint/type check/build phù hợp. Rà vòng lặp render/state/effect trên framework đang dùng và kiểm tra network/API call không tăng theo từng item (N+1). Với luồng backend đi kèm, phối hợp đếm query theo request/job trong skill backend; không giới hạn vào React/Next.js hay một framework cụ thể. Fix bug cần regression test tái hiện trước theo [quality-assurance](../../rules/delivery.md#chất-lượng-và-bằng-chứng); dùng [testing](../testing/references/unit-testing.md) khi cần viết test kỹ thuật. Rà diff để xác nhận không đổi hành vi ngoài yêu cầu; nếu có thay đổi cần thêm quyền, dừng và xin chấp thuận.
 5. **Bàn giao**: tự review diff, cập nhật docs bị ảnh hưởng. Báo file/hành vi đã đổi, check và kết quả thật, phần chưa kiểm chứng; không coi preview local là bằng chứng Google đã index.
 
-Khi nhận handoff từ `agent-clone`: đọc [references/clone-handoff.md](./references/clone-handoff.md) trước khi sửa UI.
+Khi nhận handoff từ `ui-cloner`: đọc [references/clone-handoff.md](./references/clone-handoff.md) trước khi sửa UI.
 
 ## Yêu cầu triển khai
 
@@ -48,7 +48,7 @@ Bảng yêu cầu theo nhóm (HTML ngữ nghĩa, CSS/responsive, JS/form, nội 
 
 - [seo](../seo/references/website.md) khi cần audit crawl/index, sitemap, structured data hoặc vấn đề SEO rộng hơn frontend.
 - [seo](../seo/references/content.md) khi được giao lập kế hoạch/viết nội dung; không tự đổi content đã duyệt chỉ để thêm từ khóa.
-- Thiết kế mới/redesign giao cho [ux-ui-designer-agent](../../agents/ux-ui-designer-agent.md); không tự áp skill phong cách lên UI có sẵn.
+- Thiết kế mới/redesign giao cho [designer](../../agents/designer.md); không tự áp skill phong cách lên UI có sẵn.
 - Tra tài liệu chính thức theo phiên bản thật khi cần: [HTML và accessibility — MDN](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Accessibility/HTML), [responsive images — MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Guides/Responsive_images), [JavaScript SEO — Google](https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics).
 
 ## Chuyển HTML/CSS tĩnh thành component

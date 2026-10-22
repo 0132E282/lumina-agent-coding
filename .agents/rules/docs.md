@@ -30,4 +30,4 @@ Routing từng index, schema artifact, TOC/anchor và kiểm chứng link: [`doc
 - Task là object đồng nhất, giữ đủ field/schema kể cả khi giá trị là `null`/`[]`; mọi path phải được xác minh và trace REQ/BR → AC → task → test.
 - Runtime plan mode/quyền ghi có ưu tiên; không vượt read-only hoặc tuyên bố đã lưu khi chưa ghi.
 
-Luồng planning và schema task/traceability đầy đủ: [`workflow-plan`](../skills/workflow-plan/SKILL.md), [`planner-agent`](../agents/planner-agent.md) và [`implementation-plan-template.json`](../skills/docs/assets/implementation-plan-template.json).
+Luồng planning và schema task/traceability đầy đủ: [`workflow-plan`](../skills/workflow-plan/SKILL.md), [`planner`](../agents/planner.md) và [`implementation-plan-template.json`](../skills/docs/assets/implementation-plan-template.json).

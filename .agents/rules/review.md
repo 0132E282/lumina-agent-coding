@@ -6,4 +6,4 @@
 - Thay đổi sửa bug phải đối chiếu [`rules/bug-fix`](./bug-fix.md): nguồn gốc lỗi và nguyên nhân gốc có bằng chứng, regression test tái hiện đúng lỗi, không che triệu chứng, không tắt test hoặc đổi expected trái đặc tả; bug UI phải có ảnh trước/sau cùng route/viewport.
 - Chỉ chạy check ở chế độ không sửa file; không ghi Pass cho kiểm tra chưa chạy, không giả lập kết quả tool/review.
 
-Quy trình, checklist và format: [`workflow-review`](../skills/workflow-review/SKILL.md), [`reviewer-agent`](../agents/reviewer-agent.md), bảo mật: [`review-web-security`](../skills/review-web-security/SKILL.md).
+Quy trình, checklist và format: [`workflow-review`](../skills/workflow-review/SKILL.md), [`reviewer`](../agents/reviewer.md), bảo mật: [`review-web-security`](../skills/review-web-security/SKILL.md).

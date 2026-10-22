@@ -4,7 +4,7 @@ Code test/helper tuân thủ type, comment, DRY/SRP và readability trong [`codi
 
 Khi kiểm thử hộp đen theo module/tính năng và lập lịch nhiều module, áp dụng thêm rule [`black-box-feature-testing`](../../../rules/delivery.md#kiểm-thử-hộp-đen-theo-moduletính-năng).
 
-Lớp **kỹ thuật viết test code** khi implement — khác [`qa-tester-agent`](../../../agents/qa-tester-agent.md) (thiết kế ca kiểm thử **nghiệp vụ** từ đặc tả). Skill này không quan tâm case nghiệp vụ nào cần test, chỉ quan tâm cách viết test đúng kỹ thuật cho một đơn vị code.
+Lớp **kỹ thuật viết test code** khi implement — khác [`qa-tester`](../../../agents/qa-tester.md) (thiết kế ca kiểm thử **nghiệp vụ** từ đặc tả). Skill này không quan tâm case nghiệp vụ nào cần test, chỉ quan tâm cách viết test đúng kỹ thuật cho một đơn vị code.
 
 ## Nguyên tắc bắt buộc
 
@@ -43,4 +43,4 @@ Khi task kiểm thử theo module/tính năng, áp dụng rule [`black-box-featu
 
 - Sau khi viết/sửa logic mới cần test kỹ thuật, hoặc ngay sau khi fix bug (regression test).
 - Khi review test hiện có nghi giả/flaky — rà theo mục "Dấu hiệu" trên.
-- Không dùng cho thiết kế ca kiểm thử nghiệp vụ (→ `qa-tester-agent`) hay chọn pattern kiến trúc (→ [`design-patterns`](../../design-patterns/SKILL.md)).
+- Không dùng cho thiết kế ca kiểm thử nghiệp vụ (→ `qa-tester`) hay chọn pattern kiến trúc (→ [`design-patterns`](../../design-patterns/SKILL.md)).

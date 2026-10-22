@@ -228,20 +228,20 @@ Khi Claude Code kết thúc một turn (trả lời xong, không còn việc gì
 - **Âm thanh theo hệ điều hành**: `afplay` (macOS, dùng `Glass.aiff`) → `paplay`/`aplay` (Linux) → `powershell.exe [console]::beep` (Windows/WSL). Không có công cụ nào khả dụng thì bỏ qua êm.
 - **An toàn**: luôn `exit 0`, chạy ngầm (`&`) nên không làm chậm việc Claude Code dừng lại.
 
-## condense-planner-input — lưới an toàn chặn prompt quá dài khi gọi planner-agent
+## condense-planner-input — lưới an toàn chặn prompt quá dài khi gọi planner
 
-Trước mỗi lần gọi Agent tool với `subagent_type: planner-agent`, hook này kiểm tra độ dài `prompt` — nếu vượt ngưỡng rất lớn (ví dụ dán nhầm nguyên văn cả tài liệu `system-design-agent` dài), tự cắt gọn (giữ phần đầu + phần cuối, cắt phần giữa) trước khi `planner-agent` nhận. **Đây chỉ là lưới an toàn cuối, không phải cơ chế rút gọn context chính** — bash không hiểu ngữ nghĩa nên không biết phần nào thật sự cần giữ; việc chọn lọc đúng phần liên quan là trách nhiệm của bước gọi `planner-agent` (xem [`workflow-plan`](../skills/workflow-plan/SKILL.md)).
+Trước mỗi lần gọi Agent tool với `subagent_type: planner`, hook này kiểm tra độ dài `prompt` — nếu vượt ngưỡng rất lớn (ví dụ dán nhầm nguyên văn cả tài liệu `architect` dài), tự cắt gọn (giữ phần đầu + phần cuối, cắt phần giữa) trước khi `planner` nhận. **Đây chỉ là lưới an toàn cuối, không phải cơ chế rút gọn context chính** — bash không hiểu ngữ nghĩa nên không biết phần nào thật sự cần giữ; việc chọn lọc đúng phần liên quan là trách nhiệm của bước gọi `planner` (xem [`workflow-plan`](../skills/workflow-plan/SKILL.md)).
 
 - **Script**: [`scripts/condense-planner-input.sh`](./scripts/condense-planner-input.sh)
 - **Loại hook**: `PreToolUse`, matcher `Agent`
 - **Cơ chế**: dùng `hookSpecificOutput.updatedInput` để thay `tool_input.prompt` trước khi tool chạy — giữ nguyên các field khác (`subagent_type`, `description`...).
 - **Ngưỡng**: cắt khi `prompt` > 20000 ký tự, giữ 13000 ký tự đầu + 6000 ký tự cuối, chèn dòng đánh dấu phần đã cắt.
-- **An toàn**: `prompt` dưới ngưỡng, không phải tool `Agent`, không phải `subagent_type: planner-agent`, hoặc thiếu `jq` → không sửa gì.
+- **An toàn**: `prompt` dưới ngưỡng, không phải tool `Agent`, không phải `subagent_type: planner`, hoặc thiếu `jq` → không sửa gì.
 - **Phụ thuộc**: cần `jq`.
 
 ## agent-role-reminder — báo tên agent đang gọi + nhắc khi có vẻ over-delegate
 
-Mỗi lần gọi Agent tool, hook này luôn báo rõ tên `subagent_type` đang được dùng. Riêng với các vai trò "nặng" (`requirement-analysis-agent`, `planner-agent`, `system-design-agent`, `reviewer-agent`, `qa-tester-agent`, `researcher-agent`) kèm `prompt` quá ngắn — tín hiệu cơ học cho khả năng đang over-delegate một task nhỏ — hook chuyển sang hỏi xác nhận thay vì chỉ báo tin. Liên hệ [Execution discipline](../../AGENTS.md#execution-discipline)/[Agent coordination](../../AGENTS.md#agent-coordination).
+Mỗi lần gọi Agent tool, hook này luôn báo rõ tên `subagent_type` đang được dùng. Riêng với các vai trò "nặng" (`analyst`, `planner`, `architect`, `reviewer`, `qa-tester`, `researcher`) kèm `prompt` quá ngắn — tín hiệu cơ học cho khả năng đang over-delegate một task nhỏ — hook chuyển sang hỏi xác nhận thay vì chỉ báo tin. Liên hệ [Execution discipline](../../AGENTS.md#execution-discipline)/[Agent coordination](../../AGENTS.md#agent-coordination).
 
 - **Script**: [`scripts/agent-role-reminder.sh`](./scripts/agent-role-reminder.sh)
 - **Loại hook**: `PreToolUse`, matcher `Agent`

@@ -68,7 +68,7 @@ test('selected runtimes install only their adapter and instruction files', async
   await fs.writeFile(path.join(codex.target, '.claude/settings.json'), '{"model":"keep"}');
   await installFromSource({ ...codex, agents: ['codex'] });
   assert.ok(await fs.stat(path.join(codex.target, 'AGENTS.md')));
-  assert.ok(await fs.stat(path.join(codex.target, '.codex/agents/coding-agent.toml')));
+  assert.ok(await fs.stat(path.join(codex.target, '.codex/agents/coder.toml')));
   await assert.rejects(fs.stat(path.join(codex.target, '.claude/commands')), { code: 'ENOENT' });
   await assert.rejects(fs.stat(path.join(codex.target, '.claude/hooks')), { code: 'ENOENT' });
   assert.equal(await fs.readFile(path.join(codex.target, 'CLAUDE.md'), 'utf8'), 'Keep Claude instructions');

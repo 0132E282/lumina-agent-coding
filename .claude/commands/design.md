@@ -3,9 +3,9 @@ description: Setup DESIGN.md tooling trong project, xem spec và lint tài liệ
 argument-hint: "[đường dẫn DESIGN.md; mặc định DESIGN.md tại project hiện tại]"
 ---
 
-Giao vai trò `setup-agent` setup DESIGN.md tooling cho **project đang mở**: $ARGUMENTS
+Giao vai trò `setup` thiết lập DESIGN.md tooling cho **project đang mở**: $ARGUMENTS
 
-Agent đọc vai trò [`setup-agent`](../agents/setup-agent.md), hướng dẫn project và rule liên quan trước khi thực hiện. Nếu runtime không hỗ trợ delegation, thực hiện tuần tự theo cùng vai trò và nêu rõ giới hạn.
+Agent đọc vai trò [`setup`](../agents/setup.md), hướng dẫn project và rule liên quan trước khi thực hiện. Nếu runtime không hỗ trợ delegation, thực hiện tuần tự theo cùng vai trò và nêu rõ giới hạn.
 
 ## Phạm vi
 

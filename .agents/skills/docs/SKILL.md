@@ -8,7 +8,7 @@ metadata:
 
 # 🔄 Docs
 
-Viết mới hoặc đồng bộ README, hướng dẫn project và `docs/`; đối chiếu mọi nội dung với nguồn thật ([`search-priority`](../../rules/search-priority.md)). Tuân thủ schema và luồng catalog trong [`docs-sync`](../../rules/docs.md#đồng-bộ-tài-liệu) và [`documentation-reading-and-toc`](../../rules/docs.md#registry-tài-liệu). Không thiết kế HLD/LLD; bàn giao cho [`system-design-agent`](../../agents/system-design-agent.md). Khi cần sơ đồ hiện trạng, dùng [`system-understanding`](../system-understanding/references/diagrams.md).
+Viết mới hoặc đồng bộ README, hướng dẫn project và `docs/`; đối chiếu mọi nội dung với nguồn thật ([`search-priority`](../../rules/search-priority.md)). Tuân thủ schema và luồng catalog trong [`docs-sync`](../../rules/docs.md#đồng-bộ-tài-liệu) và [`documentation-reading-and-toc`](../../rules/docs.md#registry-tài-liệu). Không thiết kế HLD/LLD; bàn giao cho [`architect`](../../agents/architect.md). Khi cần sơ đồ hiện trạng, dùng [`system-understanding`](../system-understanding/references/diagrams.md).
 
 ## Mục lục
 
@@ -27,7 +27,7 @@ Phạm vi mặc định: `README.md`, `CLAUDE.md` (nếu có), `docs/**/*.md` (n
 
 1. Trích "claim" kiểm chứng được: đường dẫn, tên agent/skill/command/hook, số lượng/liệt kê, mô tả hành vi cụ thể.
 2. Đối chiếu từng claim với thực tế: đường dẫn → `Glob`; tên agent/skill/command → danh sách thật trong `.claude/agents|skills|commands/` (đọc frontmatter, không suy diễn); mô tả hành vi → đọc đúng file nguồn để so khớp.
-3. Phân loại: **sai rõ ràng** (file không còn tồn tại, tên đổi, số liệu sai) → sửa ngay theo thực tế vừa đọc; **không chắc** (mơ hồ, không kiểm chứng trực tiếp được) → không tự xóa, đưa vào "cần hỏi thêm" (giống cách [`workspace-auditor-agent`](../../agents/workspace-auditor-agent.md) xử lý phần không chắc).
+3. Phân loại: **sai rõ ràng** (file không còn tồn tại, tên đổi, số liệu sai) → sửa ngay theo thực tế vừa đọc; **không chắc** (mơ hồ, không kiểm chứng trực tiếp được) → không tự xóa, đưa vào "cần hỏi thêm" (giống cách [`workspace-auditor`](../../agents/workspace-auditor.md) xử lý phần không chắc).
 4. Sửa trực tiếp phần đã xác nhận sai, giữ văn phong/cấu trúc tài liệu — không viết lại toàn bộ file, không tự thêm tính năng/mục mới ngoài việc sửa đúng-sai ([`rules/coding`](../../rules/coding.md#kiss-yagni-và-phạm-vi)).
 5. Báo cáo theo `change-report-template.md` của skill [`report`](../report/SKILL.md): mỗi chỗ sửa ghi _trước → sau_ + bằng chứng, cộng danh sách "cần hỏi thêm" nếu có.
 
@@ -45,7 +45,7 @@ Dùng khi project/module/feature chưa có CLAUDE.md/README, cần viết lần 
    - **Cấu trúc thư mục chính** — chỉ cấp cao mang ý nghĩa điều hướng, không liệt kê từng file.
    - **Lệnh thường dùng** (dev/build/test/lint) — chỉ lệnh đã xác minh chạy được.
    - **Convention quan trọng cần biết trước khi sửa code** — quy ước/rule bắt buộc nếu có, pattern lặp lại thật đang dùng.
-5. Không tự thiết kế kiến trúc hệ thống (HLD/LLD) — phần đó thuộc agent [`system-design-agent`](../../agents/system-design-agent.md). Nếu chỉ cần minh họa cấu trúc/flow đã có trong codebase, dùng [`system-understanding`](../system-understanding/references/diagrams.md).
+5. Không tự thiết kế kiến trúc hệ thống (HLD/LLD) — phần đó thuộc agent [`architect`](../../agents/architect.md). Nếu chỉ cần minh họa cấu trúc/flow đã có trong codebase, dùng [`system-understanding`](../system-understanding/references/diagrams.md).
 
 ## Template theo loại tài liệu
 

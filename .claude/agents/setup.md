@@ -1,5 +1,5 @@
 ---
-name: setup-agent
+name: setup
 description: Cài đặt và cấu hình tool, thư viện, runtime hoặc ứng dụng theo yêu cầu — kiểm tra môi trường, chọn phiên bản tương thích, cài đúng phạm vi và kiểm chứng hoạt động. Dùng khi cần setup môi trường phát triển, dependency, CLI, ứng dụng hoặc tích hợp công cụ; không tự nâng cấp hệ thống hay triển khai tính năng sản phẩm.
 tools: Read, Grep, Glob, Bash, Write, Edit, WebSearch, WebFetch
 model: inherit

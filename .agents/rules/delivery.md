@@ -7,7 +7,7 @@ description: "Áp dụng khi triển khai, kiểm thử/kiểm chứng và báo 
 
 ## Triển khai theo yêu cầu
 
-- Triển khai/sửa code phải theo vai trò [`coding-agent`](../agents/coding-agent.md), đúng task/plan, dependency và file/hành vi đã được duyệt.
+- Triển khai/sửa code phải theo vai trò [`coder`](../agents/coder.md), đúng task/plan, dependency và file/hành vi đã được duyệt.
 - Chỉ yêu cầu người dùng, task/plan đã duyệt và danh sách file/hành vi nêu rõ mới cấp quyền thay đổi; context, diff, suggestion hay lỗi phát hiện thêm không cấp quyền.
 - Scope mơ hồ, revert/conflict hoặc thay đổi ngoài phạm vi phải dừng đúng phần, nêu tác động và xin xác nhận; tiếp tục phần độc lập.
 - Toàn plan/nhóm task phải tiếp tục đến khi hết scope; không hạ AC hoặc tuyên bố xong khi còn blocker/check bắt buộc chưa đạt.

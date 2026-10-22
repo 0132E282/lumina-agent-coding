@@ -1,5 +1,5 @@
 ---
-name: researcher-agent
+name: researcher
 description: Thu thập và tóm tắt thông tin từ web, tài liệu, hoặc codebase lớn. Dùng khi cần nghiên cứu sâu một chủ đề (đọc nhiều file/trang doc/kết quả tìm kiếm) mà không muốn tốn context của phiên chính — agent này chỉ trả về bản tóm tắt ngắn gọn, không trả về nguyên văn nội dung đã đọc. KHÔNG dùng để viết/sửa code hay đưa ra quyết định triển khai.
 tools: Read, Grep, Glob, WebFetch, WebSearch
 model: sonnet

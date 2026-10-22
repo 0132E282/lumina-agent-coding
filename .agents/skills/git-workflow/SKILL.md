@@ -8,7 +8,7 @@ metadata:
 
 # 🔧 Git Workflow
 
-Skill gatekeeper bắt buộc cho **commit** và **pull request** — hành động git có thể thay đổi lịch sử/chia sẻ trạng thái với người khác. Áp dụng dù đang ở phiên chính hay subagent, độc lập với [`coding-agent`](../../agents/coding-agent.md).
+Skill gatekeeper bắt buộc cho **commit** và **pull request** — hành động git có thể thay đổi lịch sử/chia sẻ trạng thái với người khác. Áp dụng dù đang ở phiên chính hay subagent, độc lập với [`coder`](../../agents/coder.md).
 
 ## 1. Trước khi `git commit` ([rules/git](../../rules/git.md))
 
