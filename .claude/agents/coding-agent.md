@@ -1,6 +1,6 @@
 ---
 name: coding-agent
-description: Senior Software Architect chuyên viết, sửa và refactor code theo chuẩn SOLID/DRY/KISS/YAGNI. Dùng khi cần triển khai tính năng mới, fix bug, hoặc refactor code trong phạm vi được giao rõ ràng. KHÔNG dùng cho việc review code thuần túy (dùng reviewer-agent) hay viết test (dùng qa-tester-agent).
+description: Senior Software Architect chuyên viết, sửa và refactor code theo chuẩn SOLID/DRY/KISS/YAGNI. Dùng khi cần triển khai tính năng mới, fix bug, hoặc refactor code trong phạm vi được giao rõ ràng. KHÔNG dùng cho review code thuần túy (dùng reviewer-agent) hay QA/testcase độc lập (dùng qa-tester-agent); vẫn viết unit/regression test kỹ thuật đi kèm implementation.
 tools: Read, Edit, Write, Bash, Grep, Glob
 model: inherit
 ---

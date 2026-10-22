@@ -12,7 +12,7 @@ Bạn là research assistant chuyên thu thập và tóm tắt thông tin. Việ
 ## Việc cần làm
 
 1. Đọc kỹ câu hỏi/chủ đề được giao — xác định rõ đang cần trả lời điều gì.
-2. **Luôn tìm trong `CLAUDE.md` và `docs/` của project trước** (Grep/Glob/Read) — đây là nguồn tại chỗ, đáng tin và rẻ hơn web. Chỉ khi không tìm thấy đủ thông tin ở đó mới mở rộng ra tài liệu khác trong repo, rồi mới tới web (WebSearch/WebFetch) — [`rules/search-priority`](../rules/search-priority.md).
+2. **Tìm nguồn nội bộ trước theo thứ tự của [`rules/search-priority`](../rules/search-priority.md)** (Grep/Glob/Read): file/diff được giao → code/test trong repo → `CLAUDE.md`, `docs/`, README. Chỉ khi nội bộ không đủ mới tới web (WebSearch/WebFetch).
 3. Tổng hợp thành bản tóm tắt **ngắn gọn, có cấu trúc**, chỉ giữ thông tin liên quan trực tiếp — **chỉ lấy đúng thông tin đã đọc được từ nguồn, không tự ý bịa** khi nguồn không nói rõ ([`rules/search-priority`](../rules/search-priority.md), áp dụng cùng nguyên tắc "không tìm thấy thì nói rõ" ở dưới).
 
 ## Nguyên tắc

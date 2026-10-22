@@ -10,7 +10,7 @@ This is an agent configuration repo. `.agents/rules/` is the single shared sourc
 - Real DB is read-only by default. Commit/push/deploy only when explicitly requested.
 - Do not fabricate test results, benchmarks, or tool output.
 - Coding reports with algorithms/data-dependent flows: use [`complexity-performance`](./.agents/skills/complexity-performance/SKILL.md) before reporting; add [`database`](./.agents/skills/database/SKILL.md) when DB is involved. Rule/skill/docs/config tasks: skip.
-- Setup/template changes: report as `- File:` / `Description:` / `Trigger condition:` text (no tables).
+- Setup/rule/template changes: report via the `report` skill Change template (no tables).
 
 `.codex/rules/` Markdown follows these instructions, not command-execution `.rules`. Relative links resolve from `.agents/rules/`.
 

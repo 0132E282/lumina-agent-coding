@@ -1,5 +1,5 @@
 // Định dạng số token gọn (18, 4.4k, 912k, 1.2M) dùng chung cho report-usage.sh và report-usage-check.mjs.
-import { readFileSync } from 'node:fs';
+import { readFileSync, realpathSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
 const UNITS = [
@@ -26,7 +26,7 @@ export function formatUsageTotals(usage) {
 }
 
 // CLI cho report-usage.sh: đọc `{ usage }` JSON từ stdin, in bản rút gọn các số token.
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   const { usage } = JSON.parse(readFileSync(0, 'utf8'));
   process.stdout.write(JSON.stringify(formatUsageTotals(usage)));
 }

@@ -15,7 +15,7 @@ Skill gatekeeper bắt buộc cho **commit** và **pull request** — hành đ�
 Riêng `/git` và `$workflow-git` mặc định scope `all`; `change` khi người dùng chọn rõ. Giữ loại trừ file tạm/rác/secret theo rule `git`; mặc định này không cho phép tự push.
 
 1. **Có lệnh rõ ràng từ người dùng chưa?** Chưa có → dừng, không commit, bất kể code đã xong hay chưa.
-2. **Gộp đúng phạm vi** — một commit cho toàn bộ thay đổi liên quan của task hiện tại, không tách vụn, không gộp thêm thay đổi ngoài phạm vi. Chỉ 2 kiểu phạm vi hợp lệ: "push hết" (toàn bộ thay đổi hiện có, khi người dùng nói rõ) hoặc "push theo tính năng" (chỉ phần liên quan task, mặc định khi không chỉ định) — **cả hai đều tuyệt đối không được kèm file tmp/scratch/debug/test thử nghiệm hoặc file rác**. Chạy `git status` rà lại trước `git add`; thấy file rác do mình tạo trong session thì dọn bằng skill [`cleanup-temp-files`](../cleanup-temp-files/SKILL.md) trước, không add vào commit.
+2. **Gộp đúng phạm vi** — một commit cho toàn bộ thay đổi thuộc scope, không tách vụn. Scope commit: `all` (mặc định của `/git`/`$workflow-git`, mọi thay đổi hợp lệ hiện có) hoặc `change` (chỉ phần liên quan task — khi người dùng chọn rõ, và là mặc định khi commit ngoài hai workflow đó). Push mặc định theo tính năng, push hết khi người dùng nói rõ — **mọi scope đều tuyệt đối không được kèm file tmp/scratch/debug/test thử nghiệm hoặc file rác**. Chạy `git status` rà lại trước `git add`; thấy file rác do mình tạo trong session thì dọn bằng skill [`cleanup-temp-files`](../cleanup-temp-files/SKILL.md) trước, không add vào commit.
 3. **Format lại bằng Prettier trước khi commit**: chạy Prettier trên các file đang staged (`git diff --cached --name-only --diff-filter=ACMR`), rồi `git add` lại đúng các file đó để phần format nằm trong cùng commit. Project chưa cài Prettier (không có trong `PATH` và `npx` không resolve được) → bỏ qua, không tự cài khi chưa được yêu cầu.
 4. **Conventional Commits**: tiêu đề `<type>: <mô tả ngắn gọn>` (`feat`/`fix`/`refactor`/`docs`/`test`/`chore`/`style`/`perf`/`build`/`ci`), tối đa **75 ký tự**; body liệt kê thay đổi chính, nêu rõ vấn đề được giải quyết.
 5. **Chạy script kiểm tra** trước khi commit thật:
@@ -46,7 +46,7 @@ Hook [`format-before-push.sh`](../../hooks/scripts/format-before-push.sh) tự c
 
 ## Checklist
 
-**Commit**: có lệnh rõ ràng từ người dùng · đã chạy Prettier trên file staged (nếu project có cài) · đã gộp đúng phạm vi (push hết hoặc push theo tính năng — không trộn lẫn) · không có file tmp/test/rác lẫn vào · tiêu đề đúng format `<type>: <mô tả>` ≤ 75 ký tự · body nêu rõ vấn đề được giải quyết · đã chạy `validate-commit-message.sh` và nhận `✅`.
+**Commit**: có lệnh rõ ràng từ người dùng · đã chạy Prettier trên file staged (nếu project có cài) · đã gộp đúng scope (`all` hoặc `change` — không trộn lẫn) · không có file tmp/test/rác lẫn vào · tiêu đề đúng format `<type>: <mô tả>` ≤ 75 ký tự · body nêu rõ vấn đề được giải quyết · đã chạy `validate-commit-message.sh` và nhận `✅`.
 
 **Push**: đã format lại diff so với remote bằng Prettier (nếu project có cài) · không còn thay đổi format nào trôi ra ngoài commit đang push.
 

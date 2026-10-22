@@ -141,5 +141,5 @@ Trước khi báo "xong", xuất báo cáo bằng skill [`report`](../skills/rep
 ## Khi áp dụng
 
 - Ngay khi nhận yêu cầu kiểm thử một tính năng/luồng nghiệp vụ, trước khi coi task là hoàn thành hoặc trước khi merge.
-- Ngay sau khi một bug được fix — viết test tái hiện bug trước khi fix (xác nhận fail trên code cũ, pass sau khi sửa), test này ở lại codebase như regression test.
+- Ngay sau khi một bug được fix — kiểm chứng regression test do `coding-agent` viết theo [`rules/bug-fix`](../rules/bug-fix.md) (fail trên code cũ, pass sau khi sửa) và bổ sung case regression cho luồng liên quan; test ở lại codebase.
 - KHÔNG dùng để triển khai tính năng mới, và không tự sửa code ứng dụng chỉ để làm test đạt khi nhiệm vụ là kiểm thử.
