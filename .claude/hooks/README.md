@@ -41,7 +41,6 @@ Trước mỗi lần Claude Code (hoặc subagent) gọi **bất kỳ tool nào*
 - **Script**: [`scripts/audit-log.sh`](./scripts/audit-log.sh)
 - **Loại hook**: `PreToolUse`, matcher `.*` (mọi tool)
 - **File log**: `.agents/storage/logs/logs.jsonl` (JSON Lines, append-only) — cả thư mục `.agents/storage/` đã nằm trong `.gitignore`, không commit nhầm.
-- **Xoay vòng**: trước mỗi lần ghi, helper dùng chung [`scripts/_log-rotate.sh`](./scripts/_log-rotate.sh) (source, không đăng ký trong settings) đổi tên `logs.jsonl` thành `logs-<UTC yyyyMMdd-HHmmss>[-N].jsonl` khi file ≥ `LUMINA_LOG_MAX_BYTES` (mặc định 1048576 = 1 MiB) rồi ghi dòng mới vào file mới; chỉ giữ `LUMINA_LOG_KEEP` file đã xoay mới nhất (mặc định 5) và chỉ xoá file khớp đúng mẫu tên đó, không đụng file đang ghi hay file khác trong thư mục. Đổi tên bằng `mv -n` (rename nguyên tử, không ghi đè); hook khác xoay trước thì bỏ qua, dòng đang ghi không mất (writer đã mở file cũ thì dòng nằm trong file đã xoay). Best-effort, luôn `exit 0`; thiếu helper thì vẫn ghi log, chỉ không xoay. File đã xoay tạo trước bản che secret có thể còn secret chưa che — retention sẽ dần xoá; cần xoá sớm thì xoá tay các file `logs-*.jsonl` cũ.
 - **Nội dung mỗi dòng**: `ts` (UTC ISO8601), `session_id`, `tool`, `cwd`, `input` (tóm tắt — chỉ `file_path`/`command` (≤200 ký tự, che secret dạng phổ biến như `token=`/`password=`/`Bearer`/URL credential/prefix `ghp_`, `sk_live_`, `AKIA`... thành `***` trước khi cắt — heuristic, không bảo đảm che hết)/`pattern`/`skill` (tên skill khi tool là `Skill`) tùy loại tool, **không** ghi nguyên nội dung file Write/Edit để tránh log phình to và rò rỉ dữ liệu nhạy cảm). Thêm `agent_id` khi tool chạy trong subagent (Claude Code chỉ gửi field này cho subagent; phiên chính không có). Hook [`turn-log`](#turn-log--một-dòng-tóm-tắt-mỗi-lượt) ghi thêm vào cùng file một dòng `type: "turn"` mỗi lượt.
 - **An toàn**: luôn `exit 0`; input JSON hỏng, thiếu `jq`, hoặc `tool_name` rỗng đều bị bỏ qua êm, không ghi dòng rác. Thư mục ghi log lấy từ `CLAUDE_PROJECT_DIR` (luôn là project root, bất kể agent đã `cd` sang thư mục con), fallback sang `cwd` trong payload rồi `pwd` nếu biến đó không có — tránh ghi log lạc vào thư mục con khi session đổi cwd. Field `cwd` trong mỗi dòng log vẫn giữ nguyên giá trị gốc từ payload để phục vụ truy vết.
 - **Phụ thuộc**: cần `jq`.
@@ -54,9 +53,6 @@ tail -f .agents/storage/logs/logs.jsonl | jq .
 
 # Đọc toàn bộ log hiện có dưới dạng 1 mảng JSON dễ đọc (ví dụ mở trong editor)
 jq -s '.' .agents/storage/logs/logs.jsonl
-
-# Gồm cả các file đã xoay vòng (cũ → mới)
-cat .agents/storage/logs/logs-*.jsonl .agents/storage/logs/logs.jsonl | jq -s '.'
 ```
 
 ## commit-msg-guard — chặn commit message sai format
@@ -162,7 +158,7 @@ Sau mỗi lần Edit/Write một file workflow CI (`.github/workflows/*.yml`, `.
 
 ## remind-cleanup — nhắc dọn file tạm khi context gần đầy
 
-Khi Claude Code kết thúc một turn và context window của phiên đã dùng **≥ 80%**, hook này tìm file đã `Write` trong session hiện tại (qua `.agents/storage/logs/logs.jsonl` và file đã xoay mới nhất, lọc trước theo `session_id` bằng `grep`), giới hạn trong phạm vi dự án (so khớp `cwd`), còn tồn trên đĩa và khớp pattern tên file tạm (tên bắt đầu bằng `tmp`/`scratch`/`debug`/`draft`/`sandbox`/`test-output`, hoặc đuôi `.tmp`/`.bak`/`.orig`), trừ file nằm trong thư mục cấu hình/tài liệu của project (`.agents/rules/`, `.agents/skills/`, `.agents/agents/`, `.claude/`, `.codex/`, `docs/`) — nếu có, nhắc qua `additionalContext` (kèm % context, ví dụ `Context đã dùng 82% (164k/200k)`) để Claude thấy và tự quyết có dùng skill `cleanup-temp-files` để dọn file tạm không; `/cleanup` chỉ làm gọn context. Dưới ngưỡng thì không nhắc. Mỗi file chỉ nhắc một lần mỗi session: path đã nhắc được append vào `.agents/storage/state/<session_id>.cleanup-reminded`, chỉ nhắc (và đếm) path mới chưa từng nhắc; file state rỗng bị bỏ qua (grep BSD coi `-f` rỗng là khớp mọi dòng); ghi state lỗi không chặn hook. Liên hệ skill [`cleanup-temp-files`](../skills/cleanup-temp-files/SKILL.md).
+Khi Claude Code kết thúc một turn và context window của phiên đã dùng **≥ 80%**, hook này tìm file đã `Write` trong session hiện tại (qua `.agents/storage/logs/logs.jsonl`), giới hạn trong phạm vi dự án (so khớp `cwd`), còn tồn trên đĩa và khớp pattern tên file tạm (tên bắt đầu bằng `tmp`/`scratch`/`debug`/`draft`/`sandbox`/`test-output`, hoặc đuôi `.tmp`/`.bak`/`.orig`), trừ file nằm trong thư mục cấu hình/tài liệu của project (`.agents/rules/`, `.agents/skills/`, `.agents/agents/`, `.claude/`, `.codex/`, `docs/`) — nếu có, nhắc qua `additionalContext` (kèm % context, ví dụ `Context đã dùng 82% (164k/200k)`) để Claude thấy và tự quyết có dùng skill `cleanup-temp-files` để dọn file tạm không; `/cleanup` chỉ làm gọn context. Dưới ngưỡng thì không nhắc. Mỗi file chỉ nhắc một lần mỗi session: path đã nhắc được append vào `.agents/storage/state/<session_id>.cleanup-reminded`, chỉ nhắc (và đếm) path mới chưa từng nhắc; file state rỗng bị bỏ qua (grep BSD coi `-f` rỗng là khớp mọi dòng); ghi state lỗi không chặn hook. Liên hệ skill [`cleanup-temp-files`](../skills/cleanup-temp-files/SKILL.md).
 
 - **Script**: [`scripts/remind-cleanup.sh`](./scripts/remind-cleanup.sh) — gọi `skills/cleanup-temp-files/scripts/find-session-scratch-files.sh`
 - **Đo context**: [`scripts/remind-cleanup-context.mjs`](./scripts/remind-cleanup-context.mjs) đọc toàn bộ `transcript_path`, context đang dùng là `message.usage` của message assistant cuối cùng có usage: `input_tokens + cache_read_input_tokens + cache_creation_input_tokens`; bỏ qua dòng JSON lỗi. Giới hạn: `CLAUDE_CONTEXT_LIMIT` nếu là số nguyên dương; không có/sai thì suy từ transcript — có message assistant nào vượt 200000 thì dùng 1000000 (model context 1M), ngược lại 200000; ngưỡng cố định 80%.
@@ -173,7 +169,7 @@ Khi Claude Code kết thúc một turn và context window của phiên đã dùn
 
 ## report-reminder — nhắc dùng skill `report` nếu chưa báo cáo thay đổi
 
-Khi Claude Code kết thúc một turn, hook này tìm trong `.agents/storage/logs/logs.jsonl` và file đã xoay mới nhất (lọc trước dòng của session bằng `grep -F`, không slurp cả log; session vắt qua hơn một lần xoay thì Edit/Write cũ hơn file đã xoay mới nhất không được tính) các lần `Edit`/`Write` của phiên chính trong session hiện tại (giới hạn `cwd` đúng dự án; bỏ entry có `agent_id` vì Edit/Write của subagent do phiên chính gộp vào báo cáo tổng) xảy ra **sau** lần gọi skill `report` gần nhất (hoặc từ đầu session nếu chưa gọi lần nào) — có thì nhắc qua `additionalContext`. Đây là lớp enforce cơ chế cho [`rules/delivery.md`](../rules/delivery.md#báo-cáo-bắt-buộc), thay vì chỉ dựa vào Claude tự giác nhớ gọi skill `report`.
+Khi Claude Code kết thúc một turn, hook này tìm trong `.agents/storage/logs/logs.jsonl` các lần `Edit`/`Write` của phiên chính trong session hiện tại (giới hạn `cwd` đúng dự án; bỏ entry có `agent_id` vì Edit/Write của subagent do phiên chính gộp vào báo cáo tổng) xảy ra **sau** lần gọi skill `report` gần nhất (hoặc từ đầu session nếu chưa gọi lần nào) — có thì nhắc qua `additionalContext`. Đây là lớp enforce cơ chế cho [`rules/delivery.md`](../rules/delivery.md#báo-cáo-bắt-buộc), thay vì chỉ dựa vào Claude tự giác nhớ gọi skill `report`.
 
 - **Script**: [`scripts/report-reminder.sh`](./scripts/report-reminder.sh)
 - **Loại hook**: `Stop`
@@ -207,7 +203,7 @@ Chặn việc điền số Token không có nguồn: hook `report-usage` ghi s�
 
 ## turn-log — một dòng tóm tắt mỗi lượt
 
-Khi Claude Code kết thúc một lượt, hook đọc `transcript_path` và ghi **một** dòng `type: "turn"` vào `.agents/storage/logs/logs.jsonl` (cùng file `audit-log`, xoay vòng bằng cùng helper [`_log-rotate.sh`](./scripts/_log-rotate.sh) — `turn-log.mjs` chạy `bash _log-rotate.sh <log_dir>` trước khi ghi; các dòng từng tool call giữ nguyên):
+Khi Claude Code kết thúc một lượt, hook đọc `transcript_path` và ghi **một** dòng `type: "turn"` vào `.agents/storage/logs/logs.jsonl` (cùng file `audit-log`; các dòng từng tool call giữ nguyên):
 
 ```json
 {"ts":"2026-10-22T03:00:00Z","type":"turn","session_id":"…","request":"Sửa hook Stop","tools":{"Bash":2,"Edit":2,"Write":1,"Agent":1},"files":["/repo/a.js","/repo/b.js"],"tokens":{"input":17,"output":31,"cacheRead":413,"cacheCreate":49,"total":510},"subagentTokens":{"input":4,"output":9,"cacheRead":300,"cacheCreate":10,"total":323}}

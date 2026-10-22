@@ -15,10 +15,6 @@
 set -o pipefail
 trap 'exit 0' ERR
 
-# Thiếu helper (bản cài cũ chỉ copy một phần) thì vẫn ghi log, chỉ bỏ xoay vòng.
-log_rotate_helper="$(dirname "$0")/_log-rotate.sh"
-[ -f "$log_rotate_helper" ] && . "$log_rotate_helper"
-
 command -v jq >/dev/null 2>&1 || exit 0
 
 input="$(cat)"
@@ -84,9 +80,6 @@ entry="$(jq -nc \
   '{ts: $ts, session_id: $session, tool: $tool, cwd: $cwd, input: $input}
    + (if $agent_id != "" then {agent_id: $agent_id} else {} end)' 2>/dev/null)"
 
-if [ -n "$entry" ]; then
-  command -v lumina_log_rotate >/dev/null 2>&1 && lumina_log_rotate "$log_dir"
-  printf '%s\n' "$entry" >> "$log_file" 2>/dev/null
-fi
+[ -n "$entry" ] && printf '%s\n' "$entry" >> "$log_file" 2>/dev/null
 
 exit 0

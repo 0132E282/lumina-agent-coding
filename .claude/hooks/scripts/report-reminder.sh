@@ -7,8 +7,8 @@
 #
 # Nhận JSON input từ stdin theo schema Stop: { "session_id": "...", ... }
 #
-# Dựa vào .agents/storage/logs/logs.jsonl và file đã xoay mới nhất (ghi bởi hook audit-log) —
-# phải bật hook đó cùng lúc, và audit-log phải ghi field input.skill cho tool Skill.
+# Dựa vào .agents/storage/logs/logs.jsonl (ghi bởi hook audit-log) — phải bật hook
+# đó cùng lúc, và audit-log phải ghi field input.skill cho tool Skill.
 #
 # Luôn exit 0 — hook phụ trợ, không bao giờ chặn việc Claude Code dừng lại.
 
@@ -30,39 +30,22 @@ if [ -n "$CLAUDE_PROJECT_DIR" ] && [ -d "$CLAUDE_PROJECT_DIR" ]; then
 else
   log_root="$(pwd)"
 fi
-log_dir="$log_root/.agents/storage/logs"
-
-# Đọc file đang ghi + file đã xoay mới nhất (session có thể vắt qua một lần xoay).
-log_rotate_helper="$(dirname "$0")/_log-rotate.sh"
-log_files=""
-if [ -f "$log_rotate_helper" ]; then
-  . "$log_rotate_helper"
-  log_files="$(lumina_session_log_files "$log_dir")"
-elif [ -f "$log_dir/logs.jsonl" ]; then
-  log_files="$log_dir/logs.jsonl"
-fi
-[ -z "$log_files" ] && exit 0
+log_file="$log_root/.agents/storage/logs/logs.jsonl"
+[ -f "$log_file" ] || exit 0
 
 project_dir="$(pwd)"
-
-# Lọc trước theo session bằng grep (rẻ) để jq -s không phải slurp cả log; jq bên dưới vẫn lọc chính xác.
-# Writer ghi JSON compact (jq -c / JSON.stringify) nên chuỗi "session_id":"<id>" khớp nguyên văn.
-session_needle="$(jq -cn --arg sid "$session_id" '{session_id: $sid}')"
-session_needle="${session_needle#\{}"
-session_needle="${session_needle%\}}"
 
 # Đếm Edit/Write xảy ra SAU lần gọi skill `report` gần nhất (hoặc từ đầu
 # session nếu chưa gọi lần nào) — nếu > 0 nghĩa là có thay đổi chưa báo cáo.
 # Chỉ tính entry của phiên chính (không có agent_id): Edit/Write của subagent
 # được phiên chính gộp vào một báo cáo tổng sau khi mọi task xong.
-result="$(while IFS= read -r file; do grep -F -- "$session_needle" "$file" || true; done <<< "$log_files" \
-  | jq -s -r --arg sid "$session_id" --arg cwd "$project_dir" '
+result="$(jq -s -r --arg sid "$session_id" --arg cwd "$project_dir" '
   map(select(.session_id == $sid and .cwd == $cwd and ((.agent_id // "") == ""))) as $entries
   | ($entries | map(select(.tool == "Skill" and .input.skill == "report") | .ts) | sort | last) as $last_report
   | ($entries | map(select(.tool == "Edit" or .tool == "Write"))
       | map(select($last_report == null or .ts > $last_report))) as $pending
   | "\($pending | length)|\($pending | map(.ts) | max // "")|\($pending | map(.input.file_path // empty) | unique | .[0:5] | join(", "))"
-' 2>/dev/null)"
+' "$log_file" 2>/dev/null)"
 
 [ -z "$result" ] && exit 0
 

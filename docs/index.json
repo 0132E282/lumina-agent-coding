@@ -20,12 +20,6 @@
       "description": "Testcase repository cho rule bug-fix, skill debugs, dòng Token compact có tổng và hook remind-cleanup ngưỡng 80% context; dùng khi regression cấu hình agent/hook.",
       "tags": ["agent-rules", "skills", "hooks", "report", "regression"],
       "path": "docs/repo/debug-rule-and-report-hooks-20261021.md"
-    },
-    {
-      "title": "Giao Codex - CLI thống kê token Claude dùng để code",
-      "description": "Bàn giao cho Codex xây lệnh lumina-agent usage đọc transcript Claude Code và logs.jsonl để thống kê token theo phiên, lượt, subagent, ngày; dùng khi triển khai hoặc review CLI token.",
-      "tags": ["handoff", "codex", "cli", "token-usage", "claude-code"],
-      "path": "docs/handoffs/codex-token-usage-cli-20261022.md"
     }
   ],
   "update_policy": {

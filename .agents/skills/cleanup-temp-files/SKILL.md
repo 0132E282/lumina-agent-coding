@@ -35,7 +35,7 @@ Dấu hiệu phân biệt file test là rác (nên xóa) vs chính thức (giữ
    ```bash
    bash .claude/skills/cleanup-temp-files/scripts/find-session-scratch-files.sh "$SESSION_ID"
    ```
-   Script đọc `.agents/storage/logs/logs.jsonl` và file đã xoay vòng mới nhất `logs-<timestamp>.jsonl` (ghi bởi hook `audit-log`), chỉ lấy file đã `Write` **trong session hiện tại**, **trong phạm vi dự án** (so khớp `cwd`), còn tồn trên đĩa, và khớp pattern tên file tạm (tên bắt đầu bằng `tmp`/`scratch`/`debug`/`draft`/`sandbox`/`test-output`, hoặc đuôi `.tmp`/`.bak`/`.orig`), bỏ qua file trong thư mục cấu hình/tài liệu của project (`.agents/rules/`, `.agents/skills/`, `.agents/agents/`, `.claude/`, `.codex/`, `docs/`). Không tự xóa gì, không quét ra ngoài dự án.
+   Script đọc `.agents/storage/logs/logs.jsonl` (ghi bởi hook `audit-log`), chỉ lấy file đã `Write` **trong session hiện tại**, **trong phạm vi dự án** (so khớp `cwd`), còn tồn trên đĩa, và khớp pattern tên file tạm (tên bắt đầu bằng `tmp`/`scratch`/`debug`/`draft`/`sandbox`/`test-output`, hoặc đuôi `.tmp`/`.bak`/`.orig`), bỏ qua file trong thư mục cấu hình/tài liệu của project (`.agents/rules/`, `.agents/skills/`, `.agents/agents/`, `.claude/`, `.codex/`, `docs/`). Không tự xóa gì, không quét ra ngoài dự án.
 2. Với mỗi ứng viên script trả về, xác nhận lại theo bảng trên — loại nào rác, loại nào giữ lại. Script chỉ gợi ý theo tên file, có thể báo sai (ví dụ file tên có "draft" nhưng là deliverable thật) — Claude luôn tự xác nhận trước khi xóa, không xóa máy móc theo script.
 3. Xóa trực tiếp các file rác đã xác định (không cần hỏi xác nhận — tự chịu trách nhiệm vì là file tự tạo).
 4. Báo ngắn gọn: đã xóa file nào, giữ lại file nào vì là deliverable/test chính thức.
