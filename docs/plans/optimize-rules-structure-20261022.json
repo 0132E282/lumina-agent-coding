@@ -1,0 +1,209 @@
+{
+  "title": "Tối ưu rules và đánh giá cấu trúc repo",
+  "description": "Tham khảo khi rút gọn .agents/rules, AGENTS.md, CLAUDE.md theo nguyên tắc một ràng buộc một chủ sở hữu, hoặc khi cân nhắc tái cấu trúc thư mục .agents/.claude/.codex.",
+  "tags": [
+    "agent-rules",
+    "configuration",
+    "refactor",
+    "token-optimization"
+  ],
+  "createdAt": "2026-10-22",
+  "content": {
+    "meta": {
+      "objective": "Rules ngắn hơn, ít token hơn, không mất ràng buộc; đề xuất cấu trúc repo giữ nguyên symlink và path của installer/hook.",
+      "inScope": ".agents/rules/*.md, AGENTS.md, CLAUDE.md; đánh giá cấu trúc .agents/.claude/.codex/docs/bin/scripts/tests.",
+      "outOfScope": "CONTRACT.md, script/hook/bin/test, di chuyển/đổi tên file.",
+      "currentState": "Rules + AGENTS + CLAUDE + CONTRACT = 33366 byte (wc -c); cùng ràng buộc lặp 3-5 nơi; check-agent-config pass."
+    },
+    "requirements": [
+      {
+        "id": "REQ-001",
+        "description": "Bỏ trùng lặp/dài dòng trong rules, chuyển thủ tục sang skill, không mất ràng buộc",
+        "source": "Yêu cầu người dùng qua phiên điều phối, plan đã duyệt 2026-10-22"
+      },
+      {
+        "id": "REQ-002",
+        "description": "Đánh giá và đề xuất cấu trúc repo, giữ symlink tương đối và path installer/hook",
+        "source": "Yêu cầu người dùng qua phiên điều phối, plan đã duyệt 2026-10-22"
+      }
+    ],
+    "businessRules": [],
+    "acceptanceCriteria": [
+      {
+        "id": "AC-001",
+        "requirements": [
+          "REQ-001"
+        ],
+        "description": "Mỗi ràng buộc bị xoá vẫn còn ở chủ sở hữu (CONTRACT, rule owner hoặc skill); mọi heading/anchor giữ nguyên",
+        "source": "Plan đã duyệt"
+      },
+      {
+        "id": "AC-002",
+        "requirements": [
+          "REQ-001"
+        ],
+        "description": "Tổng byte giảm so với 33366; check-agent-config pass; git diff --check sạch; npm test pass",
+        "source": "Plan đã duyệt"
+      },
+      {
+        "id": "AC-003",
+        "requirements": [
+          "REQ-002"
+        ],
+        "description": "Không symlink/path nào trong bin/lumina-agent.mjs, .claude/settings.json, .codex/hooks.json thay đổi",
+        "source": "Plan đã duyệt"
+      }
+    ],
+    "assumptions": [
+      "Người dùng chốt 2026-10-22: làm M1 theo nghĩa của .claude/commands/git.md (commit all = toàn bộ thay đổi hợp lệ trừ file cấm; commit change khi người dùng chọn rõ) và O1 (xoá settings.snippet.json, README hooks trỏ tới settings.json/installer)."
+    ],
+    "openQuestions": [],
+    "blockers": [],
+    "technicalSolution": "Gán chủ sở hữu: phạm vi/quyền thay đổi → coding.md#kiss-yagni-và-phạm-vi; UI gate → frontend.md; kiểm trước bàn giao → delivery.md#chất-lượng-và-bằng-chứng; testcase khi xong plan → docs.md; thủ tục bug/git/report → skill debugs, git-workflow, report. Nơi khác chỉ link. Cấu trúc giữ nguyên vì đảo chiều symlink agents/commands/hooks đòi sửa installer, checker và test.",
+    "tasks": [
+      {
+        "id": "TASK-001",
+        "title": "Rút gọn rules R6-R15",
+        "status": "DONE",
+        "priority": "P1",
+        "priorityReason": "Giảm token rules nạp mỗi phiên mà không mất ràng buộc",
+        "requirements": [
+          "REQ-001"
+        ],
+        "acceptanceCriteria": [
+          "AC-001",
+          "AC-002"
+        ],
+        "inScope": "Rút gọn rules R6-R15",
+        "outOfScope": "Đổi tên file/heading rule, script/hook/bin/test, symlink",
+        "dependencies": [],
+        "approach": "Gộp câu trùng, bổ sung liệt kê còn thiếu vào owner, bỏ thủ tục đã có trong skill",
+        "filesToChange": [
+          ".agents/rules/coding.md",
+          ".agents/rules/delivery.md",
+          ".agents/rules/frontend.md",
+          ".agents/rules/git.md",
+          ".agents/rules/bug-fix.md",
+          ".agents/rules/review.md",
+          ".agents/rules/backend.md",
+          ".agents/rules/docs.md",
+          ".agents/rules/response-style.md"
+        ],
+        "test": "grep từng ràng buộc bị xoá ở owner; check-agent-config",
+        "doneWhen": "AC đạt và check-agent-config, npm test, git diff --check có kết quả thật"
+      },
+      {
+        "id": "TASK-002",
+        "title": "Rút gọn AGENTS.md và CLAUDE.md R1-R5, M2",
+        "status": "DONE",
+        "priority": "P1",
+        "priorityReason": "Giảm token rules nạp mỗi phiên mà không mất ràng buộc",
+        "requirements": [
+          "REQ-001"
+        ],
+        "acceptanceCriteria": [
+          "AC-001",
+          "AC-002"
+        ],
+        "inScope": "Rút gọn AGENTS.md và CLAUDE.md R1-R5, M2",
+        "outOfScope": "Đổi tên file/heading rule, script/hook/bin/test, symlink",
+        "dependencies": [],
+        "approach": "Xoá bullet trùng CONTRACT/rules, thay gate bằng link owner, gọn đoạn hooks",
+        "filesToChange": [
+          "AGENTS.md",
+          "CLAUDE.md"
+        ],
+        "test": "check-agent-config, npm test",
+        "doneWhen": "AC đạt và check-agent-config, npm test, git diff --check có kết quả thật"
+      },
+      {
+        "id": "TASK-003",
+        "title": "Đánh giá cấu trúc repo",
+        "status": "DONE",
+        "priority": "P1",
+        "priorityReason": "Giảm token rules nạp mỗi phiên mà không mất ràng buộc",
+        "requirements": [
+          "REQ-002"
+        ],
+        "acceptanceCriteria": [
+          "AC-003"
+        ],
+        "inScope": "Đánh giá cấu trúc repo",
+        "outOfScope": "Đổi tên file/heading rule, script/hook/bin/test, symlink",
+        "dependencies": [],
+        "approach": "Không di chuyển file; ghi lý do giữ chiều symlink hiện tại và mục tuỳ chọn O1",
+        "filesToChange": [],
+        "test": "git diff không chạm bin/, .claude/settings.json, .codex/hooks.json, symlink",
+        "doneWhen": "AC đạt và check-agent-config, npm test, git diff --check có kết quả thật"
+      },
+      {
+        "id": "TASK-004",
+        "title": "M1 làm rõ commit all, O1 xoá settings.snippet.json",
+        "status": "DONE",
+        "priority": "P2",
+        "priorityReason": "Bỏ mâu thuẫn trong rule git và file cấu hình trùng",
+        "requirements": [
+          "REQ-001",
+          "REQ-002"
+        ],
+        "acceptanceCriteria": [
+          "AC-001",
+          "AC-003"
+        ],
+        "inScope": "rules/git.md, .claude/hooks/README.md, xoá .claude/hooks/settings.snippet.json",
+        "outOfScope": "bin/, settings.json, test",
+        "dependencies": [
+          "TASK-001"
+        ],
+        "approach": "Dùng nghĩa commit all đã có ở .claude/commands/git.md; README trỏ tới settings.json và installer (mergeSettings trong bin/lumina-agent.mjs)",
+        "filesToChange": [
+          ".agents/rules/git.md",
+          ".claude/hooks/README.md",
+          ".claude/hooks/settings.snippet.json"
+        ],
+        "test": "grep settings.snippet không còn ngoài log; check-agent-config; npm test",
+        "doneWhen": "AC đạt và check thật pass"
+      }
+    ],
+    "executionOrder": [
+      "TASK-001",
+      "TASK-002",
+      "TASK-003",
+      "TASK-004"
+    ],
+    "traceability": [
+      {
+        "requirementId": "REQ-001",
+        "acceptanceCriteria": [
+          "AC-001",
+          "AC-002"
+        ],
+        "tasks": [
+          "TASK-001",
+          "TASK-002",
+          "TASK-004"
+        ],
+        "test": "docs/repo/optimize-rules-structure-20261022.md TC-001..TC-003, TC-005",
+        "result": "Pass"
+      },
+      {
+        "requirementId": "REQ-002",
+        "acceptanceCriteria": [
+          "AC-003"
+        ],
+        "tasks": [
+          "TASK-003",
+          "TASK-004"
+        ],
+        "test": "docs/repo/optimize-rules-structure-20261022.md TC-004, TC-005",
+        "result": "Pass"
+      }
+    ],
+    "remainingRisks": [
+      {
+        "description": "Agent chỉ đọc AGENTS.md (không nạp rules) mất chi tiết gate vì nay chỉ còn link",
+        "mitigation": "AGENTS.md yêu cầu đọc toàn bộ .agents/rules trước khi code; Claude nạp rules qua symlink .claude/rules"
+      }
+    ]
+  }
+}

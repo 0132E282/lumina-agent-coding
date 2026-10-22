@@ -9,16 +9,15 @@ description: "Áp dụng khi sửa backend, API, database hoặc xử lý dữ l
 
 - Đọc stack/schema/route/contract thật; không đổi contract, module dùng chung hoặc luồng ngoài phạm vi khi chưa được chấp thuận.
 - API/route mới phải có URL hoặc tài liệu tham chiếu xác minh được; không tự bịa schema, endpoint hay response.
-- Validate tại boundary; authorization/tenant ở backend; allowlist field ghi, parameterize query; không lộ secret, PII hoặc stack trace.
+- Validate tại boundary; allowlist field ghi, parameterize query; không lộ secret, PII hoặc stack trace.
 - Chỉ public nội dung được phép; preview/draft cần quyền, robots/noindex không thay authentication.
 - Tránh N+1; transaction, cache, upload, HTML, timeout/retry và idempotency phải bảo toàn tính toàn vẹn và boundary bảo mật.
-- Database mặc định read-only theo [`database-read-only`](#database-read-only-mặc-định).
 
 Quy trình/checklist: [`coding-backend`](../skills/coding-backend/SKILL.md), [`database`](../skills/database/SKILL.md), [`review-web-security`](../skills/review-web-security/SKILL.md).
 
 ## An toàn dữ liệu
 
-- Authorization luôn ở backend, càng sớm càng tốt và đúng resource/action/owner; UI chỉ là UX, không phải kiểm soát quyền.
+- Authorization/tenant luôn ở backend, càng sớm càng tốt và đúng resource/action/owner; UI chỉ là UX, không phải kiểm soát quyền.
 - Nhóm thao tác ghi phải cùng thành công hoặc thất bại phải dùng transaction.
 - Không đặt side effect không thể rollback bên trong transaction.
 

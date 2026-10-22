@@ -11,6 +11,5 @@ description: "Áp dụng khi trả lời tin nhắn của người dùng"
 - Trả lời bằng ngôn ngữ người dùng đang dùng; giữ nguyên tên file, lệnh, mã lỗi và thuật ngữ kỹ thuật.
 - Chưa kiểm chứng thì nói rõ là chưa kiểm chứng.
 - Tham chiếu code bằng `file:dòng`; chỉ chép đoạn code ngắn đủ để hiểu.
-- Ví dụ: hỏi "test pass chưa" thì trả "78/78 pass (`npm test`)", không kể lại cả quá trình sửa.
 
 Đặt câu hỏi và báo cáo có format riêng: [`report`](../skills/report/SKILL.md).

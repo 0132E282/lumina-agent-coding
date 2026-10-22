@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // Helper của turn-log.sh: đọc transcript, ghi MỘT dòng tóm tắt lượt hiện tại vào logs.jsonl.
 // Usage: node turn-log.mjs <task-usage.mjs>  (Stop payload qua stdin). Luôn exit 0.
+import { spawnSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const REQUEST_LIMIT = 200;
 const FILE_TOOLS = new Set(['Edit', 'Write', 'NotebookEdit']);
@@ -117,6 +118,28 @@ function measureSubagents(results, transcriptPath, measure, criteria) {
   return { tokens: measured > 0 ? totals(sum) : null, pending };
 }
 
+// Cùng ngưỡng/validate với lumina_log_rotate trong _log-rotate.sh.
+function rotateThresholdBytes() {
+  const configured = process.env.LUMINA_LOG_MAX_BYTES ?? '';
+  return /^[0-9]+$/.test(configured) && Number(configured) > 0 ? Number(configured) : 1048576;
+}
+
+// Xoay vòng dùng chung helper bash với audit-log; best-effort, lỗi không chặn việc ghi dòng.
+// Chỉ spawn bash khi file đã chạm ngưỡng — tránh một lần spawn mỗi lượt; helper vẫn tự kiểm lại.
+function rotateLog(logDirectory) {
+  let size;
+  try {
+    size = fs.statSync(path.join(logDirectory, 'logs.jsonl')).size;
+  } catch {
+    // Thiếu file (hoặc không stat được) thì helper cũng bỏ qua; xoay log là best-effort, không chặn việc ghi.
+    return;
+  }
+  if (size < rotateThresholdBytes()) return;
+  const helper = fileURLToPath(new URL('./_log-rotate.sh', import.meta.url));
+  if (!fs.existsSync(helper)) return;
+  spawnSync('bash', [helper, logDirectory], { stdio: 'ignore' });
+}
+
 async function main() {
   const usageModulePath = process.argv[2];
   const payload = JSON.parse(fs.readFileSync(0, 'utf8'));
@@ -188,6 +211,7 @@ async function main() {
 
   const logDirectory = path.join(logRoot, '.agents/storage/logs');
   fs.mkdirSync(logDirectory, { recursive: true });
+  rotateLog(logDirectory);
   fs.appendFileSync(path.join(logDirectory, 'logs.jsonl'), `${JSON.stringify(entry)}\n`);
   fs.mkdirSync(path.dirname(stateFile), { recursive: true });
   fs.writeFileSync(stateFile, `${JSON.stringify(turnMarker)}\n`);

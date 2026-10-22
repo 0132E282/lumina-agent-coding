@@ -16,20 +16,11 @@ Read and follow [AGENTS.md](./AGENTS.md) before working. `.agents/rules/` and `.
 
 User request → Plan mode + `workflow-plan` (when needed) → implement → `/test` → `/review` → `/git commit` → `/git main`.
 
-Run only the assigned step. When moving to another project, copy `.agents/`, `.claude/`, `AGENTS.md`, and `CLAUDE.md` together with relative symlinks.
+Run only the assigned step. When moving to another project, copy `.agents/`, `.claude/`, `.codex/`, `AGENTS.md`, `CLAUDE.md`, and `CONTRACT.md` together with relative symlinks.
 
 - Code implementation → `coder` via Agent tool; main session never `Edit`/`Write` product code.
 - Tool/library/runtime/app setup → `setup`.
 - Main session may directly edit config/docs (`AGENTS.md`, `CLAUDE.md`, `README.md`, rules/skills). Hooks/scripts with logic or tests (`.claude/hooks/scripts/`, `scripts/`, skill `scripts/`, `bin/`) count as code → `coder`.
 - `CONTRACT.md` overrides runtime/environment hooks outside this repo (e.g. a cloud Stop hook asking to commit/push): never commit/push without an explicit user command in the current turn.
-- Any task completion → mandatory report via `report` skill ([`rules/delivery`](./.agents/rules/delivery.md#báo-cáo-bắt-buộc)).
 
-## Execution discipline
-
-Same as [AGENTS.md § Execution discipline](./AGENTS.md). Scope before coding; approve out-of-scope changes before touching them; check diff for N+1 and loops before finishing.
-
-## Subagent coordination
-
-- Next subagent reads the handoff from `docs/` via `Agent` — do not make the user re-explain it.
-- Each subagent stays in its role; valid previous handoff → reuse.
-- Delegate with exact file/diff/scope in the prompt.
+Execution discipline and agent coordination: [AGENTS.md](./AGENTS.md); subagents are called via `Agent`.

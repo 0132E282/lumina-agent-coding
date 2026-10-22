@@ -8,7 +8,7 @@ Trước mỗi lệnh `Bash`, hook này gọi CLI [`rtk`](https://github.com/rtk
 
 - **Lệnh**: `rtk hook claude`
 - **Loại hook**: `PreToolUse`, matcher `Bash`
-- **Khác biệt với các hook còn lại**: đây là **tool bên ngoài**, không đi kèm framework — máy chưa cài `rtk` thì lệnh sẽ báo "command not found" ở mỗi lần chạy Bash (không chặn, chỉ ồn log). Cài theo [hướng dẫn chính thức](https://github.com/rtk-ai/rtk/blob/master/INSTALL.md), rồi chạy `rtk init -g` (hoặc `rtk init` trong 1 project) để đăng ký hook — khi copy project này sang máy khác, tự cân nhắc giữ hay bỏ dòng `rtk hook claude` trong `settings.json`/`settings.snippet.json` tuỳ máy đó có cài `rtk` hay không.
+- **Khác biệt với các hook còn lại**: đây là **tool bên ngoài**, không đi kèm framework — máy chưa cài `rtk` thì lệnh sẽ báo "command not found" ở mỗi lần chạy Bash (không chặn, chỉ ồn log). Cài theo [hướng dẫn chính thức](https://github.com/rtk-ai/rtk/blob/master/INSTALL.md), rồi chạy `rtk init -g` (hoặc `rtk init` trong 1 project) để đăng ký hook — khi copy project này sang máy khác, tự cân nhắc giữ hay bỏ dòng `rtk hook claude` trong `settings.json` tuỳ máy đó có cài `rtk` hay không.
 - **Kiểm tra mức tiết kiệm**: `rtk gain`.
 
 ## format-on-edit — tự động format bằng Prettier
@@ -27,7 +27,7 @@ Sau mỗi lần Claude Code (hoặc subagent) **Edit/Write** một file, hook n�
    ```bash
    cp -r .claude/hooks /path/to/project/.claude/hooks
    ```
-2. Merge nội dung [`settings.snippet.json`](./settings.snippet.json) vào `.claude/settings.json` của project đích (key `hooks`). Nếu project đã có `hooks` khác, gộp mảng thay vì ghi đè.
+2. Merge key `hooks` của [`.claude/settings.json`](../settings.json) vào `.claude/settings.json` của project đích (installer `lumina-agent` tự merge). Nếu project đã có `hooks` khác, gộp mảng thay vì ghi đè.
 3. Đảm bảo project có Prettier (local `devDependencies` hoặc global) — nếu không có, hook sẽ không làm gì (không báo lỗi).
 
 ### Dùng formatter khác (Black, gofmt, dotnet format, PHP-CS-Fixer...)
@@ -41,6 +41,7 @@ Trước mỗi lần Claude Code (hoặc subagent) gọi **bất kỳ tool nào*
 - **Script**: [`scripts/audit-log.sh`](./scripts/audit-log.sh)
 - **Loại hook**: `PreToolUse`, matcher `.*` (mọi tool)
 - **File log**: `.agents/storage/logs/logs.jsonl` (JSON Lines, append-only) — cả thư mục `.agents/storage/` đã nằm trong `.gitignore`, không commit nhầm.
+- **Xoay vòng**: trước mỗi lần ghi, helper dùng chung [`scripts/_log-rotate.sh`](./scripts/_log-rotate.sh) (source, không đăng ký trong settings) đổi tên `logs.jsonl` thành `logs-<UTC yyyyMMdd-HHmmss>[-N].jsonl` khi file ≥ `LUMINA_LOG_MAX_BYTES` (mặc định 1048576 = 1 MiB) rồi ghi dòng mới vào file mới; chỉ giữ `LUMINA_LOG_KEEP` file đã xoay mới nhất (mặc định 5) và chỉ xoá file khớp đúng mẫu tên đó, không đụng file đang ghi hay file khác trong thư mục. Đổi tên bằng `mv -n` (rename nguyên tử, không ghi đè); hook khác xoay trước thì bỏ qua, dòng đang ghi không mất (writer đã mở file cũ thì dòng nằm trong file đã xoay). Best-effort, luôn `exit 0`; thiếu helper thì vẫn ghi log, chỉ không xoay. File đã xoay tạo trước bản che secret có thể còn secret chưa che — retention sẽ dần xoá; cần xoá sớm thì xoá tay các file `logs-*.jsonl` cũ.
 - **Nội dung mỗi dòng**: `ts` (UTC ISO8601), `session_id`, `tool`, `cwd`, `input` (tóm tắt — chỉ `file_path`/`command` (≤200 ký tự, che secret dạng phổ biến như `token=`/`password=`/`Bearer`/URL credential/prefix `ghp_`, `sk_live_`, `AKIA`... thành `***` trước khi cắt — heuristic, không bảo đảm che hết)/`pattern`/`skill` (tên skill khi tool là `Skill`) tùy loại tool, **không** ghi nguyên nội dung file Write/Edit để tránh log phình to và rò rỉ dữ liệu nhạy cảm). Thêm `agent_id` khi tool chạy trong subagent (Claude Code chỉ gửi field này cho subagent; phiên chính không có). Hook [`turn-log`](#turn-log--một-dòng-tóm-tắt-mỗi-lượt) ghi thêm vào cùng file một dòng `type: "turn"` mỗi lượt.
 - **An toàn**: luôn `exit 0`; input JSON hỏng, thiếu `jq`, hoặc `tool_name` rỗng đều bị bỏ qua êm, không ghi dòng rác. Thư mục ghi log lấy từ `CLAUDE_PROJECT_DIR` (luôn là project root, bất kể agent đã `cd` sang thư mục con), fallback sang `cwd` trong payload rồi `pwd` nếu biến đó không có — tránh ghi log lạc vào thư mục con khi session đổi cwd. Field `cwd` trong mỗi dòng log vẫn giữ nguyên giá trị gốc từ payload để phục vụ truy vết.
 - **Phụ thuộc**: cần `jq`.
@@ -53,6 +54,9 @@ tail -f .agents/storage/logs/logs.jsonl | jq .
 
 # Đọc toàn bộ log hiện có dưới dạng 1 mảng JSON dễ đọc (ví dụ mở trong editor)
 jq -s '.' .agents/storage/logs/logs.jsonl
+
+# Gồm cả các file đã xoay vòng (cũ → mới)
+cat .agents/storage/logs/logs-*.jsonl .agents/storage/logs/logs.jsonl | jq -s '.'
 ```
 
 ## commit-msg-guard — chặn commit message sai format
@@ -158,7 +162,7 @@ Sau mỗi lần Edit/Write một file workflow CI (`.github/workflows/*.yml`, `.
 
 ## remind-cleanup — nhắc dọn file tạm khi context gần đầy
 
-Khi Claude Code kết thúc một turn và context window của phiên đã dùng **≥ 80%**, hook này tìm file đã `Write` trong session hiện tại (qua `.agents/storage/logs/logs.jsonl`), giới hạn trong phạm vi dự án (so khớp `cwd`), còn tồn trên đĩa và khớp pattern tên file tạm (tên bắt đầu bằng `tmp`/`scratch`/`debug`/`draft`/`sandbox`/`test-output`, hoặc đuôi `.tmp`/`.bak`/`.orig`), trừ file nằm trong thư mục cấu hình/tài liệu của project (`.agents/rules/`, `.agents/skills/`, `.agents/agents/`, `.claude/`, `.codex/`, `docs/`) — nếu có, nhắc qua `additionalContext` (kèm % context, ví dụ `Context đã dùng 82% (164k/200k)`) để Claude thấy và tự quyết có dùng skill `cleanup-temp-files` để dọn file tạm không; `/cleanup` chỉ làm gọn context. Dưới ngưỡng thì không nhắc. Mỗi file chỉ nhắc một lần mỗi session: path đã nhắc được append vào `.agents/storage/state/<session_id>.cleanup-reminded`, chỉ nhắc (và đếm) path mới chưa từng nhắc; file state rỗng bị bỏ qua (grep BSD coi `-f` rỗng là khớp mọi dòng); ghi state lỗi không chặn hook. Liên hệ skill [`cleanup-temp-files`](../skills/cleanup-temp-files/SKILL.md).
+Khi Claude Code kết thúc một turn và context window của phiên đã dùng **≥ 80%**, hook này tìm file đã `Write` trong session hiện tại (qua `.agents/storage/logs/logs.jsonl` và file đã xoay mới nhất, lọc trước theo `session_id` bằng `grep`), giới hạn trong phạm vi dự án (so khớp `cwd`), còn tồn trên đĩa và khớp pattern tên file tạm (tên bắt đầu bằng `tmp`/`scratch`/`debug`/`draft`/`sandbox`/`test-output`, hoặc đuôi `.tmp`/`.bak`/`.orig`), trừ file nằm trong thư mục cấu hình/tài liệu của project (`.agents/rules/`, `.agents/skills/`, `.agents/agents/`, `.claude/`, `.codex/`, `docs/`) — nếu có, nhắc qua `additionalContext` (kèm % context, ví dụ `Context đã dùng 82% (164k/200k)`) để Claude thấy và tự quyết có dùng skill `cleanup-temp-files` để dọn file tạm không; `/cleanup` chỉ làm gọn context. Dưới ngưỡng thì không nhắc. Mỗi file chỉ nhắc một lần mỗi session: path đã nhắc được append vào `.agents/storage/state/<session_id>.cleanup-reminded`, chỉ nhắc (và đếm) path mới chưa từng nhắc; file state rỗng bị bỏ qua (grep BSD coi `-f` rỗng là khớp mọi dòng); ghi state lỗi không chặn hook. Liên hệ skill [`cleanup-temp-files`](../skills/cleanup-temp-files/SKILL.md).
 
 - **Script**: [`scripts/remind-cleanup.sh`](./scripts/remind-cleanup.sh) — gọi `skills/cleanup-temp-files/scripts/find-session-scratch-files.sh`
 - **Đo context**: [`scripts/remind-cleanup-context.mjs`](./scripts/remind-cleanup-context.mjs) đọc toàn bộ `transcript_path`, context đang dùng là `message.usage` của message assistant cuối cùng có usage: `input_tokens + cache_read_input_tokens + cache_creation_input_tokens`; bỏ qua dòng JSON lỗi. Giới hạn: `CLAUDE_CONTEXT_LIMIT` nếu là số nguyên dương; không có/sai thì suy từ transcript — có message assistant nào vượt 200000 thì dùng 1000000 (model context 1M), ngược lại 200000; ngưỡng cố định 80%.
@@ -169,7 +173,7 @@ Khi Claude Code kết thúc một turn và context window của phiên đã dùn
 
 ## report-reminder — nhắc dùng skill `report` nếu chưa báo cáo thay đổi
 
-Khi Claude Code kết thúc một turn, hook này tìm trong `.agents/storage/logs/logs.jsonl` các lần `Edit`/`Write` của phiên chính trong session hiện tại (giới hạn `cwd` đúng dự án; bỏ entry có `agent_id` vì Edit/Write của subagent do phiên chính gộp vào báo cáo tổng) xảy ra **sau** lần gọi skill `report` gần nhất (hoặc từ đầu session nếu chưa gọi lần nào) — có thì nhắc qua `additionalContext`. Đây là lớp enforce cơ chế cho [`rules/delivery.md`](../rules/delivery.md#báo-cáo-bắt-buộc), thay vì chỉ dựa vào Claude tự giác nhớ gọi skill `report`.
+Khi Claude Code kết thúc một turn, hook này tìm trong `.agents/storage/logs/logs.jsonl` và file đã xoay mới nhất (lọc trước dòng của session bằng `grep -F`, không slurp cả log; session vắt qua hơn một lần xoay thì Edit/Write cũ hơn file đã xoay mới nhất không được tính) các lần `Edit`/`Write` của phiên chính trong session hiện tại (giới hạn `cwd` đúng dự án; bỏ entry có `agent_id` vì Edit/Write của subagent do phiên chính gộp vào báo cáo tổng) xảy ra **sau** lần gọi skill `report` gần nhất (hoặc từ đầu session nếu chưa gọi lần nào) — có thì nhắc qua `additionalContext`. Đây là lớp enforce cơ chế cho [`rules/delivery.md`](../rules/delivery.md#báo-cáo-bắt-buộc), thay vì chỉ dựa vào Claude tự giác nhớ gọi skill `report`.
 
 - **Script**: [`scripts/report-reminder.sh`](./scripts/report-reminder.sh)
 - **Loại hook**: `Stop`
@@ -203,7 +207,7 @@ Chặn việc điền số Token không có nguồn: hook `report-usage` ghi s�
 
 ## turn-log — một dòng tóm tắt mỗi lượt
 
-Khi Claude Code kết thúc một lượt, hook đọc `transcript_path` và ghi **một** dòng `type: "turn"` vào `.agents/storage/logs/logs.jsonl` (cùng file `audit-log`; các dòng từng tool call giữ nguyên):
+Khi Claude Code kết thúc một lượt, hook đọc `transcript_path` và ghi **một** dòng `type: "turn"` vào `.agents/storage/logs/logs.jsonl` (cùng file `audit-log`, xoay vòng bằng cùng helper [`_log-rotate.sh`](./scripts/_log-rotate.sh) — `turn-log.mjs` `stat` file trước và chỉ chạy `bash _log-rotate.sh <log_dir>` khi đã chạm `LUMINA_LOG_MAX_BYTES`; các dòng từng tool call giữ nguyên):
 
 ```json
 {"ts":"2026-10-22T03:00:00Z","type":"turn","session_id":"…","request":"Sửa hook Stop","tools":{"Bash":2,"Edit":2,"Write":1,"Agent":1},"files":["/repo/a.js","/repo/b.js"],"tokens":{"input":17,"output":31,"cacheRead":413,"cacheCreate":49,"total":510},"subagentTokens":{"input":4,"output":9,"cacheRead":300,"cacheCreate":10,"total":323}}
@@ -258,6 +262,18 @@ Mỗi lần gọi Agent tool, hook này luôn báo rõ tên `subagent_type` đan
 - **Các runtime khác**: Codex/Antigravity chạy checker theo quality-assurance; hook Claude không tự chạy ở đó. `.editorconfig` bật `insert_final_newline` cho editor hỗ trợ.
 - **Giới hạn**: check danh sách file trong task; không cam kết file chưa kiểm tra đã đạt. Fixture cố ý thiếu newline phải loại khỏi danh sách với lý do.
 
+## copy-browser-screenshot — đưa ảnh chụp trình duyệt từ thư mục tạm vào project
+
+Tool Claude in Chrome lưu ảnh chụp ở thư mục tạm hệ thống (vd `/var/folders/.../T/claude-chrome-screenshots-<id>/screenshot-<số>-<n>.jpg`), OS có thể dọn mất. Hook copy ảnh vào `.agents/storage/evidence/browser/<yyyyMMdd>/` của project và báo đường dẫn mới qua `additionalContext` để agent dẫn đường dẫn đó thay vì đường dẫn tạm — liên hệ [`rules/frontend.md`](../rules/frontend.md).
+
+- **Script**: [`scripts/copy-browser-screenshot.sh`](./scripts/copy-browser-screenshot.sh)
+- **Loại hook**: `PostToolUse`, matcher `mcp__claude-in-chrome__.*`
+- **Nhận diện ảnh**: quét mọi chuỗi trong `tool_response` theo regex file `.png`/`.jpg`/`.jpeg`/`.webp` (không phụ thuộc tên field); chỉ nhận file thường (bỏ symlink) có thư mục thật nằm dưới `$TMPDIR`, `/tmp`, `/private/tmp`, `/var/folders`, `/private/var/folders` và không nằm sẵn trong project.
+- **Copy, không move**: giữ tên file; trùng tên thì thêm hậu tố `-1`, `-2`..., không ghi đè.
+- **An toàn**: luôn `exit 0`, không chặn tool; thiếu `jq`, không có ảnh hợp lệ hoặc copy lỗi thì im lặng.
+- **Phụ thuộc**: cần `jq`. Chỉ Claude Code (Codex không có tool này).
+- **Giới hạn**: chưa kiểm với `tool_response` thật của Chrome; ảnh chỉ trả về dạng base64 (không có đường dẫn file) thì không copy được.
+
 ## Giới hạn chung (best-effort)
 
 Các hook dò lệnh git (`commit-msg-guard`, `bugfix-test-reminder`, `secret-scan`, `protected-branch-guard`, `format-before-push`) phân tích tĩnh chuỗi lệnh Bash bằng [`scripts/_shell-command.sh`](./scripts/_shell-command.sh), không chạy shell thật. Các dạng sau vẫn không quét được:
@@ -279,4 +295,4 @@ Khi cài global, hook được đăng ký ở cả `~/.claude/settings.json` (đ
 
 ## Đã bật sẵn trong chính repo này
 
-`hook/` nằm trong `.claude/hooks/` của repo này, và `.claude/settings.json` đã trỏ cả 21 hook tự viết (`audit-log`, `commit-msg-guard`, `bugfix-test-reminder`, `secret-scan`, `protected-branch-guard`, `format-before-push`, `condense-planner-input`, `agent-role-reminder`, `format-on-edit`, `ensure-final-newline`, `lint-on-edit`, `test-reminder`, `missing-test-reminder`, `dependency-audit-reminder`, `ci-workflow-lint`, `remind-cleanup`, `report-reminder`, `report-usage`, `report-usage-check`, `turn-log`, `notify-done`) tới đúng path `.claude/hooks/scripts/...` — không cần cài thêm gì để dùng ngay trong repo này. Riêng hook `rtk hook claude` gọi tool ngoài, chỉ chạy được nếu máy đã cài [`rtk`](https://github.com/rtk-ai/rtk) (xem mục riêng ở trên). [`settings.snippet.json`](./settings.snippet.json) có nội dung tương đương, dùng khi copy sang project khác theo hướng dẫn ở trên.
+`hook/` nằm trong `.claude/hooks/` của repo này, và `.claude/settings.json` đã trỏ cả 22 hook tự viết (`audit-log`, `commit-msg-guard`, `bugfix-test-reminder`, `secret-scan`, `protected-branch-guard`, `format-before-push`, `condense-planner-input`, `agent-role-reminder`, `format-on-edit`, `ensure-final-newline`, `lint-on-edit`, `test-reminder`, `missing-test-reminder`, `dependency-audit-reminder`, `ci-workflow-lint`, `copy-browser-screenshot`, `remind-cleanup`, `report-reminder`, `report-usage`, `report-usage-check`, `turn-log`, `notify-done`) tới đúng path `.claude/hooks/scripts/...` — không cần cài thêm gì để dùng ngay trong repo này. Riêng hook `rtk hook claude` gọi tool ngoài, chỉ chạy được nếu máy đã cài [`rtk`](https://github.com/rtk-ai/rtk) (xem mục riêng ở trên). Khi copy sang project khác, dùng installer `lumina-agent` hoặc merge key `hooks` của `.claude/settings.json` theo hướng dẫn ở trên.

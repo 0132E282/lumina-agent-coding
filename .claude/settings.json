@@ -106,6 +106,15 @@
             "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/dependency-audit-reminder.sh\""
           }
         ]
+      },
+      {
+        "matcher": "mcp__claude-in-chrome__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/copy-browser-screenshot.sh\""
+          }
+        ]
       }
     ],
     "Stop": [

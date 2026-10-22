@@ -10,5 +10,11 @@
     "description": "Testcase repository cho rule bug-fix, skill debugs, dòng Token compact có tổng và hook remind-cleanup ngưỡng 80% context; dùng khi regression cấu hình agent/hook.",
     "tags": ["agent-rules", "skills", "hooks", "report", "regression"],
     "path": "docs/repo/debug-rule-and-report-hooks-20261021.md"
+  },
+  {
+    "title": "Tối ưu rules và đánh giá cấu trúc repo",
+    "description": "Testcase repository kiểm tra rules gom về một chủ sở hữu, không mất ràng buộc, anchor còn sống và symlink/path không đổi; dùng khi regression cấu hình agent.",
+    "tags": ["agent-rules", "configuration", "regression", "token-optimization"],
+    "path": "docs/repo/optimize-rules-structure-20261022.md"
   }
 ]

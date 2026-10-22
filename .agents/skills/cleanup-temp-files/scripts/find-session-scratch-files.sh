@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Liệt kê file đã Write trong một session cụ thể, dựa vào .agents/storage/logs/logs.jsonl
-# (ghi bởi hook audit-log) — CHỈ trong phạm vi dự án hiện tại (cwd ghi trong
+# và file đã xoay mới nhất (ghi bởi hook audit-log) — CHỈ trong phạm vi dự án hiện tại (cwd ghi trong
 # log phải khớp cwd lúc chạy script này), còn tồn trên đĩa, và khớp pattern
 # "có vẻ là file tạm/scratch". Không quét gì ngoài project, không xóa gì.
 #
@@ -22,9 +22,27 @@ if [ -n "$CLAUDE_PROJECT_DIR" ] && [ -d "$CLAUDE_PROJECT_DIR" ]; then
 else
   log_root="$(pwd)"
 fi
-log_file="$log_root/.agents/storage/logs/logs.jsonl"
-[ -f "$log_file" ] || exit 0
+log_dir="$log_root/.agents/storage/logs"
 command -v jq >/dev/null 2>&1 || exit 0
+
+# Đọc file đang ghi + file đã xoay mới nhất để lần xoay giữa session không che ứng viên.
+# Helper nằm ở hooks/scripts (skills/ và hooks/ cùng cấp) và lọc trước theo session bằng grep;
+# thiếu helper thì chỉ đọc file đang ghi. jq bên dưới vẫn lọc chính xác.
+log_rotate_helper="$(dirname "$0")/../../../hooks/scripts/_log-rotate.sh"
+if [ -f "$log_rotate_helper" ]; then
+  . "$log_rotate_helper"
+  # Kiểm file đang ghi trước (thường có) để không phải liệt kê thư mục.
+  [ -f "$log_dir/logs.jsonl" ] || [ -n "$(lumina_rotated_logs "$log_dir")" ] || exit 0
+  read_session_lines() { lumina_session_log_lines "$log_dir" "$session_id"; }
+elif [ -f "$log_dir/logs.jsonl" ]; then
+  # Vẫn lọc trước theo session như helper để dòng JSON hỏng của session khác không làm jq thất bại.
+  session_needle="$(jq -cn --arg sid "$session_id" '{session_id: $sid}')"
+  session_needle="${session_needle#\{}"
+  session_needle="${session_needle%\}}"
+  read_session_lines() { grep -F -- "$session_needle" "$log_dir/logs.jsonl" || true; }
+else
+  exit 0
+fi
 
 project_dir="$(pwd)"
 
@@ -36,10 +54,11 @@ scratch_pattern='(^|/)(tmp|scratch|debug|draft|sandbox|test[_-]?output)[^/]*\.[A
 # .agents/rules/debug.md là rule chính thức, không phải file tạm.
 excluded_pattern='^(\.agents/(rules|skills|agents)|\.claude|\.codex|docs)/'
 
-candidates="$(jq -r --arg sid "$session_id" --arg cwd "$project_dir" '
+candidates="$(read_session_lines \
+  | jq -r --arg sid "$session_id" --arg cwd "$project_dir" '
   select(.session_id == $sid and .tool == "Write" and .cwd == $cwd)
   | .input.file_path // empty
-' "$log_file" 2>/dev/null)" || true
+' 2>/dev/null)" || true
 
 [ -z "$candidates" ] && exit 0
 

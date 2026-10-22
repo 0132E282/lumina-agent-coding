@@ -7,8 +7,8 @@
 #
 # Nhận JSON input từ stdin theo schema Stop: { "session_id": "...", ... }
 #
-# Dựa vào .agents/storage/logs/logs.jsonl (ghi bởi hook audit-log) — phải bật hook
-# đó cùng lúc, và audit-log phải ghi field input.skill cho tool Skill.
+# Dựa vào .agents/storage/logs/logs.jsonl và file đã xoay mới nhất (ghi bởi hook audit-log) —
+# phải bật hook đó cùng lúc, và audit-log phải ghi field input.skill cho tool Skill.
 #
 # Luôn exit 0 — hook phụ trợ, không bao giờ chặn việc Claude Code dừng lại.
 
@@ -30,8 +30,26 @@ if [ -n "$CLAUDE_PROJECT_DIR" ] && [ -d "$CLAUDE_PROJECT_DIR" ]; then
 else
   log_root="$(pwd)"
 fi
-log_file="$log_root/.agents/storage/logs/logs.jsonl"
-[ -f "$log_file" ] || exit 0
+log_dir="$log_root/.agents/storage/logs"
+
+# Đọc file đang ghi + file đã xoay mới nhất (session có thể vắt qua một lần xoay).
+# Helper lọc trước theo session bằng grep để jq -s không phải slurp cả log; jq bên dưới vẫn lọc chính xác.
+# Thiếu helper thì chỉ đọc file đang ghi.
+log_rotate_helper="$(dirname "$0")/_log-rotate.sh"
+if [ -f "$log_rotate_helper" ]; then
+  . "$log_rotate_helper"
+  # Kiểm file đang ghi trước (thường có) để không phải liệt kê thư mục.
+  [ -f "$log_dir/logs.jsonl" ] || [ -n "$(lumina_rotated_logs "$log_dir")" ] || exit 0
+  read_session_lines() { lumina_session_log_lines "$log_dir" "$session_id"; }
+elif [ -f "$log_dir/logs.jsonl" ]; then
+  # Vẫn lọc trước theo session như helper để dòng JSON hỏng của session khác không làm jq thất bại.
+  session_needle="$(jq -cn --arg sid "$session_id" '{session_id: $sid}')"
+  session_needle="${session_needle#\{}"
+  session_needle="${session_needle%\}}"
+  read_session_lines() { grep -F -- "$session_needle" "$log_dir/logs.jsonl" || true; }
+else
+  exit 0
+fi
 
 project_dir="$(pwd)"
 
@@ -39,13 +57,14 @@ project_dir="$(pwd)"
 # session nếu chưa gọi lần nào) — nếu > 0 nghĩa là có thay đổi chưa báo cáo.
 # Chỉ tính entry của phiên chính (không có agent_id): Edit/Write của subagent
 # được phiên chính gộp vào một báo cáo tổng sau khi mọi task xong.
-result="$(jq -s -r --arg sid "$session_id" --arg cwd "$project_dir" '
+result="$(read_session_lines \
+  | jq -s -r --arg sid "$session_id" --arg cwd "$project_dir" '
   map(select(.session_id == $sid and .cwd == $cwd and ((.agent_id // "") == ""))) as $entries
   | ($entries | map(select(.tool == "Skill" and .input.skill == "report") | .ts) | sort | last) as $last_report
   | ($entries | map(select(.tool == "Edit" or .tool == "Write"))
       | map(select($last_report == null or .ts > $last_report))) as $pending
   | "\($pending | length)|\($pending | map(.ts) | max // "")|\($pending | map(.input.file_path // empty) | unique | .[0:5] | join(", "))"
-' "$log_file" 2>/dev/null)"
+' 2>/dev/null)"
 
 [ -z "$result" ] && exit 0
 

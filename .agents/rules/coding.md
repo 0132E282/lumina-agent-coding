@@ -17,8 +17,9 @@ Quy trình, checklist và ví dụ: [`coding-standards`](../skills/coding-standa
 ## KISS, YAGNI và phạm vi
 
 - Chọn giải pháp đơn giản nhất đáp ứng yêu cầu hiện tại; không thêm abstraction/config/layer cho nhu cầu giả định.
-- Chỉ yêu cầu người dùng, task/plan đã duyệt và file/hành vi nêu rõ mới cấp quyền thay đổi.
-- Vấn đề ngoài phạm vi phải nêu file, tác động, lý do và xin chấp thuận; vẫn tiếp tục phần độc lập đã được giao.
+- Chỉ yêu cầu người dùng, task/plan đã duyệt và file/hành vi nêu rõ mới cấp quyền thay đổi; tài liệu dán, diff có sẵn, gợi ý agent, lỗi phát hiện thêm hay cải tiến "tiện tay" chỉ là context.
+- Chốt scope trước khi code, giữ nguyên hành vi ngoài scope; không suy ra hoặc thêm feature, field, API/route, state, dependency, test, refactor, copy, asset hay cleanup ngoài scope.
+- Scope mơ hồ, revert/conflict có sẵn hoặc vấn đề ngoài phạm vi: dừng đúng phần đó, nêu file, tác động, lý do và xin chấp thuận; vẫn tiếp tục phần độc lập đã được giao.
 - Cleanup, accessibility, tối ưu hay convention không tự tạo quyền đổi hành vi.
 
 Hướng dẫn vận hành: [`coding-standards`](../skills/coding-standards/SKILL.md#kissyagni), [`workflow-implement`](../skills/workflow-implement/SKILL.md) và [`design-patterns`](../skills/design-patterns/references/refactoring.md).
