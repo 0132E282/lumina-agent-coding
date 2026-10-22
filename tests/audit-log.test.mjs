@@ -140,5 +140,74 @@ test('appends one line per call when invoked through the .agents/hooks/scripts s
   assert.ok(fs.readFileSync(path.join(project, logRelativePath), 'utf8').endsWith('\n'));
 });
 
-// Finding #3: audit-log.sh:48 ghi nguyên 200 ký tự đầu của Bash command, kể cả secret.
-test.todo('Bash command secrets (tokens, passwords, API keys) are redacted before being written to the audit log');
+// Regression: audit-log.sh từng ghi nguyên 200 ký tự đầu của Bash command, kể cả secret.
+// Giá trị giả được ghép chuỗi để không giống secret thật trong source.
+const FAKE_SECRET = 'FAKE' + 'value' + '1234567890';
+
+function loggedCommand(context, command) {
+  return auditOnce(context, { tool_name: 'Bash', tool_input: { command } }).input.command;
+}
+
+test('Bash command secrets (tokens, passwords, API keys) are redacted before being written to the audit log', context => {
+  const prefixed = {
+    github: 'ghp' + '_' + 'A1'.repeat(18),
+    githubOauth: 'gho' + '_' + 'B2'.repeat(18),
+    githubServer: 'ghs' + '_' + 'C3'.repeat(18),
+    githubUser: 'ghu' + '_' + 'D4'.repeat(18),
+    githubFineGrained: 'github' + '_pat_' + 'E5'.repeat(11) + '_' + 'F6'.repeat(29),
+    stripeLive: 'sk' + '_live_' + 'G7'.repeat(12),
+    stripeTest: 'sk' + '_test_' + 'H8'.repeat(12),
+    slack: 'xox' + 'b-' + '1234567890-' + 'I9'.repeat(10),
+    aws: 'AK' + 'IA' + 'J0K1L2M3N4P5Q6R7',
+    google: 'AI' + 'za' + 'S8'.repeat(17) + 'T',
+    jwt: 'ey' + 'JhbGciOiJIUzI1NiJ9' + '.' + 'ey' + 'JzdWIiOiIxMjM0In0' + '.' + 'U9'.repeat(16),
+  };
+  const cases = [
+    [`curl -H "Authorization: Bearer ${FAKE_SECRET}" https://api.example.com`, 'curl -H "Authorization: Bearer ***" https://api.example.com'],
+    [`curl -H 'authorization: bearer ${FAKE_SECRET}' https://api.example.com`, "curl -H 'authorization: bearer ***' https://api.example.com"],
+    [`curl "https://api.example.com/items?token=${FAKE_SECRET}&page=2"`, 'curl "https://api.example.com/items?token=***&page=2"'],
+    [`tool password=${FAKE_SECRET} passwd: ${FAKE_SECRET} pwd='${FAKE_SECRET} two'`, 'tool password=*** passwd: *** pwd=***'],
+    [`tool PASSWORD="${FAKE_SECRET}" api_key=${FAKE_SECRET} apikey: ${FAKE_SECRET} secret=${FAKE_SECRET}`, 'tool PASSWORD=*** api_key=*** apikey: *** secret=***'],
+    [`curl -H "X-Api-Key: ${FAKE_SECRET}" https://api.example.com`, 'curl -H "X-Api-Key: ***" https://api.example.com'],
+    [`psql --password ${FAKE_SECRET} -h db && app --password=${FAKE_SECRET} --token "${FAKE_SECRET}"`, 'psql --password *** -h db && app --password=*** --token ***'],
+    [`export GITHUB_TOKEN=${FAKE_SECRET} CLIENT_SECRET='${FAKE_SECRET}' AWS_SECRET_ACCESS_KEY=${FAKE_SECRET} DB_PASSWORD=${FAKE_SECRET}`, 'export GITHUB_TOKEN=*** CLIENT_SECRET=*** AWS_SECRET_ACCESS_KEY=*** DB_PASSWORD=***'],
+    [`git clone https://deploy:${FAKE_SECRET}@github.com/org/repo.git`, 'git clone https://deploy:***@github.com/org/repo.git'],
+    [`echo ${prefixed.github} ${prefixed.githubOauth} ${prefixed.githubServer} ${prefixed.githubUser} ${prefixed.githubFineGrained}`, 'echo ghp_*** gho_*** ghs_*** ghu_*** github_pat_***'],
+    [`echo ${prefixed.stripeLive} ${prefixed.stripeTest} ${prefixed.slack}`, 'echo sk_live_*** sk_test_*** xoxb-***'],
+    [`echo ${prefixed.aws} ${prefixed.google} ${prefixed.jwt}`, 'echo AKIA*** AIza*** ***'],
+  ];
+  for (const [command, expected] of cases) {
+    const logged = loggedCommand(context, command);
+    assert.equal(logged, expected, command);
+    assert.doesNotMatch(logged, new RegExp(FAKE_SECRET), command);
+  }
+});
+
+test('ordinary Bash commands are logged unchanged', context => {
+  for (const command of [
+    'ls -la',
+    'git status --short && git log --oneline -5',
+    'npm test -- --grep token',
+    'grep -rn "password" src | head -20',
+    'cd "$(pwd)" && make build',
+    'node --test tests/audit-log.test.mjs',
+    'curl -s https://example.com/api?page=2',
+    'echo $HOME; export NODE_ENV=production',
+  ]) {
+    assert.equal(loggedCommand(context, command), command);
+  }
+});
+
+test('Bash command redaction happens before the 200-character cut', context => {
+  const prefix = `echo ${'x'.repeat(183)} token=`;
+  assert.equal(prefix.length, 195);
+  const straddlingSecret = 'S'.repeat(30);
+  const logged = loggedCommand(context, `${prefix}${straddlingSecret} done`);
+  assert.equal(logged, `${prefix}*** done`.slice(0, 200));
+  assert.doesNotMatch(logged, /S/);
+
+  const githubToken = 'ghp' + '_' + 'Z'.repeat(36);
+  const prefixedLogged = loggedCommand(context, `echo ${'y'.repeat(190)} ${githubToken}`);
+  assert.equal(prefixedLogged, `echo ${'y'.repeat(190)} ghp_***`.slice(0, 200));
+  assert.doesNotMatch(prefixedLogged, /Z/);
+});

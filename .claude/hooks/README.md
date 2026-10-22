@@ -41,7 +41,7 @@ Trước mỗi lần Claude Code (hoặc subagent) gọi **bất kỳ tool nào*
 - **Script**: [`scripts/audit-log.sh`](./scripts/audit-log.sh)
 - **Loại hook**: `PreToolUse`, matcher `.*` (mọi tool)
 - **File log**: `.agents/storage/logs/logs.jsonl` (JSON Lines, append-only) — cả thư mục `.agents/storage/` đã nằm trong `.gitignore`, không commit nhầm.
-- **Nội dung mỗi dòng**: `ts` (UTC ISO8601), `session_id`, `tool`, `cwd`, `input` (tóm tắt — chỉ `file_path`/`command` (≤200 ký tự)/`pattern`/`skill` (tên skill khi tool là `Skill`) tùy loại tool, **không** ghi nguyên nội dung file Write/Edit để tránh log phình to và rò rỉ dữ liệu nhạy cảm). Thêm `agent_id` khi tool chạy trong subagent (Claude Code chỉ gửi field này cho subagent; phiên chính không có). Hook [`turn-log`](#turn-log--một-dòng-tóm-tắt-mỗi-lượt) ghi thêm vào cùng file một dòng `type: "turn"` mỗi lượt.
+- **Nội dung mỗi dòng**: `ts` (UTC ISO8601), `session_id`, `tool`, `cwd`, `input` (tóm tắt — chỉ `file_path`/`command` (≤200 ký tự, che secret dạng phổ biến như `token=`/`password=`/`Bearer`/URL credential/prefix `ghp_`, `sk_live_`, `AKIA`... thành `***` trước khi cắt — heuristic, không bảo đảm che hết)/`pattern`/`skill` (tên skill khi tool là `Skill`) tùy loại tool, **không** ghi nguyên nội dung file Write/Edit để tránh log phình to và rò rỉ dữ liệu nhạy cảm). Thêm `agent_id` khi tool chạy trong subagent (Claude Code chỉ gửi field này cho subagent; phiên chính không có). Hook [`turn-log`](#turn-log--một-dòng-tóm-tắt-mỗi-lượt) ghi thêm vào cùng file một dòng `type: "turn"` mỗi lượt.
 - **An toàn**: luôn `exit 0`; input JSON hỏng, thiếu `jq`, hoặc `tool_name` rỗng đều bị bỏ qua êm, không ghi dòng rác. Thư mục ghi log lấy từ `CLAUDE_PROJECT_DIR` (luôn là project root, bất kể agent đã `cd` sang thư mục con), fallback sang `cwd` trong payload rồi `pwd` nếu biến đó không có — tránh ghi log lạc vào thư mục con khi session đổi cwd. Field `cwd` trong mỗi dòng log vẫn giữ nguyên giá trị gốc từ payload để phục vụ truy vết.
 - **Phụ thuộc**: cần `jq`.
 
@@ -114,7 +114,7 @@ Sau mỗi lần Edit/Write, hook này chạy linter/type-checker tương ứng l
 
 - **Script**: [`scripts/lint-on-edit.sh`](./scripts/lint-on-edit.sh)
 - **Loại hook**: `PostToolUse`, matcher `Edit|Write`
-- **An toàn**: không có linter tương ứng, hoặc file không thuộc loại hỗ trợ → bỏ qua êm.
+- **An toàn**: không có linter tương ứng, file không thuộc loại hỗ trợ, hoặc output chỉ có tóm tắt 0 lỗi (`Found 0 errors`, `no errors`, `0 problems`...) → bỏ qua êm.
 - **Phụ thuộc**: cần `jq`; linter tương ứng ngôn ngữ (tuỳ chọn, thiếu thì bỏ qua).
 
 ## test-reminder — tự chạy test tương ứng sau khi sửa file nguồn

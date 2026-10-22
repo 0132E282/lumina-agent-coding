@@ -4,13 +4,17 @@ import * as fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import test from 'node:test';
+import test, { after } from 'node:test';
 
 const repoRoot = fileURLToPath(new URL('..', import.meta.url));
 const scripts = path.join(repoRoot, '.claude/hooks/scripts');
 const scriptsViaSymlink = path.join(repoRoot, '.agents/hooks/scripts');
 // PATH tối giản: chỉ thư mục fake + hệ thống (jq/git/bash nằm ở /usr/bin, /bin) để không chạm linter thật.
 const systemPath = '/usr/bin:/bin';
+
+// macOS quét mỗi file thực thi mới ở lần chạy đầu (~100-400ms), nên fake được tạo một lần và dùng chung qua symlink.
+const fakeRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'edit-hooks-fakes-')));
+after(() => fs.rmSync(fakeRoot, { recursive: true, force: true }));
 
 const PRETTIER_EXTENSIONS = ['js', 'jsx', 'mjs', 'cjs', 'ts', 'tsx', 'json', 'jsonc', 'css', 'scss', 'less', 'html', 'vue', 'md', 'mdx', 'yaml', 'yml', 'graphql'];
 
@@ -50,12 +54,17 @@ function runHook(script, { cwd, filePath, input, environment }) {
 
 // ---------- format-on-edit.sh ----------
 
-function prettierProject(context, { gitRepository = true, prettierBody } = {}) {
+const fakePrettiers = {
+  recording: writeExecutable(fakeRoot, 'prettier/recording', 'printf "%s|%s\\n" "$PWD" "$*" >> "$PRETTIER_CALLS"'),
+  failing: writeExecutable(fakeRoot, 'prettier/failing', 'echo "boom" >&2; echo "noise"; exit 2'),
+};
+
+function prettierProject(context, { gitRepository = true, prettier = fakePrettiers.recording } = {}) {
   const root = temporaryDirectory(context, 'format-on-edit-test-');
   if (gitRepository) assert.equal(spawnSync('git', ['init', '-q'], { cwd: root }).status, 0);
   const calls = path.join(temporaryDirectory(context, 'format-on-edit-calls-'), 'calls.log');
-  const body = prettierBody ?? 'printf "%s|%s\\n" "$PWD" "$*" >> "$PRETTIER_CALLS"';
-  writeExecutable(root, 'node_modules/.bin/prettier', body);
+  fs.mkdirSync(path.join(root, 'node_modules/.bin'), { recursive: true });
+  fs.symlinkSync(prettier, path.join(root, 'node_modules/.bin/prettier'));
   const elsewhere = temporaryDirectory(context, 'format-on-edit-cwd-');
   const environment = { ...process.env, CLAUDE_PROJECT_DIR: root, PRETTIER_CALLS: calls };
   const format = (filePath, options = {}) => runHook(path.join(options.viaSymlink ? scriptsViaSymlink : scripts, 'format-on-edit.sh'), {
@@ -100,17 +109,16 @@ test('format-on-edit skips files outside a git repository', context => {
 });
 
 test('format-on-edit skips when prettier is missing or not executable', context => {
-  const project = prettierProject(context);
-  const prettier = path.join(project.root, 'node_modules/.bin/prettier');
-  fs.chmodSync(prettier, 0o644);
+  const notExecutable = write(fakeRoot, 'prettier/not-executable', '#!/bin/bash\necho "$*" >> "$PRETTIER_CALLS"\n');
+  const project = prettierProject(context, { prettier: notExecutable });
   project.format(write(project.root, 'a.ts', 'x\n'));
-  fs.rmSync(prettier);
+  fs.rmSync(path.join(project.root, 'node_modules/.bin/prettier'));
   project.format(write(project.root, 'b.ts', 'x\n'));
   assert.deepEqual(readCalls(project.calls), []);
 });
 
 test('format-on-edit exits 0 silently even when prettier fails', context => {
-  const project = prettierProject(context, { prettierBody: 'echo "boom" >&2; echo "noise"; exit 2' });
+  const project = prettierProject(context, { prettier: fakePrettiers.failing });
   const result = project.format(write(project.root, 'a.ts', 'x\n'));
   assert.equal(result.stdout, '');
 });
@@ -126,14 +134,15 @@ const FAKE_NPX = [
   'exit 1',
 ].join('\n');
 const fakeLinter = name => `printf "${name} %s\\n" "$*" >> "$FAKE_CALLS"\nprintf "%s\\n" "$FAKE_OUTPUT"\nexit 1`;
+// Mỗi tool một thư mục riêng để PATH chọn đúng tập tool có mặt trong từng test.
+for (const tool of ['npx', 'ruff', 'flake8', 'phpstan']) writeExecutable(fakeRoot, `bin-${tool}/${tool}`, tool === 'npx' ? FAKE_NPX : fakeLinter(tool));
+const fakeVendorPhpstan = writeExecutable(fakeRoot, 'vendor-phpstan', fakeLinter('vendor-phpstan'));
 
 function lintProject(context, { tools = [], npxTools = '', output = 'src/a.ts(1,1): error TS2322: bad type' } = {}) {
   const root = temporaryDirectory(context, 'lint-on-edit-test-');
-  const bin = temporaryDirectory(context, 'lint-on-edit-bin-');
-  const calls = path.join(bin, 'calls.log');
-  for (const tool of tools) writeExecutable(bin, tool, tool === 'npx' ? FAKE_NPX : fakeLinter(tool));
+  const calls = path.join(temporaryDirectory(context, 'lint-on-edit-calls-'), 'calls.log');
   const environment = {
-    PATH: `${bin}:${systemPath}`,
+    PATH: [...tools.map(tool => path.join(fakeRoot, `bin-${tool}`)), systemPath].join(':'),
     HOME: process.env.HOME,
     CLAUDE_PROJECT_DIR: root,
     FAKE_CALLS: calls,
@@ -221,7 +230,8 @@ test('lint-on-edit runs phpstan analyse for .php, falling back to vendor/bin/php
   assert.deepEqual(readCalls(global.calls), [`phpstan analyse ${file} --no-progress`]);
 
   const vendor = lintProject(context, { output });
-  writeExecutable(vendor.root, 'vendor/bin/phpstan', fakeLinter('vendor-phpstan'));
+  fs.mkdirSync(path.join(vendor.root, 'vendor/bin'), { recursive: true });
+  fs.symlinkSync(fakeVendorPhpstan, path.join(vendor.root, 'vendor/bin/phpstan'));
   const vendorFile = write(vendor.root, 'b.php', '<?php\n');
   assertLintContext(vendor.lint(vendorFile), vendorFile, 'Undefined variable');
   assert.deepEqual(readCalls(vendor.calls), [`vendor-phpstan analyse ${vendorFile} --no-progress`]);
@@ -245,5 +255,26 @@ test('lint-on-edit stays silent for unsupported extensions, missing files and mi
   assert.deepEqual(readCalls(project.calls), []);
 });
 
-// lint-on-edit.sh:62 nói output "found 0 errors"/"no error" không cần báo lại, nhưng grep 'error|warning' ở :63 vẫn khớp nên vẫn báo.
-test.todo('lint-on-edit stays silent when linter output only says "Found 0 errors" / "no errors"');
+// Regression: grep 'error|warning' từng khớp cả "Found 0 errors"/"no errors" nên lint sạch vẫn bị báo.
+test('lint-on-edit stays silent when linter output only says "Found 0 errors" / "no errors"', context => {
+  for (const output of ['Found 0 errors.', 'Found 0 errors. Watching for file changes.', '0 errors', 'no errors', '[OK] No errors', '0 problems', '0 errors, 0 warnings']) {
+    const project = lintProject(context, { tools: ['ruff'], output });
+    assert.equal(project.lint(write(project.root, 'a.py', 'x\n')), null, output);
+    assert.equal(readCalls(project.calls).length, 1, output);
+  }
+});
+
+test('lint-on-edit still reports real errors/warnings, including alongside a zero-count summary', context => {
+  for (const output of [
+    'Found 3 errors.',
+    '10 errors',
+    'src/a.ts(1,1): error TS2322: bad type',
+    'warning: unused import',
+    '0 errors, 2 warnings',
+    'a.py:1:1: warning W291 trailing whitespace\nFound 0 errors.',
+  ]) {
+    const project = lintProject(context, { tools: ['ruff'], output });
+    const file = write(project.root, 'a.py', 'x\n');
+    assertLintContext(project.lint(file), file, output);
+  }
+});

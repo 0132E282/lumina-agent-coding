@@ -40,12 +40,29 @@ cwd="$(printf '%s' "$input" | jq -r '.cwd // ""' 2>/dev/null)"
 # Claude Code chỉ gửi agent_id khi tool chạy trong subagent; phiên chính không có field này.
 agent_id="$(printf '%s' "$input" | jq -r '.agent_id // ""' 2>/dev/null)"
 
+# Che secret hay gặp trong Bash command (heuristic, giữ key, thay giá trị bằng ***).
+# Chạy TRƯỚC khi cắt 200 ký tự để secret nằm vắt qua vị trí cắt không lộ một phần.
+redact_secrets_filter="$(cat <<'JQ'
+def redact_secrets:
+  gsub("(?<k>[a-z][a-z0-9+.-]*://[^/\\s:@]+:)[^/\\s@]+@"; "\(.k)***@"; "gi")
+  | gsub("(?<k>\\bbearer\\s+)[^\\s\"']+"; "\(.k)***"; "gi")
+  | gsub("(?<k>--(?:password|passwd|token|api-key|secret)(?:=|\\s+))(?:\"[^\"]*\"|'[^']*'|[^\\s\"']+)"; "\(.k)***"; "gi")
+  | gsub("(?<k>(?<![A-Za-z0-9_-])(?:[A-Za-z0-9_-]*(?:token|passw(?:or)?d|secret|api[_-]?key|apikey|_key)|pwd)[\"']?\\s*[:=]\\s*)(?:\"[^\"]*\"|'[^']*'|[^\\s\"'&;|]+)"; "\(.k)***"; "gi")
+  | gsub("(?<k>gh[pousr]_|github_pat_)[A-Za-z0-9_]+"; "\(.k)***")
+  | gsub("(?<k>sk_(?:live|test)_)[A-Za-z0-9]+"; "\(.k)***")
+  | gsub("(?<k>xox[baprs]-)[A-Za-z0-9-]+"; "\(.k)***")
+  | gsub("(?<k>AKIA)[0-9A-Z]{16}"; "\(.k)***")
+  | gsub("(?<k>AIza)[0-9A-Za-z_-]{20,}"; "\(.k)***")
+  | gsub("eyJ[A-Za-z0-9_-]+\\.eyJ[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+"; "***");
+JQ
+)"
+
 # Tóm tắt tool_input theo loại tool — KHÔNG ghi nguyên nội dung file (Write/Edit)
 # vào log để tránh log phình to và rò rỉ nội dung nhạy cảm.
-summary="$(printf '%s' "$input" | jq -c '
+summary="$(printf '%s' "$input" | jq -c "$redact_secrets_filter"'
   .tool_input as $i
   | if ($i.file_path // "") != "" then {file_path: $i.file_path}
-    elif ($i.command // "") != "" then {command: ($i.command | .[0:200])}
+    elif ($i.command // "") != "" then {command: ($i.command | redact_secrets | .[0:200])}
     elif ($i.pattern // "") != "" then {pattern: $i.pattern}
     elif ($i.skill // "") != "" then {skill: $i.skill}
     else {}

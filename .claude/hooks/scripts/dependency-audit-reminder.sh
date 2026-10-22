@@ -31,26 +31,30 @@ command_str="$(printf '%s' "$input" | jq -r '.tool_input.command // ""' 2>/dev/n
 audit_cmd=""
 ecosystem=""
 
-case "$command_str" in
-  *"npm install"*|*"npm i "*|*"npm add"*)
-    ecosystem="npm"; audit_cmd="npm audit"
-    ;;
-  *"yarn add"*|*"yarn install"*)
-    ecosystem="yarn"; audit_cmd="yarn audit"
-    ;;
-  *"pnpm add"*|*"pnpm install"*)
-    ecosystem="pnpm"; audit_cmd="pnpm audit"
-    ;;
-  *"composer require"*|*"composer update"*)
-    ecosystem="composer"; audit_cmd="composer audit"
-    ;;
-  *"pip install"*)
-    ecosystem="pip"; audit_cmd="pip-audit"
-    ;;
-  *)
-    exit 0
-    ;;
-esac
+# "npm" phải là tên lệnh (đầu chuỗi hoặc sau khoảng trắng/;&|() — nếu không "pnpm add" khớp nhầm "npm add".
+npm_install_pattern='(^|[[:space:];&|(])npm[[:space:]]+(install|i|add)([[:space:]]|$)'
+
+if [[ "$command_str" =~ $npm_install_pattern ]]; then
+  ecosystem="npm"; audit_cmd="npm audit"
+else
+  case "$command_str" in
+    *"yarn add"*|*"yarn install"*)
+      ecosystem="yarn"; audit_cmd="yarn audit"
+      ;;
+    *"pnpm add"*|*"pnpm install"*)
+      ecosystem="pnpm"; audit_cmd="pnpm audit"
+      ;;
+    *"composer require"*|*"composer update"*)
+      ecosystem="composer"; audit_cmd="composer audit"
+      ;;
+    *"pip install"*)
+      ecosystem="pip"; audit_cmd="pip-audit"
+      ;;
+    *)
+      exit 0
+      ;;
+  esac
+fi
 
 # Kiểm tra tool thực thi có sẵn trước khi chạy thử.
 case "$ecosystem" in

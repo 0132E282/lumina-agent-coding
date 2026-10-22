@@ -59,8 +59,10 @@ case "$file_path" in
 esac
 
 [ -z "$lint_output" ] && exit 0
-# Một số tool exit 0 kèm output "no error"/"found 0 errors" -> không cần báo lại.
-printf '%s' "$lint_output" | grep -qiE 'error|warning' || exit 0
+# Một số tool exit 0 kèm output "no errors"/"found 0 errors" -> bỏ các cụm đếm 0 đó
+# trước khi tìm error|warning, để chỉ báo khi còn chẩn đoán thật.
+diagnostic_output="$(printf '%s' "$lint_output" | tr '[:upper:]' '[:lower:]' | sed -E 's/(^|[^0-9])0 (errors?|warnings?|problems?)/\1/g; s/no (errors?|warnings?)/ /g')"
+printf '%s' "$diagnostic_output" | grep -qE 'error|warning' || exit 0
 
 context="Static analysis trên ${file_path} báo vấn đề:
 ${lint_output}"
