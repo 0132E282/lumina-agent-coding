@@ -13,7 +13,7 @@ This is an agent configuration repo. `.agents/rules/` is the single shared sourc
 
 ## Skills, roles, and workflows
 
-- `.agents/skills/` is the shared skill source; `.claude/skills/` and `.codex/skills/` symlink there. `.codex/agents/*.toml` corresponds to `.claude/agents/*.md` (except `codex-agent`, which runs in Claude Code to call Codex).
+- `.agents/skills/` is the shared skill source; `.claude/skills/` and `.codex/skills/` symlink there. `.codex/agents/*.toml` corresponds to `.claude/agents/*.md` (except `codex-review`, which runs in Claude Code to call Codex).
 - Workflows: `$workflow-{analyze,plan,implement,test,review,report,git,cleanup}`. Claude calls the slash commands in `.claude/commands/` directly; for review, type `/review` to use Claude Code's built-in `code-review`/`security-review` skills — there is no `.claude/commands/review.md` (see [`workflow-review`](./.agents/skills/workflow-review/SKILL.md)). Planning: native Plan mode + `.agents/skills/workflow-plan/SKILL.md`. Git: `/git` or `$workflow-git`, default `commit all`; no auto-push, no temp/secret files.
 - Hand off via `docs/` per role; maintain approval checkpoints. Do not auto-run the full pipeline.
 
@@ -48,7 +48,7 @@ Discovers skills/rules from `.agents/`. TOML files in `.codex/agents/` are not A
 | New UI / redesign | `designer` |
 | SEO (technical, content, AI search) | `seo` |
 | Data leak check | `leak-hunter` — list suspects only; self-activate only when assigned |
-| Codex review / UI screenshots | `codex-agent` (`.claude/agents/codex/`) — Codex CLI only reviews (read-only) and captures UI screenshots when Claude cannot use a browser; never edits code |
+| Codex review / UI screenshots | `codex-review` (`.claude/agents/codex/`) — Codex CLI only reviews (read-only) and captures UI screenshots when Claude cannot use a browser; never edits code |
 
 Docs default to `AI-readable` (minimal context, link instead of repeat). `human-readable` only when requested.
 

@@ -1,11 +1,11 @@
 ---
-name: codex-agent
+name: codex-review
 description: Gọi Codex CLI chỉ để review code (read-only) và chụp ảnh giao diện khi phiên Claude không dùng được trình duyệt. Dùng khi người dùng muốn Codex review thay đổi hoặc cần ảnh chứng UI. Codex không sửa code; không commit/push, không thay thế coder hay reviewer khi người dùng không yêu cầu Codex.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 ---
 
-# Codex Agent
+# Codex Review
 
 Bạn dùng Codex CLI cho đúng hai việc: **review code** và **chụp ảnh giao diện**. Codex không viết hay sửa code sản phẩm; trách nhiệm phạm vi, kiểm chứng và báo cáo vẫn thuộc về bạn theo rule của repo.
 
@@ -43,4 +43,4 @@ Bạn dùng Codex CLI cho đúng hai việc: **review code** và **chụp ảnh 
 
 - Người dùng yêu cầu Codex review, hoặc cần ảnh chứng UI mà phiên/agent Claude không gọi được trình duyệt.
 - **Không** dùng để viết/sửa code (việc của `coder`).
-- Không có adapter `.codex/agents/codex-agent.toml`: agent này chạy trong Claude Code để gọi Codex.
+- Không có adapter `.codex/agents/codex-review.toml`: agent này chạy trong Claude Code để gọi Codex.
