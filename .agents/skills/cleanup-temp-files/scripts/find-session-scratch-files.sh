@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Liệt kê file đã Write trong một session cụ thể, dựa vào .agents/storage/logs/logs.jsonl
-# (ghi bởi hook audit-log) — CHỈ trong phạm vi dự án hiện tại (cwd ghi trong
+# và file đã xoay mới nhất (ghi bởi hook audit-log) — CHỈ trong phạm vi dự án hiện tại (cwd ghi trong
 # log phải khớp cwd lúc chạy script này), còn tồn trên đĩa, và khớp pattern
 # "có vẻ là file tạm/scratch". Không quét gì ngoài project, không xóa gì.
 #
@@ -22,9 +22,20 @@ if [ -n "$CLAUDE_PROJECT_DIR" ] && [ -d "$CLAUDE_PROJECT_DIR" ]; then
 else
   log_root="$(pwd)"
 fi
-log_file="$log_root/.agents/storage/logs/logs.jsonl"
-[ -f "$log_file" ] || exit 0
+log_dir="$log_root/.agents/storage/logs"
 command -v jq >/dev/null 2>&1 || exit 0
+
+# Đọc file đang ghi + file đã xoay mới nhất để lần xoay giữa session không che ứng viên.
+# Helper nằm ở hooks/scripts (skills/ và hooks/ cùng cấp); thiếu thì chỉ đọc file đang ghi.
+log_rotate_helper="$(dirname "$0")/../../../hooks/scripts/_log-rotate.sh"
+log_files=""
+if [ -f "$log_rotate_helper" ]; then
+  . "$log_rotate_helper"
+  log_files="$(lumina_session_log_files "$log_dir")"
+elif [ -f "$log_dir/logs.jsonl" ]; then
+  log_files="$log_dir/logs.jsonl"
+fi
+[ -z "$log_files" ] && exit 0
 
 project_dir="$(pwd)"
 
@@ -36,10 +47,16 @@ scratch_pattern='(^|/)(tmp|scratch|debug|draft|sandbox|test[_-]?output)[^/]*\.[A
 # .agents/rules/debug.md là rule chính thức, không phải file tạm.
 excluded_pattern='^(\.agents/(rules|skills|agents)|\.claude|\.codex|docs)/'
 
-candidates="$(jq -r --arg sid "$session_id" --arg cwd "$project_dir" '
+# Lọc trước theo session bằng grep (log ghi JSON compact); jq bên dưới vẫn lọc chính xác.
+session_needle="$(jq -cn --arg sid "$session_id" '{session_id: $sid}')"
+session_needle="${session_needle#\{}"
+session_needle="${session_needle%\}}"
+
+candidates="$(while IFS= read -r file; do grep -F -- "$session_needle" "$file" || true; done <<< "$log_files" \
+  | jq -r --arg sid "$session_id" --arg cwd "$project_dir" '
   select(.session_id == $sid and .tool == "Write" and .cwd == $cwd)
   | .input.file_path // empty
-' "$log_file" 2>/dev/null)" || true
+' 2>/dev/null)" || true
 
 [ -z "$candidates" ] && exit 0
 
