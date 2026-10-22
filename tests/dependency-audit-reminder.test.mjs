@@ -128,3 +128,38 @@ test('"pnpm install" runs "pnpm audit", not "npm audit"', context => {
     assert.ok(output.hookSpecificOutput.additionalContext.includes('pnpm audit báo:'), command);
   }
 });
+
+// Regression: glob *"pnpm install"*/*"yarn add"*... từng khớp chữ nằm trong thân heredoc, chuỗi
+// trong nháy, commit message, echo/grep — nên audit thật chạy dù không có lệnh cài nào thực thi.
+test('install words inside heredoc data, quoted arguments or messages do not run any audit', context => {
+  for (const command of [
+    "git commit -F - <<'EOF'\nfix: chặn pnpm install chạy nhầm\nEOF",
+    "python3 - <<'EOF'\nprint(\"yarn add x\")\nEOF",
+    'echo "composer require foo"',
+    'grep -r "pip install" .',
+    'git commit -m "npm install docs"',
+    "cat <<EOF > notes.md\nRun npm install then pnpm add x\nEOF",
+    'printf "%s" "yarn install"',
+  ]) {
+    const result = runReminder(context, { command });
+    assert.deepEqual(result.calledCommands, [], command);
+    assert.equal(result.output, null, command);
+  }
+});
+
+test('executed install after cd, env prefix, wrapper or bash -c still runs the right audit', context => {
+  for (const [command, auditCommand] of [
+    ['cd web && pnpm add x', 'pnpm audit'],
+    ['FOO=1 yarn add x', 'yarn audit'],
+    ['bash -c "npm install lodash"', 'npm audit'],
+    ['git status; composer update', 'composer audit'],
+    ['python -m pip install requests', 'pip-audit '],
+    ['python3 -m pip install requests', 'pip-audit '],
+    ['pip3 install requests', 'pip-audit '],
+    ['pnpm i', 'pnpm audit'],
+  ]) {
+    const { output, calledCommands } = runReminder(context, { command });
+    assert.deepEqual(calledCommands, [auditCommand], command);
+    assert.ok(output.hookSpecificOutput.additionalContext.includes(VULNERABLE_OUTPUT), command);
+  }
+});

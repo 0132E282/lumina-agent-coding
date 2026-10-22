@@ -28,33 +28,35 @@ tool_name="$(printf '%s' "$input" | jq -r '.tool_name // ""' 2>/dev/null)"
 command_str="$(printf '%s' "$input" | jq -r '.tool_input.command // ""' 2>/dev/null)"
 [ -z "$command_str" ] && exit 0
 
+# ! Chỉ xét lệnh thực thi thật (helper dùng chung), không bắt nhầm chữ
+# "pnpm install"/"yarn add"... trong thân heredoc, chuỗi trong nháy hay commit message.
+. "$(dirname "$0")/_shell-command.sh"
+
 audit_cmd=""
 ecosystem=""
 
-# "npm" phải là tên lệnh (đầu chuỗi hoặc sau khoảng trắng/;&|() — nếu không "pnpm add" khớp nhầm "npm add".
-npm_install_pattern='(^|[[:space:];&|(])npm[[:space:]]+(install|i|add)([[:space:]]|$)'
-
-if [[ "$command_str" =~ $npm_install_pattern ]]; then
-  ecosystem="npm"; audit_cmd="npm audit"
-else
-  case "$command_str" in
-    *"yarn add"*|*"yarn install"*)
-      ecosystem="yarn"; audit_cmd="yarn audit"
-      ;;
-    *"pnpm add"*|*"pnpm install"*)
-      ecosystem="pnpm"; audit_cmd="pnpm audit"
-      ;;
-    *"composer require"*|*"composer update"*)
-      ecosystem="composer"; audit_cmd="composer audit"
-      ;;
-    *"pip install"*)
-      ecosystem="pip"; audit_cmd="pip-audit"
-      ;;
-    *)
-      exit 0
+while IFS= read -r invocation; do
+  IFS=$'\037' read -r -a words <<< "$invocation"
+  program="${words[0]:-}"
+  subcommand="${words[1]:-}"
+  case "$program" in
+    python|python3)
+      [ "${words[1]:-}" = "-m" ] && [ "${words[2]:-}" = "pip" ] || continue
+      program="pip"; subcommand="${words[3]:-}"
       ;;
   esac
-fi
+  case "$program $subcommand" in
+    "npm install"|"npm i"|"npm add") ecosystem="npm"; audit_cmd="npm audit" ;;
+    "yarn add"|"yarn install") ecosystem="yarn"; audit_cmd="yarn audit" ;;
+    "pnpm add"|"pnpm install"|"pnpm i") ecosystem="pnpm"; audit_cmd="pnpm audit" ;;
+    "composer require"|"composer update") ecosystem="composer"; audit_cmd="composer audit" ;;
+    "pip install"|"pip3 install") ecosystem="pip"; audit_cmd="pip-audit" ;;
+    *) continue ;;
+  esac
+  break
+done < <(command_invocations "$command_str")
+
+[ -n "$audit_cmd" ] || exit 0
 
 # Kiểm tra tool thực thi có sẵn trước khi chạy thử.
 case "$ecosystem" in

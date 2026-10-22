@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Chỉ được `source` từ hook, không đăng ký trong settings.json.
-# ! Tách lệnh Bash thành từng lệnh đơn đã bỏ nháy để hook chỉ xét lệnh git
-# thực thi thật — không bắt nhầm chữ "git ..." trong thân heredoc/chuỗi.
+# ! Tách lệnh Bash thành từng lệnh đơn đã bỏ nháy để hook chỉ xét lệnh thực thi
+# thật (git, package manager...) — không bắt nhầm chữ trong thân heredoc/chuỗi.
 #
 # Mã hoá đầu ra: token cách nhau bởi \037; xuống dòng trong token là \036;
 # token bắt đầu bằng \035 là thân heredoc gắn với lệnh đó.
@@ -22,7 +22,18 @@
 # `bash|sh|zsh|dash|ksh -c`, `eval`) được phân tích tối đa 4 tầng trong cùng
 # một tiến trình awk.
 git_invocations() {
-  printf '%s\n' "$1" | awk -v wanted="$2" '
+  printf '%s\n' "$1" | awk -v wanted="$2" "$_shell_command_parser"
+}
+
+# In mỗi lệnh thực thi (mọi chương trình, sau khi bỏ tiền tố gán biến/từ khoá/
+# wrapper) một dòng: <tên chương trình>\037<đối số...>. Cùng bộ tách lệnh với
+# git_invocations nên bỏ qua chữ trong thân heredoc/chuỗi; `cd`, shell `-c` và
+# `eval` không được in mà được phân tích tiếp như script con.
+command_invocations() {
+  printf '%s\n' "$1" | awk -v mode="commands" "$_shell_command_parser"
+}
+
+_shell_command_parser='
     { text = text $0 "\n" }
     function combine(parent, child) {
       if (child ~ /^\// || parent == "") return child
@@ -81,6 +92,15 @@ git_invocations() {
         script = ""
         for (k = i + 1; k <= count; k++) script = script (k > i + 1 ? " " : "") words[k]
         enqueue_script(identifier, script)
+        return
+      }
+      if (mode == "commands") {
+        line = program
+        for (k = i + 1; k <= count; k++) {
+          gsub(/\n/, "\036", words[k])
+          line = line "\037" words[k]
+        }
+        print line
         return
       }
       if (program != "git") return
@@ -403,8 +423,7 @@ git_invocations() {
       directories[1] = ""
       for (identifier = 1; identifier <= script_count; identifier++) tokenize(identifier)
     }
-  '
-}
+'
 
 is_executed_git_command() {
   [ -n "$(git_invocations "$1" "$2")" ]

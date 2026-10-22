@@ -142,6 +142,7 @@ Sau mỗi lần chạy lệnh cài/thêm dependency (`npm install`, `yarn add`, 
 
 - **Script**: [`scripts/dependency-audit-reminder.sh`](./scripts/dependency-audit-reminder.sh)
 - **Loại hook**: `PostToolUse`, matcher `Bash`
+- **Nhận diện lệnh**: cùng helper [`scripts/_shell-command.sh`](./scripts/_shell-command.sh) (`command_invocations`) — chỉ nhận package manager là lệnh thực thi thật: `npm install|i|add`, `yarn add|install`, `pnpm add|install|i`, `composer require|update`, `pip|pip3 install`, `python|python3 -m pip install`, kể cả sau `cd x &&`, tiền tố gán biến, wrapper, `bash -c`, `eval`. Chữ lệnh cài nằm trong thân heredoc, chuỗi trong nháy, commit message, `echo`/`grep` bị bỏ qua. Lệnh cài đầu tiên trong chuỗi quyết định audit; audit chạy ở cwd của hook.
 - **Chỉ chạy lệnh audit** (không `--fix`/`--force`, không tự install/update gì thêm); bỏ qua êm nếu tool báo không có lỗ hổng.
 - **An toàn**: luôn `exit 0`; thiếu `jq`, không khớp lệnh cài dependency nào, hoặc thiếu audit tool tương ứng → bỏ qua êm.
 - **Phụ thuộc**: cần `jq`; audit tool tương ứng ecosystem (tuỳ chọn, thiếu thì bỏ qua).
