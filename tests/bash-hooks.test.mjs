@@ -219,6 +219,63 @@ test('secret-scan inspects the repository and paths given by git -C', context =>
   assert.equal(decision('secret-scan.sh', root, `git -C '${other}' commit -m "chore: x"`), 'ask');
 });
 
+// Giá trị giả dạng .env không nháy; nối chuỗi để file test không khớp pattern.
+const fakeStripeKey = 'sk_' + 'live_' + 'FAKE'.repeat(6);
+const fakeGithubToken = 'ghp' + '_' + 'FAKE'.repeat(9);
+const fakeEnvContent = `API_KEY=${fakeStripeKey}\nGITHUB_TOKEN=${fakeGithubToken}\n`;
+
+function repositoryWithEnvFile(context) {
+  const root = repository(context);
+  fs.writeFileSync(path.join(root, '.env'), fakeEnvContent);
+  return root;
+}
+
+test('P2 secret-scan asks on git add . when an untracked .env is present', context => {
+  const root = repositoryWithEnvFile(context);
+  assert.equal(decision('secret-scan.sh', root, 'git add .'), 'ask');
+});
+
+test('P2 secret-scan asks on git add -A when an untracked .env is present', context => {
+  const root = repositoryWithEnvFile(context);
+  assert.equal(decision('secret-scan.sh', root, 'git add -A'), 'ask');
+  assert.equal(decision('secret-scan.sh', root, 'git add --all'), 'ask');
+});
+
+test('P2 secret-scan asks on git add of a directory or glob covering a secret file', context => {
+  const root = repository(context);
+  fs.mkdirSync(path.join(root, 'config'));
+  fs.writeFileSync(path.join(root, 'config/settings.ini'), `GITHUB_TOKEN=${fakeGithubToken}\n`);
+  assert.equal(decision('secret-scan.sh', root, 'git add config'), 'ask');
+  assert.equal(decision('secret-scan.sh', root, "git add 'config/*.ini'"), 'ask');
+});
+
+test('P2 secret-scan asks on git commit when .env with unquoted values is staged', context => {
+  const root = repositoryWithEnvFile(context);
+  git(root, 'add', '.env');
+  assert.equal(decision('secret-scan.sh', root, 'git commit -m x'), 'ask');
+});
+
+test('P2 secret-scan asks on git commit -am when a tracked file gains a token', context => {
+  const root = repository(context);
+  fs.writeFileSync(path.join(root, 'README.md'), `hello\ntoken = "${fakeGithubToken}"\n`);
+  assert.equal(decision('secret-scan.sh', root, 'git commit -am x'), 'ask');
+  assert.equal(decision('secret-scan.sh', root, 'git commit --all -m x'), 'ask');
+});
+
+test('P2 secret-scan stays silent on ordinary add/commit and env example placeholders', context => {
+  const root = repository(context);
+  fs.mkdirSync(path.join(root, 'src'));
+  fs.writeFileSync(path.join(root, 'src/app.js'), 'export const value = 1;\n');
+  assert.equal(decision('secret-scan.sh', root, 'git add src/app.js'), null);
+  assert.equal(decision('secret-scan.sh', root, 'git add .'), null);
+  fs.writeFileSync(path.join(root, '.env.example'), 'API_KEY=changeme\nGITHUB_TOKEN=\n');
+  assert.equal(decision('secret-scan.sh', root, 'git add .env.example'), null);
+  git(root, 'add', 'src/app.js');
+  assert.equal(decision('secret-scan.sh', root, 'git commit -m "feat: app"'), null);
+  fs.writeFileSync(path.join(root, 'README.md'), 'hello again\n');
+  assert.equal(decision('secret-scan.sh', root, 'git commit -am "docs: readme"'), null);
+});
+
 // protected-branch-guard
 
 test('protected-branch-guard ignores git push text inside heredoc data or quotes', context => {
@@ -264,6 +321,61 @@ test('W2 dynamic git subcommand is checked as if it were the guarded subcommand'
   assert.equal(decision('protected-branch-guard.sh', root, 'git $(echo push) --force origin feature'), 'ask');
   assert.equal(decision('protected-branch-guard.sh', root, 'git --version'), null);
   assert.equal(decision('protected-branch-guard.sh', root, 'echo git push --force'), null);
+});
+
+test('P1 protected-branch-guard asks on HEAD:main refspec while on main', context => {
+  const root = repository(context);
+  assert.equal(decision('protected-branch-guard.sh', root, 'git push origin HEAD:main'), 'ask');
+});
+
+test('P1 protected-branch-guard asks on feat:main refspec from another branch', context => {
+  const root = repository(context, 'feat');
+  assert.equal(decision('protected-branch-guard.sh', root, 'git push origin feat:main'), 'ask');
+});
+
+test('P1 protected-branch-guard asks on +feat:main force refspec', context => {
+  const root = repository(context, 'feat');
+  assert.equal(decision('protected-branch-guard.sh', root, 'git push origin +feat:main'), 'ask');
+});
+
+test('P1 protected-branch-guard asks on :main delete refspec', context => {
+  const root = repository(context, 'feat');
+  assert.equal(decision('protected-branch-guard.sh', root, 'git push origin :main'), 'ask');
+});
+
+test('P1 protected-branch-guard asks on --delete main and -d master', context => {
+  const root = repository(context, 'feat');
+  assert.equal(decision('protected-branch-guard.sh', root, 'git push origin --delete main'), 'ask');
+  assert.equal(decision('protected-branch-guard.sh', root, 'git push -d origin master'), 'ask');
+});
+
+test('P1 protected-branch-guard asks on --mirror and --all', context => {
+  const root = repository(context, 'feat');
+  assert.equal(decision('protected-branch-guard.sh', root, 'git push --mirror origin'), 'ask');
+  assert.equal(decision('protected-branch-guard.sh', root, 'git push --all origin'), 'ask');
+});
+
+test('P1 protected-branch-guard asks on refs/heads/main destinations', context => {
+  const root = repository(context, 'feat');
+  assert.equal(decision('protected-branch-guard.sh', root, 'git push origin refs/heads/main'), 'ask');
+  assert.equal(decision('protected-branch-guard.sh', root, 'git push origin feat:refs/heads/main'), 'ask');
+});
+
+test('P1 protected-branch-guard stays silent on pushes to a non-protected destination', context => {
+  const root = repository(context, 'feat');
+  for (const command of [
+    'git push origin feat',
+    'git push origin HEAD:feat',
+    'git push -u origin feat',
+    'git push origin feat:feature-x',
+    'git push origin',
+  ]) {
+    assert.equal(decision('protected-branch-guard.sh', root, command), null, command);
+  }
+  const onMain = repository(context);
+  assert.equal(decision('protected-branch-guard.sh', onMain, 'git push origin HEAD:feat'), null);
+  assert.equal(decision('protected-branch-guard.sh', onMain, 'git push'), 'ask');
+  assert.equal(decision('protected-branch-guard.sh', onMain, 'git push origin'), 'ask');
 });
 
 // format-before-push

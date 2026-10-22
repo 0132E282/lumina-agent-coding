@@ -125,6 +125,10 @@
           },
           {
             "type": "command",
+            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/turn-log.sh\""
+          },
+          {
+            "type": "command",
             "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/notify-done.sh\""
           }
         ]

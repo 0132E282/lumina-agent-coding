@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const help = `Usage: node task-usage.mjs --transcript FILE [--since-line N] [--criteria FILE]
 Reads a Claude transcript JSONL and prints JSON:
@@ -11,7 +11,7 @@ message.id is kept; subagent records are skipped. Thresholds come from --criteri
 (default: ../assets/waste-criteria.json). Missing/unreadable transcript exits 1 with no stdout.
 `;
 
-const defaultCriteria = fileURLToPath(new URL('../assets/waste-criteria.json', import.meta.url));
+export const defaultCriteria = fileURLToPath(new URL('../assets/waste-criteria.json', import.meta.url));
 const subagentToolNames = new Set(['Agent', 'Task']);
 
 function parseArguments(argumentsList) {
@@ -54,7 +54,8 @@ function resultLength(content) {
   return content.reduce((total, part) => total + (typeof part?.text === 'string' ? part.text.length : 0), 0);
 }
 
-function measure(lines, sinceLine, criteria) {
+// includeSidechain dùng khi đo chính transcript của subagent (mọi dòng đều isSidechain).
+export function measure(lines, sinceLine, criteria, { includeSidechain = false } = {}) {
   const messages = new Map();
   const reads = new Map();
   const commands = new Map();
@@ -69,7 +70,7 @@ function measure(lines, sinceLine, criteria) {
     } catch {
       return;
     }
-    if (event?.isSidechain === true || event?.parent_tool_use_id != null) return;
+    if (!includeSidechain && (event?.isSidechain === true || event?.parent_tool_use_id != null)) return;
     const content = event?.message?.content;
     if (event?.type === 'assistant' && typeof event.message?.id === 'string') {
       messages.set(event.message.id, event.message.usage ?? null);
@@ -115,7 +116,7 @@ function measure(lines, sinceLine, criteria) {
   return { usage, waste };
 }
 
-try {
+function main() {
   if (process.argv.slice(2).includes('--help')) {
     process.stdout.write(help);
   } else {
@@ -127,7 +128,14 @@ try {
     const result = measure(lines, options.sinceLine, criteria);
     process.stdout.write(`${JSON.stringify({ ...result, lastLine: lines.length })}\n`);
   }
-} catch (error) {
-  process.stderr.write(`task-usage: ${error?.code ? `Unable to read input (${error.code}).` : error.message}\n`);
-  process.exitCode = 1;
+}
+
+// * So bằng realpath vì có thể được gọi qua symlink .claude/skills → .agents/skills; khi bị import thì không chạy CLI.
+if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
+  try {
+    main();
+  } catch (error) {
+    process.stderr.write(`task-usage: ${error?.code ? `Unable to read input (${error.code}).` : error.message}\n`);
+    process.exitCode = 1;
+  }
 }

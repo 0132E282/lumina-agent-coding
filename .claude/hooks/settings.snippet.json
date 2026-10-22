@@ -120,6 +120,10 @@
           },
           {
             "type": "command",
+            "command": "bash .claude/hooks/scripts/turn-log.sh"
+          },
+          {
+            "type": "command",
             "command": "bash .claude/hooks/scripts/notify-done.sh"
           }
         ]

@@ -41,7 +41,7 @@ Trước mỗi lần Claude Code (hoặc subagent) gọi **bất kỳ tool nào*
 - **Script**: [`scripts/audit-log.sh`](./scripts/audit-log.sh)
 - **Loại hook**: `PreToolUse`, matcher `.*` (mọi tool)
 - **File log**: `.agents/storage/logs/logs.jsonl` (JSON Lines, append-only) — cả thư mục `.agents/storage/` đã nằm trong `.gitignore`, không commit nhầm.
-- **Nội dung mỗi dòng**: `ts` (UTC ISO8601), `session_id`, `tool`, `cwd`, `input` (tóm tắt — chỉ `file_path`/`command` (≤200 ký tự)/`pattern`/`skill` (tên skill khi tool là `Skill`) tùy loại tool, **không** ghi nguyên nội dung file Write/Edit để tránh log phình to và rò rỉ dữ liệu nhạy cảm). Thêm `agent_id` khi tool chạy trong subagent (Claude Code chỉ gửi field này cho subagent; phiên chính không có).
+- **Nội dung mỗi dòng**: `ts` (UTC ISO8601), `session_id`, `tool`, `cwd`, `input` (tóm tắt — chỉ `file_path`/`command` (≤200 ký tự)/`pattern`/`skill` (tên skill khi tool là `Skill`) tùy loại tool, **không** ghi nguyên nội dung file Write/Edit để tránh log phình to và rò rỉ dữ liệu nhạy cảm). Thêm `agent_id` khi tool chạy trong subagent (Claude Code chỉ gửi field này cho subagent; phiên chính không có). Hook [`turn-log`](#turn-log--một-dòng-tóm-tắt-mỗi-lượt) ghi thêm vào cùng file một dòng `type: "turn"` mỗi lượt.
 - **An toàn**: luôn `exit 0`; input JSON hỏng, thiếu `jq`, hoặc `tool_name` rỗng đều bị bỏ qua êm, không ghi dòng rác. Thư mục ghi log lấy từ `CLAUDE_PROJECT_DIR` (luôn là project root, bất kể agent đã `cd` sang thư mục con), fallback sang `cwd` trong payload rồi `pwd` nếu biến đó không có — tránh ghi log lạc vào thư mục con khi session đổi cwd. Field `cwd` trong mỗi dòng log vẫn giữ nguyên giá trị gốc từ payload để phục vụ truy vết.
 - **Phụ thuộc**: cần `jq`.
 
@@ -79,7 +79,7 @@ Trước mỗi lần `git commit` có type Conventional Commit `fix` (`fix:`, `f
 
 ## secret-scan — chặn hỏi xác nhận khi nghi ngờ lộ secret
 
-Trước mỗi lần `git add`/`git commit`, hook này quét path sắp add hoặc diff đã staged để tìm pattern giống secret (private key, AWS key, `api_key=...`, file `.env`) — liên hệ [`rules/backend.md`](../rules/backend.md#an-toàn-dữ-liệu).
+Trước mỗi lần `git add`/`git commit`, hook này quét path sắp add (thư mục, glob, `.`, `-A`/`-u` được liệt kê thành file qua `git ls-files`) hoặc diff sắp commit (staged; thêm thay đổi tracked khi `commit -a`/pathspec) để tìm pattern giống secret (private key, AWS key, `api_key=...`, gán `*_KEY/*TOKEN/*SECRET/*PASSWORD=` không nháy, token `ghp_`/`github_pat_`/`xox?-`/`sk_live_`/`AIza`/JWT) và tên file `.env` — liên hệ [`rules/backend.md`](../rules/backend.md#an-toàn-dữ-liệu).
 
 - **Script**: [`scripts/secret-scan.sh`](./scripts/secret-scan.sh)
 - **Loại hook**: `PreToolUse`, matcher `Bash`
@@ -89,7 +89,7 @@ Trước mỗi lần `git add`/`git commit`, hook này quét path sắp add ho�
 
 ## protected-branch-guard — cảnh báo trước khi push rủi ro cao
 
-Trước mỗi lần `git push`, hook này cảnh báo (ask) nếu push thẳng vào `main`/`master`, dùng `--force`/`--force-with-lease`, hoặc `--no-verify`/`--no-gpg-sign` — lớp phòng vệ thứ hai cho Git Safety Protocol.
+Trước mỗi lần `git push`, hook này cảnh báo (ask) nếu push thẳng vào `main`/`master` (đích refspec như `HEAD:main`, `x:refs/heads/main`; không có refspec thì theo nhánh hiện tại), xoá `main`/`master` (`:main`, `--delete`/`-d`), `--mirror`/`--all`, refspec glob/`:`, dùng `--force`/`--force-with-lease`/refspec `+`, hoặc `--no-verify`/`--no-gpg-sign` — lớp phòng vệ thứ hai cho Git Safety Protocol.
 
 - **Script**: [`scripts/protected-branch-guard.sh`](./scripts/protected-branch-guard.sh)
 - **Loại hook**: `PreToolUse`, matcher `Bash`
@@ -200,6 +200,24 @@ Chặn việc điền số Token không có nguồn: hook `report-usage` ghi s�
 - **Im lặng khi**: không có dòng Token, số khớp, `stop_hook_active` là true, thiếu `node`/`jq` hoặc không parse được.
 - **Giới hạn**: giả định lời văn của template (`input … output … cache đọc … cache tạo …`); viết khác thì hook im lặng, không báo sai.
 
+## turn-log — một dòng tóm tắt mỗi lượt
+
+Khi Claude Code kết thúc một lượt, hook đọc `transcript_path` và ghi **một** dòng `type: "turn"` vào `.agents/storage/logs/logs.jsonl` (cùng file `audit-log`; các dòng từng tool call giữ nguyên):
+
+```json
+{"ts":"2026-10-22T03:00:00Z","type":"turn","session_id":"…","request":"Sửa hook Stop","tools":{"Bash":2,"Edit":2,"Write":1,"Agent":1},"files":["/repo/a.js","/repo/b.js"],"tokens":{"input":17,"output":31,"cacheRead":413,"cacheCreate":49,"total":510},"subagentTokens":{"input":4,"output":9,"cacheRead":300,"cacheCreate":10,"total":323}}
+```
+
+- **Script**: [`scripts/turn-log.sh`](./scripts/turn-log.sh) (logic ở [`turn-log.mjs`](./scripts/turn-log.mjs); đo token bằng `measure` của [`task-usage.mjs`](../skills/report/scripts/task-usage.mjs))
+- **Loại hook**: `Stop`; không in gì ra stdout, không chặn.
+- **Lượt hiện tại**: các dòng sau prompt thật cuối cùng của người dùng — dòng `type: "user"` của phiên chính, không `isMeta`/`isCompactSummary`, `origin.kind` là `human` (hoặc không có `origin`), không chứa `tool_result`, không bắt đầu bằng `<task-notification>`, `<local-command-`, `<command-name>` (lệnh local như `/clear`), `<bash-input>`/`<bash-stdout>`/`<bash-stderr>` hoặc `[Request interrupted by user`.
+- **Field**: `request` — prompt gộp khoảng trắng, che secret rõ ràng (`Bearer …`, `password=`/`token=`/`secret=`/`api_key=`…, `sk_live_`, `sk-…`, `ghp_`/`github_pat_`, `AKIA…`, `xox…-`, JWT, private key) rồi cắt 200 ký tự; slash command ghi `/<lệnh> <đối số>`. `tools` — số lần gọi theo tên tool (khử trùng theo id `tool_use`). `files` — `file_path`/`notebook_path` của `Edit`/`Write`/`NotebookEdit`, duy nhất, theo thứ tự. `tokens` — tổng `message.usage` của phiên chính trong lượt (giữ usage mới nhất mỗi `message.id`), số thô, `total` = input + output + cacheRead + cacheCreate. Không ghi nội dung file hay output tool.
+- **Subagent**: `subagentTokens` (cùng dạng `tokens`) cộng từ transcript riêng `<transcript không đuôi .jsonl>/subagents/agent-<agentId>.jsonl` của các subagent được gọi trong lượt và đã xong (tool result `status: "completed"` hoặc `agent-<id>.meta.json` có `finished: true`); không dùng `totalTokens` trên tool result vì đó chỉ là context của request cuối. Subagent nền còn chạy lúc Stop được đếm vào `subagentsPending`, không cộng token. Thiếu dữ liệu thì bỏ field.
+- **Chống trùng**: lưu dòng/uuid prompt đầu lượt đã ghi ở `.agents/storage/state/<session_id>.turn.json`; Stop chạy lại cho cùng lượt (kể cả `stop_hook_active`) thì bỏ qua.
+- **An toàn**: luôn `exit 0`; thiếu `node`, `task-usage.mjs`, transcript, prompt hoặc payload hỏng thì im lặng, không ghi gì. Thư mục log lấy từ `CLAUDE_PROJECT_DIR`, fallback `cwd` trong payload rồi thư mục hiện tại.
+- **Giới hạn**: lượt được tiếp tục sau Stop mà không có prompt mới (ví dụ phản hồi `<task-notification>` của subagent nền) không ghi thêm dòng; Edit/Write và tool của subagent không tính vào `tools`/`files`; subagent nền xong ở lượt sau không được cộng vào lượt nào; subagent lồng (subagent gọi subagent) không cộng. Nhận diện prompt dựa trên hình dạng transcript hiện tại của Claude Code.
+- **Lọc log**: `jq -c 'select(.type == "turn")' .agents/storage/logs/logs.jsonl`
+
 ## notify-done — phát âm thanh khi làm xong task
 
 Khi Claude Code kết thúc một turn (trả lời xong, không còn việc gì đang chạy), hook này phát một âm thanh thông báo ngắn để biết task đã xong mà không cần nhìn màn hình liên tục.
@@ -260,4 +278,4 @@ Khi cài global, hook được đăng ký ở cả `~/.claude/settings.json` (đ
 
 ## Đã bật sẵn trong chính repo này
 
-`hook/` nằm trong `.claude/hooks/` của repo này, và `.claude/settings.json` đã trỏ cả 20 hook tự viết (`audit-log`, `commit-msg-guard`, `bugfix-test-reminder`, `secret-scan`, `protected-branch-guard`, `format-before-push`, `condense-planner-input`, `agent-role-reminder`, `format-on-edit`, `ensure-final-newline`, `lint-on-edit`, `test-reminder`, `missing-test-reminder`, `dependency-audit-reminder`, `ci-workflow-lint`, `remind-cleanup`, `report-reminder`, `report-usage`, `report-usage-check`, `notify-done`) tới đúng path `.claude/hooks/scripts/...` — không cần cài thêm gì để dùng ngay trong repo này. Riêng hook `rtk hook claude` gọi tool ngoài, chỉ chạy được nếu máy đã cài [`rtk`](https://github.com/rtk-ai/rtk) (xem mục riêng ở trên). [`settings.snippet.json`](./settings.snippet.json) có nội dung tương đương, dùng khi copy sang project khác theo hướng dẫn ở trên.
+`hook/` nằm trong `.claude/hooks/` của repo này, và `.claude/settings.json` đã trỏ cả 21 hook tự viết (`audit-log`, `commit-msg-guard`, `bugfix-test-reminder`, `secret-scan`, `protected-branch-guard`, `format-before-push`, `condense-planner-input`, `agent-role-reminder`, `format-on-edit`, `ensure-final-newline`, `lint-on-edit`, `test-reminder`, `missing-test-reminder`, `dependency-audit-reminder`, `ci-workflow-lint`, `remind-cleanup`, `report-reminder`, `report-usage`, `report-usage-check`, `turn-log`, `notify-done`) tới đúng path `.claude/hooks/scripts/...` — không cần cài thêm gì để dùng ngay trong repo này. Riêng hook `rtk hook claude` gọi tool ngoài, chỉ chạy được nếu máy đã cài [`rtk`](https://github.com/rtk-ai/rtk) (xem mục riêng ở trên). [`settings.snippet.json`](./settings.snippet.json) có nội dung tương đương, dùng khi copy sang project khác theo hướng dẫn ở trên.
