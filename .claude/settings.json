@@ -81,10 +81,6 @@
           },
           {
             "type": "command",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/missing-test-reminder.sh\""
-          },
-          {
-            "type": "command",
             "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/ci-workflow-lint.sh\""
           }
         ]

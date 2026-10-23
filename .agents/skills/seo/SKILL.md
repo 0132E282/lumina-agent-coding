@@ -1,6 +1,6 @@
 ---
 name: seo
-description: "SEO website: audit/triển khai SEO kỹ thuật (on-page, crawl/index, metadata, sitemap, structured data, hiệu năng), lập kế hoạch/viết/tối ưu nội dung theo mục đích tìm kiếm, và tối ưu cho tìm kiếm AI (AI Overviews, ChatGPT, Claude, Perplexity: crawler AI, trích dẫn, llms.txt). Dùng khi tối ưu website công khai; không tối ưu index cho trang admin hoặc nội dung riêng tư."
+description: "SEO website công khai: audit/triển khai SEO kỹ thuật (on-page, crawl/index, metadata, sitemap, structured data, hiệu năng), nội dung theo search intent và tối ưu tìm kiếm AI (AI Overviews, ChatGPT, Perplexity, llms.txt). Không index trang admin/nội dung riêng tư."
 license: MIT
 metadata:
   version: "1.1"

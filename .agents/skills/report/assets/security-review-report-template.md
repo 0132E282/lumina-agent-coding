@@ -2,10 +2,11 @@
 
 Trình bày kết quả đã review theo skill `review-web-security`; không bịa thêm trường. Dạng text, không bảng; giữ đủ chín nhãn mỗi finding.
 
-`--------------------------------------------------------------------------------`
+`------------------------`
 
 Finding #1: [Tiêu đề]
-Severity / Confidence: Critical | High | Medium | Low / Xác nhận | Cần xác minh
+Severity: Critical | High | Medium | Low
+Kết quả: Đúng | Sai
 Vị trí: `path/to/file.ext:line` hoặc route
 
 - Nguyên nhân gốc: [luồng dữ liệu/quyền bị vi phạm]
@@ -15,10 +16,10 @@ Vị trí: `path/to/file.ext:line` hoặc route
 - Kiểm thử hồi quy: [case hợp lệ vẫn pass / case vượt quyền bị chặn / side effect cần tránh]
 - CWE/OWASP: [mapping nếu xác minh được, bỏ nếu không chắc]
 
-`--------------------------------------------------------------------------------`
+`------------------------`
 
 **Tổng quan**: [X] lỗi đã xác nhận, mức cao nhất [mức], phạm vi đã review [...].
 
-**Kết luận**: Đã kiểm thử [...] | Chưa kiểm thử [...] | Nghi vấn cần thêm dữ kiện [...]. Thứ tự xử lý đề xuất: [...].
+**Kết luận**: Đã kiểm thử [...] | Chưa kiểm thử/chưa đủ dữ kiện [...]. Thứ tự xử lý đề xuất: [...].
 
 Không có lỗi xác nhận → ghi `Chưa phát hiện lỗi trong phạm vi đã kiểm tra`, không ghi `Không có lỗ hổng`.

@@ -39,7 +39,8 @@ Chỉ thiết kế sau khi coding hoàn tất toàn bộ task của plan; bộ t
 - Postconditions / Cleanup: <trạng thái sau test/cách dọn hoặc không áp dụng>.
 - Actual result: Chưa chạy.
 - Status: Not Run
-- Evidence / Bug ID: Chưa có.
+- Evidence / Bug ID: Chưa có (khi chạy: ảnh hoặc API theo [testcase mục 7.2](../../testing/references/testcase.md#72-bằng-chứng-và-kết-quả-api)).
+- API (khi có): `METHOD URL` · tham số · Kết quả: Chưa chạy.
 
 ## Đối soát và giới hạn
 

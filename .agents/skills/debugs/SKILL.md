@@ -1,6 +1,6 @@
 ---
 name: debugs
-description: Chẩn đoán và sửa lỗi dựa trên đặc tả và bằng chứng — tái hiện, khoanh vùng, nguyên nhân gốc, sửa tối thiểu, kiểm chứng regression/hiệu năng/bảo mật. Dùng khi cần debug hành vi sai, exception, HTTP 4xx/5xx, test thất bại, lỗi chỉ có trên production hoặc lỗi hiệu năng; dùng được với Claude Code, Codex và các coding agent khác.
+description: Chẩn đoán và sửa lỗi dựa trên đặc tả và bằng chứng — tái hiện, khoanh vùng, nguyên nhân gốc, sửa tối thiểu, kiểm chứng regression. Dùng khi debug hành vi sai, exception, HTTP 4xx/5xx, test fail, lỗi chỉ có trên production, lỗi hiệu năng, hoặc khi người dùng nói sửa/fix một lỗi.
 license: MIT
 metadata:
   version: "1.2"

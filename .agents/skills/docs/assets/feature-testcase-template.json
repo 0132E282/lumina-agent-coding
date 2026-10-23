@@ -7,19 +7,51 @@
       "cases": [
         {
           "id": "<TC-ID-duy-nhất>",
-          "requirementIds": ["<REQ/BR/AC-từ-nguồn>"],
+          "requirementIds": [
+            "<REQ/BR/AC-từ-nguồn>"
+          ],
           "title": "<Hành vi quan sát được>",
           "createdAt": "<YYYY-MM-DD>",
           "priority": "High",
-          "preconditions": ["<Trạng thái trước test>"],
+          "preconditions": [
+            "<Trạng thái trước test>"
+          ],
           "testData": "<Dữ liệu giả>",
-          "steps": ["<Thao tác cụ thể>"],
+          "steps": [
+            "<Thao tác cụ thể>"
+          ],
           "expectedResult": "<Output/checkpoint gắn với bước>",
           "postconditionsCleanup": "<Trạng thái sau test/cách dọn>",
           "result": {
             "status": "Not Run",
             "actualResult": null,
-            "evidence": [],
+            "evidence": {
+              "screenshots": [],
+              "apiChecks": [
+                {
+                  "id": "<API-01>",
+                  "method": "<GET|POST|...>",
+                  "url": "<URL thật đầy đủ>",
+                  "params": {
+                    "path": {},
+                    "query": {},
+                    "body": null,
+                    "headers": {}
+                  },
+                  "paramsMatchContract": null,
+                  "expected": {
+                    "status": null,
+                    "fields": []
+                  },
+                  "actual": {
+                    "status": null,
+                    "body": null
+                  },
+                  "result": "<Đúng|Sai>",
+                  "mismatch": null
+                }
+              ]
+            },
             "bugId": null,
             "executedAt": null
           }
@@ -28,7 +60,9 @@
       "traceability": [
         {
           "requirementId": "<REQ/BR/AC-từ-nguồn>",
-          "caseIds": ["<TC-ID-duy-nhất>"]
+          "caseIds": [
+            "<TC-ID-duy-nhất>"
+          ]
         }
       ]
     }

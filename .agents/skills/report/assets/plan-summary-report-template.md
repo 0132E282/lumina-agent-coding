@@ -6,7 +6,7 @@ Dùng ngay sau khi `planner` ghi xong plan JSON trong `docs/plans/`, trước kh
 - `Status` dùng đúng `TODO | IN_PROGRESS | BLOCKED | DONE`.
 - Task có UI: thêm `URL:` (route) và `Ảnh chứng:` khi đã có. Task có API: thêm `API:` khi đã chạy thật.
 
-`--------------------------------------------------------------------------------`
+`------------------------`
 
 Task: TASK-001 — Tên nêu rõ kết quả
 Status: TODO
@@ -15,7 +15,7 @@ File: path/to/file.ext
 - Việc cần làm 1
 - Việc cần làm 2
 
-`--------------------------------------------------------------------------------`
+`------------------------`
 
 **Tổng quan**: REQ [N] | Task [N] (P0 [n], P1 [n], P2 [n]) | Câu hỏi mở [N] | Rủi ro [N]. Plan: `docs/plans/<title-slug>-<yyyyMMdd>.json`.
 

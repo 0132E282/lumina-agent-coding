@@ -121,24 +121,18 @@ Sau mỗi lần Edit/Write, hook này chạy linter/type-checker tương ứng l
 - **An toàn**: không có linter tương ứng, file không thuộc loại hỗ trợ, hoặc output chỉ có tóm tắt 0 lỗi (`Found 0 errors`, `no errors`, `0 problems`...) → bỏ qua êm.
 - **Phụ thuộc**: cần `jq`; linter tương ứng ngôn ngữ (tuỳ chọn, thiếu thì bỏ qua).
 
-## test-reminder — tự chạy test tương ứng sau khi sửa file nguồn
+## test-reminder — chạy test tương ứng hoặc nhắc viết test sau khi sửa file nguồn
 
-Sau mỗi lần Edit/Write một file nguồn, hook này tìm file test tương ứng theo convention đặt tên phổ biến (`foo.test.ts`, `foo.spec.ts`, `test_foo.py`, `foo_test.py`...) và tự chạy, báo kết quả qua `additionalContext` — liên hệ [`rules/delivery.md`](../rules/delivery.md#chất-lượng-và-bằng-chứng) (regression test ngay sau khi sửa).
+Sau mỗi lần Edit/Write một file nguồn, hook này tìm file test tương ứng theo convention đặt tên phổ biến (`foo.test.ts`, `foo.spec.ts`, `__tests__/foo.test.ts`, `test_foo.py`, `foo_test.py`, `tests/test_foo.py`) rồi báo qua `additionalContext` — liên hệ [`rules/delivery.md`](../rules/delivery.md#chất-lượng-và-bằng-chứng):
 
-- **Script**: [`scripts/test-reminder.sh`](./scripts/test-reminder.sh)
+- **Có test**: tự chạy test đó và báo kết quả (regression test ngay sau khi sửa).
+- **Chưa có test**: nhắc cân nhắc viết test bằng skill [`testing`](../skills/testing/references/unit-testing.md).
+
+- **Script**: [`scripts/test-reminder.sh`](./scripts/test-reminder.sh) — một process mỗi Edit/Write, dùng chung logic tìm test cho cả hai nhánh.
 - **Loại hook**: `PostToolUse`, matcher `Edit|Write`
-- **Phạm vi**: chỉ JS/TS (`jest`/`vitest`) và Python (`pytest`) — hai stack phổ biến nhất, không cố cover mọi ngôn ngữ (xem [`rules/coding.md`](../rules/coding.md#kiss-yagni-và-phạm-vi)).
-- **An toàn**: không tìm thấy test tương ứng, hoặc thiếu test runner → bỏ qua êm.
-
-## missing-test-reminder — nhắc viết test khi chưa có test tương ứng
-
-Sau mỗi lần Edit/Write một file nguồn (JS/TS, Python), nếu **không** tìm thấy file test tương ứng theo convention đặt tên (ngược lại với `test-reminder` — hook đó xử lý trường hợp **có** tìm thấy), hook này nhắc cân nhắc viết test qua `additionalContext`, trỏ tới skill [`testing`](../skills/testing/references/unit-testing.md) — liên hệ [`rules/delivery.md`](../rules/delivery.md#chất-lượng-và-bằng-chứng).
-
-- **Script**: [`scripts/missing-test-reminder.sh`](./scripts/missing-test-reminder.sh)
-- **Loại hook**: `PostToolUse`, matcher `Edit|Write`
-- **Phạm vi**: cùng JS/TS và Python như `test-reminder`; bỏ qua file trong `node_modules/vendor/dist/build/migrations/tests`, file test, và file config/entry point (`index.*`, `main.*`, `config.*`, `settings.*`) — không mang business logic cần test riêng.
-- **An toàn**: chỉ nhắc (advisory) qua `additionalContext`, không chặn gì; luôn `exit 0`.
-- **Phụ thuộc**: cần `jq`.
+- **Phạm vi**: chỉ JS/TS (`jest`/`vitest`) và Python (`pytest`) — hai stack phổ biến nhất, không cố cover mọi ngôn ngữ (xem [`rules/coding.md`](../rules/coding.md#kiss-yagni-và-phạm-vi)). Bỏ qua file test. Nhánh nhắc còn bỏ qua file trong `node_modules/vendor/dist/build/migrations/__tests__/tests`, `*.d.ts` và file config/entry point (`index.*`, `main.*`, `config.*`, `settings.*`).
+- **An toàn**: thiếu test runner hoặc test không in gì → bỏ qua êm; nhánh nhắc chỉ advisory, không chặn gì; luôn `exit 0`.
+- **Phụ thuộc**: cần `jq`; test runner tương ứng (tuỳ chọn).
 
 ## dependency-audit-reminder — tự audit dependency sau khi cài
 
@@ -295,4 +289,4 @@ Khi cài global, hook được đăng ký ở cả `~/.claude/settings.json` (đ
 
 ## Đã bật sẵn trong chính repo này
 
-`hook/` nằm trong `.claude/hooks/` của repo này, và `.claude/settings.json` đã trỏ cả 22 hook tự viết (`audit-log`, `commit-msg-guard`, `bugfix-test-reminder`, `secret-scan`, `protected-branch-guard`, `format-before-push`, `condense-planner-input`, `agent-role-reminder`, `format-on-edit`, `ensure-final-newline`, `lint-on-edit`, `test-reminder`, `missing-test-reminder`, `dependency-audit-reminder`, `ci-workflow-lint`, `copy-browser-screenshot`, `remind-cleanup`, `report-reminder`, `report-usage`, `report-usage-check`, `turn-log`, `notify-done`) tới đúng path `.claude/hooks/scripts/...` — không cần cài thêm gì để dùng ngay trong repo này. Riêng hook `rtk hook claude` gọi tool ngoài, chỉ chạy được nếu máy đã cài [`rtk`](https://github.com/rtk-ai/rtk) (xem mục riêng ở trên). Khi copy sang project khác, dùng installer `lumina-agent` hoặc merge key `hooks` của `.claude/settings.json` theo hướng dẫn ở trên.
+`hook/` nằm trong `.claude/hooks/` của repo này, và `.claude/settings.json` đã trỏ cả 21 hook tự viết (`audit-log`, `commit-msg-guard`, `bugfix-test-reminder`, `secret-scan`, `protected-branch-guard`, `format-before-push`, `condense-planner-input`, `agent-role-reminder`, `format-on-edit`, `ensure-final-newline`, `lint-on-edit`, `test-reminder`, `dependency-audit-reminder`, `ci-workflow-lint`, `copy-browser-screenshot`, `remind-cleanup`, `report-reminder`, `report-usage`, `report-usage-check`, `turn-log`, `notify-done`) tới đúng path `.claude/hooks/scripts/...` — không cần cài thêm gì để dùng ngay trong repo này. Riêng hook `rtk hook claude` gọi tool ngoài, chỉ chạy được nếu máy đã cài [`rtk`](https://github.com/rtk-ai/rtk) (xem mục riêng ở trên). Khi copy sang project khác, dùng installer `lumina-agent` hoặc merge key `hooks` của `.claude/settings.json` theo hướng dẫn ở trên.

@@ -7,9 +7,9 @@
 - Cuối báo cáo (sau dòng phân cách cuối) ghi `Kiểm chứng:`, `Giới hạn:`, `Đánh giá:`, rồi `Token:` (và `Issue lãng phí:` chỉ khi hook liệt kê vi phạm) khi hook `report-usage` (chạy lúc gọi skill `report`) đã đưa số liệu thật vào context — chép đúng số và nhãn phạm vi (cả phiên hay từ mốc trước) từ chính lần hook chèn ở lượt này — không dùng số của lần trước, không tự tính; muốn có số mới thì gọi lại skill `report` trong lượt đó; không có số liệu thì bỏ dòng, không ghi N/A, không ước lượng. Chỉ nêu kết quả cuối, không kể quá trình (test-first, các lần thử, subagent nào làm gì); chỉ thêm code cũ/mới hoặc giải thích sâu khi được yêu cầu.
 - Thay đổi UI/frontend (gồm clone-website): thêm `URL:` (route đã kiểm tra trên trình duyệt thật) và `Ảnh chứng:` (đường dẫn screenshot thật, ví dụ `.agents/storage/evidence/<task-slug>/...png`; nêu `trước` nếu có và `kết quả` bắt buộc) — xem [`rules/frontend`](../../../rules/frontend.md). Bỏ khi không có UI.
 - Thay đổi API: chỉ khi có đụng API mới thêm `API:` (không có thì không ghi, không để dòng trống) — request thật (`METHOD URL` + giá trị input) và response thật (status, body) đã chạy, đối chiếu khớp kỳ vọng. Chưa chạy thì ghi `Chưa chạy`, không bịa response.
-- Xuất ngoài code fence; dòng phân cách là 80 dấu `-` trong inline code.
+- Xuất ngoài code fence; dòng phân cách là 24 dấu `-` trong inline code (vừa màn mobile).
 
-`--------------------------------------------------------------------------------`
+`------------------------`
 
 Path: path/to/file.ext
 
@@ -17,13 +17,13 @@ Path: path/to/file.ext
 
 **Big O: O(2n) — Good**
 
-`--------------------------------------------------------------------------------`
+`------------------------`
 
 Path: path/to/other.ext
 
 Đã sửa: [5](/absolute/path/to/other.ext:5): Thay đổi chính và vấn đề được giải quyết.
 
-`--------------------------------------------------------------------------------`
+`------------------------`
 
 **Kiểm chứng**: Lệnh và kết quả cuối cùng (vd. `npm test` 91/91 pass); nêu phần chưa kiểm tra.
 

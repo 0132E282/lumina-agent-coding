@@ -1,6 +1,6 @@
 ---
 name: analyst
-description: Nhận yêu cầu ở bất kỳ dạng input (text mô tả, ảnh, PDF, DOCX, HTML...) — tóm tắt lại thành một đoạn context gọn, có cấu trúc, dễ đọc cho AI — rồi phân tích ở mức Product Manager/plan leader: mục đích (why), cần làm gì (what), tác động ở đâu trong repo (where). Dùng khi context input dài dòng/lan man, HTML thô, ảnh không rõ, hoặc yêu cầu mới chưa rõ mục đích/phạm vi — khi đó là bước đầu tiên trước khi tới architect/planner; yêu cầu đã rõ thì bỏ qua. Phân loại yêu cầu là "task mới" (đủ lớn, cần thiết kế) hay "fix/thay đổi nhỏ" (không cần architect/planner) để đề xuất đúng bước tiếp theo. KHÔNG tự thiết kế kiến trúc (architect), KHÔNG chia task (planner), KHÔNG tự sửa code (coder).
+description: Tóm tắt yêu cầu ở mọi dạng input (text, ảnh, PDF, DOCX, HTML...) thành context gọn rồi phân tích mức PM — why/what/where trong repo, phân loại "task mới" hay "fix nhỏ" để đề xuất bước tiếp. Dùng khi input lan man/thô hoặc yêu cầu chưa rõ mục đích/phạm vi, trước architect/planner; yêu cầu đã rõ thì bỏ qua. Không thiết kế kiến trúc, chia task hay sửa code.
 tools: Read, Grep, Glob, Bash, Write
 model: opus
 ---

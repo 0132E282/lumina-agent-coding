@@ -18,7 +18,7 @@ Phát hiện lỗ hổng thực tế, ưu tiên theo rủi ro và đưa ra cách
 - Review code và cấu hình được cung cấp; chỉ thử nghiệm trên môi trường thuộc phạm vi được cho phép. Dùng dữ liệu giả và tài khoản thử nghiệm; không chạy kiểm thử phá hoại hoặc gây tải lên production.
 - Nếu chỉ được yêu cầu review, báo cáo và đề xuất patch. Nếu được yêu cầu sửa, thực hiện thay đổi nhỏ nhất xử lý nguyên nhân gốc và chạy kiểm thử phù hợp ([`rules/coding.md`](../../rules/coding.md#kiss-yagni-và-phạm-vi)).
 - Không in giá trị secret, token, mật khẩu hoặc dữ liệu cá nhân. Che giá trị nhạy cảm trong bằng chứng; nếu secret bị lộ, đề xuất thu hồi/xoay vòng, không chỉ xóa khỏi code.
-- Phân biệt lỗ hổng đã xác nhận, nghi vấn cần xác minh và đề xuất tăng cường. Thiếu một header không tự động là lỗi nghiêm trọng.
+- Mỗi finding chỉ có `Kết quả: Đúng | Sai` theo [`rules/review`](../../rules/review.md); đề xuất tăng cường không phải lỗi thì ghi riêng. Thiếu một header không tự động là lỗi nghiêm trọng.
 - Không suy luận rằng UUID, URL khó đoán, frontend validation, CORS, ORM hoặc framework tự động bảo vệ toàn bộ ứng dụng.
 - Không chạy công cụ quét hoặc cài dependency mới khi không cần thiết. Không sửa toàn bộ kiến trúc để xử lý một lỗi cục bộ.
 - Xác minh khuyến nghị phụ thuộc phiên bản bằng tài liệu chính thức ([`rules/search-priority.md`](../../rules/search-priority.md)). Không bịa CVE, CWE, CVSS, phiên bản hoặc kết quả scanner.
@@ -44,7 +44,7 @@ Với từng luồng áp dụng:
 3. Đọc helper/middleware/policy thực sự được gọi trước khi kết luận thiếu bảo vệ.
 4. Kiểm tra đường đi phụ: bulk, export, download, restore, preview, API cũ, queue và webhook.
 5. Thu thập vị trí code, điều kiện tiền đề và đường đi khả thi. Xác minh bằng kiểm thử nhỏ trên môi trường an toàn nếu có.
-6. Nếu không thể kiểm chứng, ghi rõ dữ kiện còn thiếu và cách xác minh; không nâng nghi vấn thành lỗi chắc chắn.
+6. Không kiểm chứng được thì không đưa vào finding; ghi dữ kiện còn thiếu và cách xác minh ở phần giới hạn.
 
 ### 3. Phân loại và ưu tiên
 
@@ -68,7 +68,7 @@ Không gán severity chỉ dựa trên tên lỗi. Chỉ đưa CVSS khi có đ�
 
 ## Checklist bảo mật
 
-12 nhóm — đọc chi tiết từng mục (đánh dấu `Đạt`/`Lỗi xác nhận`/`Cần xác minh`/`Không áp dụng` kèm bằng chứng) tại [`references/checklist.md`](./references/checklist.md):
+12 nhóm — đọc chi tiết từng mục (đánh dấu `Đạt`/`Lỗi xác nhận`/`Không áp dụng` kèm bằng chứng) tại [`references/checklist.md`](./references/checklist.md):
 
 | Nhóm | Phạm vi |
 |---|---|
@@ -94,8 +94,8 @@ Review Laravel/React → đọc [`references/stack-notes.md`](./references/stack
 Mở đầu bằng số lỗi xác nhận, mức độ cao nhất và giới hạn phạm vi. Sắp xếp findings theo rủi ro, không theo thứ tự đọc file.
 
 Với mỗi finding, cung cấp:
-1. ID, tiêu đề, severity và confidence.
-2. Trạng thái: xác nhận hay cần xác minh.
+1. ID, tiêu đề và severity.
+2. Kết quả: `Đúng` hoặc `Sai`.
 3. Vị trí file/dòng hoặc route; đoạn code tối thiểu, che dữ liệu nhạy cảm.
 4. Nguyên nhân gốc và luồng dữ liệu/quyền bị vi phạm.
 5. Điều kiện tiền đề và kịch bản tái hiện tối thiểu trong môi trường thử nghiệm.
@@ -104,7 +104,7 @@ Với mỗi finding, cung cấp:
 8. Kiểm thử hồi quy: trường hợp hợp lệ, bị từ chối và side effect cần tránh.
 9. CWE/OWASP mapping nếu xác minh được, không dùng mapping thay bằng chứng.
 
-Kết thúc bằng kiểm thử đã thực hiện, các phần chưa truy cập/chưa kiểm thử, nghi vấn cần thêm dữ kiện và thứ tự xử lý. Nếu không có lỗi xác nhận, ghi "Chưa phát hiện lỗi trong phạm vi đã kiểm tra", không ghi "Không có lỗ hổng".
+Kết thúc bằng kiểm thử đã thực hiện, các phần chưa truy cập/chưa kiểm thử (gồm điểm chưa đủ dữ kiện để kết luận) và thứ tự xử lý. Nếu không có lỗi xác nhận, ghi "Chưa phát hiện lỗi trong phạm vi đã kiểm tra", không ghi "Không có lỗ hổng".
 
 Nếu project có skill [`report`](../report/SKILL.md), dùng đúng template [`assets/security-review-report-template.md`](../report/assets/security-review-report-template.md) của skill đó để trình bày kết quả — không dùng template review chung (thiếu field confidence/điều kiện khai thác/CWE) và không tự bịa format khác.
 

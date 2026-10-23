@@ -1,6 +1,6 @@
 ---
 name: system-understanding
-description: Khảo sát và giải thích hệ thống hiện có trước khi coding, review hoặc tối ưu; lập bản đồ module, request flow, data flow, dependency, boundary, database và tác động liên module mà không tự redesign hay triển khai. Vẽ sơ đồ Mermaid (cấu trúc thư mục, ERD, user/system flow): references/diagrams.md.
+description: "Khảo sát và giải thích hệ thống hiện có trước khi coding, review hoặc tối ưu; lập bản đồ module, request flow, data flow, dependency, boundary, database và tác động liên module mà không tự redesign hay triển khai. Vẽ sơ đồ Mermaid (cấu trúc thư mục, ERD, user/system flow): references/diagrams.md."
 license: MIT
 metadata:
   version: "1.0"

@@ -1,6 +1,6 @@
 ---
 name: coding-frontend
-description: Triển khai và sửa frontend website có nội dung/CMS, hỗ trợ SEO, responsive và accessibility — HTML ngữ nghĩa, render dữ liệu, metadata, điều hướng, ảnh, form và an toàn XSS. Dùng khi code giao diện theo đặc tả hoặc mẫu UI/Figma có sẵn; không thay thế thiết kế UX/UI hay lập chiến lược nội dung. Áp dụng cho Claude Code, Codex và coding agent khác. Chuyển HTML/CSS tĩnh sang component framework: references/html-to-component.md.
+description: "Triển khai/sửa frontend website nội dung/CMS — HTML ngữ nghĩa, render dữ liệu, metadata SEO, điều hướng, ảnh, form, responsive, accessibility, an toàn XSS. Dùng khi code UI theo đặc tả hoặc mẫu UI/Figma có sẵn; không thay thiết kế UX/UI. HTML/CSS tĩnh sang component: references/html-to-component.md."
 license: MIT
 metadata:
   version: "1.0"

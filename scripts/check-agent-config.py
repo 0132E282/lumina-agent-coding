@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Validate shared directories and tool adapters without modifying files."""
 from pathlib import Path
+import re
 import sys
 import tomllib
 
@@ -31,6 +32,28 @@ for path in (root / '.codex/agents').glob('*.toml'):
             errors.append(f'Missing role source: {path.stem}')
     except tomllib.TOMLDecodeError as exc:
         errors.append(f'{path.name}: {exc}')
+# Stdlib-only (PyYAML is not guaranteed in CI): plain scalars with ": " or a reserved first char break strict YAML parsers.
+frontmatter_line = re.compile(r'([\w-]+):[ \t]+(.+)')
+markdown_sources = [
+    *(root / '.agents/skills').glob('*/SKILL.md'),
+    *(root / '.claude/agents').rglob('*.md'),
+    *(root / '.claude/commands').glob('*.md'),
+]
+for path in markdown_sources:
+    lines = path.read_text().splitlines()
+    if not lines or lines[0] != '---':
+        continue
+    for number, line in enumerate(lines[1:], start=2):
+        if line == '---':
+            break
+        match = frontmatter_line.fullmatch(line)
+        if not match:
+            continue
+        key, value = match.groups()
+        if value[0] in '"\'|>[{':
+            continue
+        if re.search(r':(\s|$)', value) or value[0] in '@`':
+            errors.append(f'{path.relative_to(root)}:{number}: unquoted frontmatter value for {key} must be quoted')
 errors.extend(find_docs_errors(root))
 if errors:
     raise SystemExit('\n'.join(errors))

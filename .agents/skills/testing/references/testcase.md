@@ -63,6 +63,17 @@ Dùng để **ghi nhận kết quả đã chạy** (không chỉ thiết kế) �
 - Helper phải kiểm tra `đã phân bổ = tổng case đầu vào`, ID không trùng, và ghi nhận đủ `Pass/Fail/Blocked/Skipped/Not Run` sau mỗi batch.
 - Nếu chưa có framework/runner hỗ trợ, chỉ ghi rõ kế hoạch batch và trạng thái `Not Run`; không tự thêm dependency để tạo chạy song song.
 
+## 7.2. Bằng chứng và kết quả API
+
+- Mọi case đã chạy (Pass/Fail) phải có bằng chứng thật: ảnh chụp màn hình cho UI (lưu `.agents/storage/evidence/<task-slug>/`, theo [`rules/frontend`](../../../rules/frontend.md)) hoặc request/response API thật cho API. Không có bằng chứng thì không ghi Pass/Fail.
+- Không ghi API chung chung ("API hoạt động bình thường", "các API OK"). Mỗi API là một mục riêng gồm:
+  - `METHOD URL` đầy đủ (path thật, không `/api/...`).
+  - Tham số đã gửi: path/query/body/header (che secret/PII), và tham số đó đúng hay sai so với contract.
+  - Expected theo contract: status, field/kiểu chính.
+  - Actual: status và response thật (rút gọn phần không liên quan).
+  - `Kết quả: Đúng | Sai`, không có loại khác. `Sai` phải chỉ rõ sai ở đâu: status, field, kiểu, giá trị hay tham số nào.
+- API chưa gọi được thì không ghi Đúng/Sai; case giữ `Blocked`/`Not Run` kèm lý do.
+
 ## 8. Tiêu chí chất lượng
 
 - Thực thi được: bước cụ thể, không mơ hồ ("kiểm tra form hoạt động" không phải một bước).
@@ -78,7 +89,7 @@ Ghi rõ giả định đang dùng. Điểm thiếu ảnh hưởng trực tiếp 
 
 - Trước khi tạo hoặc cập nhật bộ testcase, đọc `docs/testcases/index.json` nếu file này tồn tại; đây là dữ liệu testcase và kết quả, không phải mục lục file.
 - Lưu case, ma trận truy vết và trạng thái thực thi tại `docs/testcases/index.json`, giữ ID ổn định. Bổ sung case vào bộ có sẵn thay vì tạo bản trùng.
-- Suite và case mới có `title` và `createdAt` theo `YYYY-MM-DD`; mỗi lần chạy có `executedAt` theo ISO 8601. Mỗi case có vùng kết quả chạy gồm `status`, `actualResult`, `evidence` và `bugId` khi có. Case mới là `Not Run`; chỉ ghi `Pass`/`Fail` sau khi chạy và lưu bằng chứng. Giữ lịch sử lần chạy nếu schema hiện tại có lịch sử.
+- Suite và case mới có `title` và `createdAt` theo `YYYY-MM-DD`; mỗi lần chạy có `executedAt` theo ISO 8601. Mỗi case có vùng kết quả chạy gồm `status`, `actualResult`, `evidence` (`screenshots`, `apiChecks` theo [mục 7.2](#72-bằng-chứng-và-kết-quả-api)) và `bugId` khi có. Case mới là `Not Run`; chỉ ghi `Pass`/`Fail` sau khi chạy và lưu bằng chứng. Giữ lịch sử lần chạy nếu schema hiện tại có lịch sử.
 - Sau khi cập nhật testcase hoặc kết quả, parse JSON và đối soát số case, ID duy nhất, traceability và trạng thái.
 
 ### Testcase cấp repository

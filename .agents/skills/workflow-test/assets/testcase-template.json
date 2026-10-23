@@ -13,7 +13,44 @@
   "suites": [],
   "cases": [],
   "traceability": [],
-  "executions": [],
+  "executions": [
+    {
+      "id": "<execution-id>",
+      "caseId": "<TC-xxx>",
+      "executedAt": "<ISO 8601>",
+      "status": "<Pass|Fail|Blocked|Skipped|Not Run>",
+      "actualResult": null,
+      "evidence": {
+        "screenshots": [],
+        "apiCheckIds": []
+      },
+      "apiChecks": [
+        {
+          "id": "<API-01>",
+          "method": "<GET|POST|...>",
+          "url": "<URL thật đầy đủ>",
+          "params": {
+            "path": {},
+            "query": {},
+            "body": null,
+            "headers": {}
+          },
+          "paramsMatchContract": null,
+          "expected": {
+            "status": null,
+            "fields": []
+          },
+          "actual": {
+            "status": null,
+            "body": null
+          },
+          "result": "<Đúng|Sai>",
+          "mismatch": null
+        }
+      ],
+      "bugId": null
+    }
+  ],
   "algorithmComplexity": [
     {
       "id": "<algorithm-id>",
@@ -21,9 +58,23 @@
       "applies": null,
       "notApplicableReason": null,
       "inputs": [],
-      "before": { "time": null, "space": null, "allocation": null, "preprocessing": null },
-      "after": { "time": null, "space": null, "allocation": null, "preprocessing": null },
-      "io": { "queries": null, "apiCalls": null, "filesystem": null },
+      "before": {
+        "time": null,
+        "space": null,
+        "allocation": null,
+        "preprocessing": null
+      },
+      "after": {
+        "time": null,
+        "space": null,
+        "allocation": null,
+        "preprocessing": null
+      },
+      "io": {
+        "queries": null,
+        "apiCalls": null,
+        "filesystem": null
+      },
       "basis": "<static|measured|not-applicable>",
       "evidence": [],
       "limitations": []

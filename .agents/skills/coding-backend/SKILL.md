@@ -1,6 +1,6 @@
 ---
 name: coding-backend
-description: Triển khai và sửa backend website/CMS cung cấp nội dung, URL và dữ liệu SEO chính xác — CRUD, xuất bản, slug/redirect, canonical, HTTP status, sitemap, API, cache, media, đa ngôn ngữ và bảo mật. Dùng khi code backend theo đặc tả và stack hiện có; không thay thế thiết kế kiến trúc, viết content hay audit SEO tổng thể. Áp dụng cho Claude Code, Codex và coding agent khác.
+description: Triển khai/sửa backend website/CMS — CRUD, xuất bản, slug/redirect, canonical, HTTP status, sitemap, API, cache, media, đa ngôn ngữ, bảo mật. Dùng khi code backend theo đặc tả và stack hiện có; không thay thiết kế kiến trúc hay audit SEO tổng thể.
 license: MIT
 metadata:
   version: "1.0"

@@ -14,7 +14,7 @@ This is an agent configuration repo. `.agents/rules/` is the single shared sourc
 ## Skills, roles, and workflows
 
 - `.agents/skills/` is the shared skill source; `.claude/skills/` and `.codex/skills/` symlink there. `.codex/agents/*.toml` corresponds to `.claude/agents/*.md` (except `codex-review`, which runs in Claude Code to call Codex).
-- Workflows: `$workflow-{analyze,plan,implement,test,review,report,git,cleanup}`. Claude calls the slash commands in `.claude/commands/` directly; for review, type `/review` to use Claude Code's built-in `code-review`/`security-review` skills — there is no `.claude/commands/review.md` (see [`workflow-review`](./.agents/skills/workflow-review/SKILL.md)). Planning: native Plan mode + `.agents/skills/workflow-plan/SKILL.md`. Git: `/git` or `$workflow-git`, default `commit all`; no auto-push, no temp/secret files.
+- Workflows: `$workflow-{analyze,plan,implement,debug,test,review,report,git,cleanup}`. Claude calls the slash commands in `.claude/commands/` directly; for review, type `/review` to use Claude Code's built-in `code-review`/`security-review` skills — there is no `.claude/commands/review.md` (see [`workflow-review`](./.agents/skills/workflow-review/SKILL.md)). Planning: native Plan mode + `.agents/skills/workflow-plan/SKILL.md`. Git: `/git` or `$workflow-git` ([`rules/git`](./.agents/rules/git.md)).
 - Hand off via `docs/` per role; maintain approval checkpoints. Do not auto-run the full pipeline.
 
 ## Execution discipline
@@ -41,8 +41,8 @@ Discovers skills/rules from `.agents/`. TOML files in `.codex/agents/` are not A
 | Requirement analysis | `workflow-analyze` / `analyst` |
 | System survey / diagram | `system-understanding`; `database` for schema/query |
 | Plan | Plan mode + `workflow-plan` / `planner` |
-| Implementation | `coder` — main session never `Edit`/`Write` product code |
-| Debug / bug fix | `debugs` (fix via `coder`) |
+| Implementation | `coder` |
+| Debug / bug fix — also any request with `sửa`/`fix` aimed at a bug or wrong behavior | `/debug` / `$workflow-debug` → `debugs` (fix via `coder`) |
 | Test / QA | `workflow-test` / `qa-tester`; unit test: `testing` |
 | Code review | `workflow-review` / `reviewer`; security: `review-web-security` |
 | New UI / redesign | `designer` |
@@ -56,7 +56,9 @@ Docs default to `AI-readable` (minimal context, link instead of repeat). `human-
 
 - Next agent reads the handoff from `docs/` — do not make the user re-explain it.
 - Each agent stays in its role; valid previous handoff → reuse.
-- Delegate with exact file/diff/scope in the prompt.
+- Delegate with exact file/diff/scope in the prompt. Subagents hand back with the [handoff template](./.agents/skills/report/assets/subagent-handoff-template.md); only the orchestrator reports to the user.
+- Run agents in parallel only when their file sets do not overlap; otherwise run sequentially or isolate with a worktree (`isolation: worktree`).
+- After a hand-back, the orchestrator re-runs the required checks itself before reporting; a subagent's self-reported result is not evidence.
 
 ## Maintaining configuration
 
