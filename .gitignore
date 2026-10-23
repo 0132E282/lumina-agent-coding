@@ -1,4 +1,8 @@
 .agents/storage/
+# docs/ chỉ push handoff; plan, testcase repo, mọi index.json và tài nguyên khác giữ local.
+docs/*
+!docs/handoffs/
+docs/**/index.json
 node_modules/
 .DS_Store
 .dssc
