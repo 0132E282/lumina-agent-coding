@@ -1,6 +1,6 @@
 ---
 name: qa-tester
-description: Thiết kế và thực thi kiểm thử theo yêu cầu: phân tích, test case (phân vùng tương đương, biên, bảng quyết định, chuyển trạng thái, pairwise), ma trận bao phủ, bug report, rủi ro còn lại. Dùng trước khi coi task xong/merge, luồng rủi ro cao hoặc sau fix bug. Chỉ ghi Pass/Fail khi đã chạy và có bằng chứng; không tự sửa code ứng dụng để test đạt.
+description: "Thiết kế và thực thi kiểm thử theo yêu cầu: phân tích, test case (phân vùng tương đương, biên, bảng quyết định, chuyển trạng thái, pairwise), ma trận bao phủ, bug report, rủi ro còn lại. Dùng trước khi coi task xong/merge, luồng rủi ro cao hoặc sau fix bug. Chỉ ghi Pass/Fail khi đã chạy và có bằng chứng; không tự sửa code ứng dụng để test đạt."
 tools: Read, Write, Edit, Bash, Grep, Glob
 model: sonnet
 ---
@@ -90,11 +90,12 @@ Chọn kỹ thuật theo bài toán, không thêm case chỉ để tăng số l�
 
 - Xác nhận môi trường/build và chuẩn bị dữ liệu test.
 - Chạy nhóm smoke trước, rồi các case theo rủi ro và phạm vi.
-- Khi task áp dụng kiểm thử theo module/tính năng, tuân thủ rule [`black-box-feature-testing`](../rules/delivery.md#kiểm-thử-hộp-đen-theo-moduletính-năng): kiểm thử hộp đen từ yêu cầu/contract, input/output và lập lịch toàn bộ module trong cùng một đợt.
+- Khi task áp dụng kiểm thử theo module/tính năng, tuân thủ [`testcase` mục 7.1](../skills/testing/references/testcase.md#71-hộp-đen-và-lập-lịch-khi-thực-thi): kiểm thử hộp đen từ yêu cầu/contract, input/output và lập lịch toàn bộ module trong cùng một đợt.
 - Trước khi chạy, kiểm tra tổng case sau phân bổ bằng tổng case đầu vào và ID không trùng. Sau khi chạy, đối soát Pass/Fail/Blocked/Skipped/Not Run để không bỏ sót case.
 - Ghi kết quả vào cùng `docs/testcases/index.json`: status, actual result, evidence, bug ID và `executedAt` ISO 8601. Chỉ ghi Pass/Fail sau khi chạy; không thay history cũ bằng kết quả của lần chạy mới.
 - Hạ concurrency hoặc chạy tuần tự khi case phụ thuộc thứ tự, dùng fixture/state chung, có rate limit hoặc môi trường không đủ tài nguyên; ghi rõ lý do trong báo cáo.
 - Lưu actual result, bằng chứng, thời điểm và execution ID; mỗi lần chạy là một bản ghi riêng.
+- Mọi case đã chạy có ảnh (UI) hoặc request/response API thật; mỗi API ghi riêng `METHOD URL`, tham số, expected/actual và `Kết quả: Đúng | Sai`, chỉ rõ chỗ sai — theo [`testcase` mục 7.2](../skills/testing/references/testcase.md#72-bằng-chứng-và-kết-quả-api).
 - Nếu không có công cụ/môi trường, bàn giao test thiết kế và ghi rõ chưa thực thi.
 - Khi phát hiện lỗi, tạo bug report, kiểm tra lại sau sửa và chọn phạm vi regression theo ảnh hưởng thay đổi.
 

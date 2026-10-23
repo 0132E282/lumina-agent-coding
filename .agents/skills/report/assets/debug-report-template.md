@@ -2,7 +2,7 @@
 
 Dùng khi chẩn đoán/sửa lỗi theo skill [`debugs`](../../debugs/SKILL.md). Chỉ nêu kết quả cuối (vd "test fail trước sửa, pass sau sửa" là kết quả), không kể lại diễn biến các lần thử. Thay đổi file vẫn liệt kê theo [mẫu Change](./change-report-template.md); mẫu này thay phần tóm tắt lỗi. Bỏ dòng không áp dụng.
 
-`--------------------------------------------------------------------------------`
+`------------------------`
 
 **Lỗi**: tiêu đề ngắn — **Mức độ**: S1|S2|S3|S4 (lý do)
 

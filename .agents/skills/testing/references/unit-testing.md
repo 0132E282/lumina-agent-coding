@@ -2,7 +2,7 @@
 
 Code test/helper tuân thủ type, comment, DRY/SRP và readability trong [`coding-standards`](../../coding-standards/SKILL.md). Khi chạy nhiều module/case, giữ đủ case accounting và chỉ hạ concurrency vì dependency/state/rate-limit/tài nguyên có bằng chứng.
 
-Khi kiểm thử hộp đen theo module/tính năng và lập lịch nhiều module, áp dụng thêm rule [`black-box-feature-testing`](../../../rules/delivery.md#kiểm-thử-hộp-đen-theo-moduletính-năng).
+Khi kiểm thử hộp đen theo module/tính năng và lập lịch nhiều module, áp dụng thêm [`testcase` mục 7.1](./testcase.md#71-hộp-đen-và-lập-lịch-khi-thực-thi).
 
 Lớp **kỹ thuật viết test code** khi implement — khác [`qa-tester`](../../../agents/qa-tester.md) (thiết kế ca kiểm thử **nghiệp vụ** từ đặc tả). Skill này không quan tâm case nghiệp vụ nào cần test, chỉ quan tâm cách viết test đúng kỹ thuật cho một đơn vị code.
 
@@ -30,7 +30,7 @@ Chỉ double hóa dependency **không xác định/không kiểm soát được*
 
 ## Hộp đen và chạy song song theo tính năng
 
-Khi task kiểm thử theo module/tính năng, áp dụng rule [`black-box-feature-testing`](../../../rules/delivery.md#kiểm-thử-hộp-đen-theo-moduletính-năng) làm nguồn chuẩn cho thiết kế hộp đen, lập lịch toàn bộ module, chia case và đối soát kết quả.
+Khi task kiểm thử theo module/tính năng, áp dụng [`testcase` mục 7.1](./testcase.md#71-hộp-đen-và-lập-lịch-khi-thực-thi) làm nguồn chuẩn cho thiết kế hộp đen, lập lịch toàn bộ module, chia case và đối soát kết quả.
 
 ## Dấu hiệu test có vấn đề
 

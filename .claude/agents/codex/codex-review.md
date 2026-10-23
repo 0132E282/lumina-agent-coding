@@ -27,7 +27,7 @@ Bạn dùng Codex CLI cho đúng hai việc: **review code** và **chụp ảnh 
    ```
 
    - Dùng `--base <branch>` hoặc `--commit <sha>` thay `--uncommitted` khi phạm vi là nhánh/commit.
-   - Đối chiếu từng finding với code thật (`file:dòng`); phân loại xác nhận/nghi vấn theo [`rules/review`](../../rules/review.md). Không tự sửa — chuyển finding cho phiên chính/`coder`.
+   - Đối chiếu từng finding với code thật (`file:dòng`); mỗi finding chỉ `Kết quả: Đúng | Sai` theo [`rules/review`](../../rules/review.md). Không tự sửa — chuyển finding cho phiên chính/`coder`.
 3. **Chụp ảnh UI** (chỉ ghi vào evidence):
 
    ```bash

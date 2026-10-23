@@ -1,6 +1,6 @@
 # 🧪 Test Case Writer
 
-Khi thiết kế hoặc thực thi test hộp đen theo module/tính năng, áp dụng thêm rule [`black-box-feature-testing`](../../../rules/delivery.md#kiểm-thử-hộp-đen-theo-moduletính-năng).
+Khi thiết kế hoặc thực thi test hộp đen theo module/tính năng, áp dụng [mục 7.1](#71-hộp-đen-và-lập-lịch-khi-thực-thi).
 
 Skill viết **test case có cấu trúc** cho một hành vi/luồng cụ thể, dùng ngay trong phiên hiện tại. Khác agent [`qa-tester`](../../../agents/qa-tester.md) — agent đó làm toàn bộ quy trình (phân tích yêu cầu diện rộng, đánh giá rủi ro P0–P3, thực thi, bug report, bàn giao) cho một feature; skill này là lớp kỹ thuật "viết đúng định dạng, đúng kỹ thuật" khi chỉ cần vài test case nhanh, không cần spawn agent riêng. Dùng chung field/định dạng với `qa-tester` để hai bên tương thích.
 
@@ -57,9 +57,22 @@ Dùng để **ghi nhận kết quả đã chạy** (không chỉ thiết kế) �
 
 ## 7.1. Hộp đen và lập lịch khi thực thi
 
-Khi test theo module/tính năng, áp dụng rule [`black-box-feature-testing`](../../../rules/delivery.md#kiểm-thử-hộp-đen-theo-moduletính-năng); không lặp lại hoặc tự đặt giới hạn khác trong test case.
+- Đánh giá từ requirement/contract, input, output quan sát được và side effect được phép; không dùng implementation nội bộ để quyết định Pass/Fail.
+- Mọi case phải truy vết requirement và expected input/output; toàn bộ module/case trong scope phải được lập lịch và đối soát đủ, không bỏ hoặc chạy trùng.
+- Tổng Pass/Fail/Blocked/Skipped/Not Run phải giải thích đủ đầu vào.
 - Helper phải kiểm tra `đã phân bổ = tổng case đầu vào`, ID không trùng, và ghi nhận đủ `Pass/Fail/Blocked/Skipped/Not Run` sau mỗi batch.
 - Nếu chưa có framework/runner hỗ trợ, chỉ ghi rõ kế hoạch batch và trạng thái `Not Run`; không tự thêm dependency để tạo chạy song song.
+
+## 7.2. Bằng chứng và kết quả API
+
+- Mọi case đã chạy (Pass/Fail) phải có bằng chứng thật: ảnh chụp màn hình cho UI (lưu `.agents/storage/evidence/<task-slug>/`, theo [`rules/frontend`](../../../rules/frontend.md)) hoặc request/response API thật cho API. Không có bằng chứng thì không ghi Pass/Fail.
+- Không ghi API chung chung ("API hoạt động bình thường", "các API OK"). Mỗi API là một mục riêng gồm:
+  - `METHOD URL` đầy đủ (path thật, không `/api/...`).
+  - Tham số đã gửi: path/query/body/header (che secret/PII), và tham số đó đúng hay sai so với contract.
+  - Expected theo contract: status, field/kiểu chính.
+  - Actual: status và response thật (rút gọn phần không liên quan).
+  - `Kết quả: Đúng | Sai`, không có loại khác. `Sai` phải chỉ rõ sai ở đâu: status, field, kiểu, giá trị hay tham số nào.
+- API chưa gọi được thì không ghi Đúng/Sai; case giữ `Blocked`/`Not Run` kèm lý do.
 
 ## 8. Tiêu chí chất lượng
 
@@ -76,7 +89,7 @@ Ghi rõ giả định đang dùng. Điểm thiếu ảnh hưởng trực tiếp 
 
 - Trước khi tạo hoặc cập nhật bộ testcase, đọc `docs/testcases/index.json` nếu file này tồn tại; đây là dữ liệu testcase và kết quả, không phải mục lục file.
 - Lưu case, ma trận truy vết và trạng thái thực thi tại `docs/testcases/index.json`, giữ ID ổn định. Bổ sung case vào bộ có sẵn thay vì tạo bản trùng.
-- Suite và case mới có `title` và `createdAt` theo `YYYY-MM-DD`; mỗi lần chạy có `executedAt` theo ISO 8601. Mỗi case có vùng kết quả chạy gồm `status`, `actualResult`, `evidence` và `bugId` khi có. Case mới là `Not Run`; chỉ ghi `Pass`/`Fail` sau khi chạy và lưu bằng chứng. Giữ lịch sử lần chạy nếu schema hiện tại có lịch sử.
+- Suite và case mới có `title` và `createdAt` theo `YYYY-MM-DD`; mỗi lần chạy có `executedAt` theo ISO 8601. Mỗi case có vùng kết quả chạy gồm `status`, `actualResult`, `evidence` (`screenshots`, `apiChecks` theo [mục 7.2](#72-bằng-chứng-và-kết-quả-api)) và `bugId` khi có. Case mới là `Not Run`; chỉ ghi `Pass`/`Fail` sau khi chạy và lưu bằng chứng. Giữ lịch sử lần chạy nếu schema hiện tại có lịch sử.
 - Sau khi cập nhật testcase hoặc kết quả, parse JSON và đối soát số case, ID duy nhất, traceability và trạng thái.
 
 ### Testcase cấp repository

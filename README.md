@@ -37,6 +37,7 @@ After install finishes, **start a new agent session**. Claude hooks only run in 
 | Command | Claude Code      | Codex               | What it does                                                      |
 | ------- | ---------------- | ------------------- | ----------------------------------------------------------------- |
 | Plan    | native Plan mode | native Plan mode    | Adds task, acceptance-criteria and test handoffs                  |
+| Debug   | `/debug`         | `$workflow-debug`   | Diagnoses and fixes a bug; also triggered by "sửa"/"fix" a bug    |
 | Test    | `/test`          | `$workflow-test`    | Tests the active plan; use `repo` or `pr` for broader scope       |
 | Review  | `/review`        | `$workflow-review`  | Reviews current changes, a repo snapshot, or a PR                 |
 | Commit  | `/git`           | `$workflow-git`     | Commits eligible changes (does not push); supports merges and PRs |

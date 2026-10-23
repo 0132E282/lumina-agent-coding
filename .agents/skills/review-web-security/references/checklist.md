@@ -1,6 +1,6 @@
 # Checklist bảo mật chi tiết
 
-Đánh dấu mỗi mục theo trạng thái: `Đạt`, `Lỗi xác nhận`, `Cần xác minh`, `Không áp dụng`. Với `Đạt` hoặc `Lỗi xác nhận`, dẫn bằng chứng; với `Không áp dụng`, nêu lý do ngắn. Gom những mục cùng nguyên nhân thành một finding.
+Đánh dấu mỗi mục theo trạng thái: `Đạt`, `Lỗi xác nhận`, `Không áp dụng`. Với `Đạt` hoặc `Lỗi xác nhận`, dẫn bằng chứng; với `Không áp dụng`, nêu lý do ngắn. Gom những mục cùng nguyên nhân thành một finding.
 
 ## A. Xác thực và tài khoản
 

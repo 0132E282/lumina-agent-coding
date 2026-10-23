@@ -15,7 +15,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "rtk hook claude"
+            "command": "command -v rtk >/dev/null 2>&1 || exit 0; rtk hook claude"
           },
           {
             "type": "command",
@@ -78,10 +78,6 @@
           {
             "type": "command",
             "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/test-reminder.sh\""
-          },
-          {
-            "type": "command",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/missing-test-reminder.sh\""
           },
           {
             "type": "command",

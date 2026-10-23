@@ -143,3 +143,18 @@ test('invalid docs indexes are reported', context => {
   write(unsynced, 'docs/repo/index.json', [{ title: 'Case', description: 'Case.', tags: [], path: 'docs/repo/case.md' }]);
   assertFails(unsynced, /^docs\/repo\/index\.json: entry docs\/repo\/case\.md missing from docs\/index\.json$/m);
 });
+
+test('an unquoted frontmatter value containing ": " is reported; the quoted value passes', context => {
+  const unquoted = validTree(context);
+  write(unquoted, '.agents/skills/report/SKILL.md', '---\nname: report\ndescription: a: b\n---\n# Report\n');
+  write(unquoted, '.claude/agents/coder.md', '---\nname: coder\ndescription: Implements code: carefully.\n---\n# Coding agent\n');
+  const result = assertFails(unquoted, /^\.agents\/skills\/report\/SKILL\.md:3: unquoted frontmatter value for description/m);
+  assert.match(result.stderr, /^\.claude\/agents\/coder\.md:3: unquoted frontmatter value for description/m);
+
+  const quoted = validTree(context);
+  write(quoted, '.agents/skills/report/SKILL.md', '---\nname: report\ndescription: "a: b"\n---\n# Report\n');
+  write(quoted, '.claude/agents/coder.md', "---\nname: coder\ndescription: 'Implements code: carefully.'\n---\n# Coding agent\n");
+  const quotedResult = check(quoted);
+  assert.equal(quotedResult.status, 0, quotedResult.stderr);
+  assert.match(quotedResult.stdout, SUCCESS);
+});

@@ -37,7 +37,6 @@
           { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/format-on-edit.sh\"", "async": true, "timeout": 120 },
           { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/lint-on-edit.sh\"", "async": true, "timeout": 120, "additionalContextLimit": 2500 },
           { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/test-reminder.sh\"", "async": true, "timeout": 120, "additionalContextLimit": 2500 },
-          { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/missing-test-reminder.sh\"", "async": true, "timeout": 30, "additionalContextLimit": 1500 },
           { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/ci-workflow-lint.sh\"", "async": true, "timeout": 120, "additionalContextLimit": 2500 }
         ]
       },
