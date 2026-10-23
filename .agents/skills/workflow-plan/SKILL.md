@@ -11,7 +11,7 @@ description: "Bổ sung quy trình lập kế hoạch của project vào Plan mo
 
 - Mode, quyền ghi và định dạng trả lời do runtime quyết định. Skill không tự bật/tắt mode, không giả lập tool chuyển mode, không vượt read-only bằng subagent.
 - Không sửa code sản phẩm, cài dependency, migrate hoặc commit/push khi đang planning. Tái dùng handoff/plan còn hợp lệ; không chạy lại phân tích cho cùng input.
-- Nếu native mode chỉ cho đọc hoặc ghi một plan file chuyên biệt, tuân thủ vị trí/format đó; trình bày nội dung kế hoạch trong output được phép, ghi rõ JSON/index chưa lưu. Khi runtime cho phép ghi tài liệu, lưu bàn giao theo rule dưới đây trước triển khai. Không nói đã lưu khi chưa ghi.
+- Không ghi plan file chuyên biệt của runtime ngoài repo hay dưới `~/` (vd `~/.claude/plans/`, `~/.codex/`, `~/.gemini/`), kể cả khi Plan mode của Claude/Codex/Antigravity gợi ý; plan chỉ lưu trong repo theo [`plan-format`](../../rules/docs.md#implementation-plan-contract). Khi native mode read-only, trình bày plan trong chat, ghi rõ JSON/index chưa lưu, rồi lưu ngay sau khi được duyệt và trước triển khai. Không nói đã lưu khi chưa ghi.
 
 ## Quy trình theo phạm vi
 
@@ -19,5 +19,5 @@ description: "Bổ sung quy trình lập kế hoạch của project vào Plan mo
 2. Research chỉ khi thiếu bằng chứng. System design chỉ khi cần HLD/LLD/mô hình dữ liệu mới; dùng vai trò tương ứng và file handoff khi runtime cho phép. Không mặc định full pipeline cho thay đổi nhỏ.
 3. Dùng vai trò [`planner`](../../agents/planner.md) để lập yêu cầu → task → AC → test, phạm vi, dependency, file/hành vi cụ thể, thứ tự thực hiện, rollback/rủi ro và câu hỏi còn thiếu. Chỉ giao subagent khi workflow/phạm vi cần và runtime hỗ trợ; nếu không, thực hiện planning tuần tự theo vai trò, không giả lập delegation.
 4. Review plan khi độ phức tạp/rủi ro cần hoặc người dùng yêu cầu. `reviewer` chỉ nêu findings; planner xử lý findings trong phạm vi kế hoạch. Báo ngắn phần đã chốt/còn thiếu, không tự chuyển sang implement.
-5. Khi được phép ghi, lưu JSON hợp lệ tại `docs/plans/<title-slug>-<yyyyMMdd>.json` theo [`plan-format`](../../rules/docs.md#implementation-plan-contract), mỗi task có `filesToChange` là path đã xác minh. Cập nhật `docs/plans/index.json` với entry chỉ gồm `title`, `description`, `tags`, `path`. Native plan file là draft; JSON là bàn giao có cấu trúc, không duy trì hai nguồn yêu cầu trái nhau.
+5. Khi được phép ghi, lưu JSON hợp lệ tại `docs/plans/<title-slug>-<yyyyMMdd>.json` theo [`plan-format`](../../rules/docs.md#implementation-plan-contract), mỗi task có `filesToChange` là path đã xác minh. Cập nhật `docs/plans/index.json` với entry chỉ gồm `title`, `description`, `tags`, `path`. JSON trong repo là nguồn plan duy nhất.
 6. Xuất Plan Summary bằng skill `report`, nêu trạng thái lưu file và kiểm chứng thật. Dùng điểm duyệt/thoát Plan mode của runtime; chỉ triển khai khi người dùng đã cho phép và runtime cho phép. Không tạo thêm vòng xác nhận trùng với phê duyệt đã có.

@@ -11,7 +11,7 @@ Agent kiến trúc, lập kế hoạch triển khai theo đặc tả — đúng 
 
 Bạn CHỈ ở chế độ **PLAN**: đọc code/tài liệu, kiểm tra không đổi dữ liệu, viết kế hoạch — **không sửa code sản phẩm, không cài dependency, không migrate**. IMPLEMENT do `coder` làm sau khi duyệt; REVIEW do `reviewer`/`qa-tester`.
 
-Khi chạy trong Plan mode native, kết hợp skill [`workflow-plan`](../skills/workflow-plan/SKILL.md); tuân thủ quyền ghi, vị trí plan file và format của runtime. Các yêu cầu ghi JSON/index bên dưới chỉ thực hiện khi runtime cho phép ghi tài liệu vào repo; nếu chưa cho phép thì dùng output/plan file được phép và báo chưa lưu bàn giao. Không dùng delegation để vượt read-only.
+Khi chạy trong Plan mode native, kết hợp skill [`workflow-plan`](../skills/workflow-plan/SKILL.md); tuân thủ quyền ghi của runtime nhưng không ghi plan file ra ngoài repo hay dưới `~/` (vd `~/.claude/plans/`, `~/.codex/`, `~/.gemini/`). Các yêu cầu ghi JSON/index bên dưới chỉ thực hiện khi runtime cho phép ghi tài liệu vào repo; nếu chưa cho phép thì trình bày plan trong output và báo chưa lưu bàn giao. Không dùng delegation để vượt read-only.
 
 ## Nguyên tắc bắt buộc
 

@@ -27,6 +27,6 @@ Routing từng index, schema artifact, TOC/anchor và kiểm chứng link: [`doc
 - Implementation plan là JSON hợp lệ tại `docs/plans/<title-slug>-<yyyyMMdd>.json`, có `title`, `description`, `tags`, `content`, `createdAt`; không dùng Markdown plan tự do.
 - `docs/plans/index.json` cập nhật cùng lượt và entry chỉ có `title`, `description`, `tags`, `path`.
 - Task là object đồng nhất, giữ đủ field/schema kể cả khi giá trị là `null`/`[]`; mọi path phải được xác minh và trace REQ/BR → AC → task → test.
-- Runtime plan mode/quyền ghi có ưu tiên; không vượt read-only hoặc tuyên bố đã lưu khi chưa ghi.
+- Plan chỉ lưu trong repo tại `docs/plans/`; tuyệt đối không ghi plan ra ngoài repo, nhất là thư mục home `~/` (kể cả plan file/artifact mặc định của Claude/Codex/Antigravity như `~/.claude/plans/`, `~/.codex/`, `~/.gemini/`). Plan mode read-only thì trình bày plan trong chat, lưu JSON ngay sau khi được duyệt; không tuyên bố đã lưu khi chưa ghi.
 
 Luồng planning và schema task/traceability đầy đủ: [`workflow-plan`](../skills/workflow-plan/SKILL.md), [`planner`](../agents/planner.md) và [`implementation-plan-template.json`](../skills/docs/assets/implementation-plan-template.json).
