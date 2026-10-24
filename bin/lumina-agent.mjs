@@ -134,7 +134,7 @@ function parseSettings(content, label) {
   }
 }
 
-const repositoryRelativeHook = /^(bash|node) "\$\(git rev-parse --show-toplevel\)\/\.agents\/hooks\/scripts\/([^"$`\\]+)"$/;
+const repositoryRelativeHook = /^(bash|node) "(?:\$CLAUDE_PROJECT_DIR|\$\(git rev-parse --show-toplevel\))\/\.agents\/hooks\/scripts\/([^"$`\\]+)"$/;
 
 function absoluteHookCommand(command, target) {
   const match = repositoryRelativeHook.exec(command);
@@ -151,10 +151,28 @@ class InstallConflictError extends Error {
   }
 }
 
+// Hợp nhất từng danh sách quyền (ask/deny/allow...) theo union, giữ nguyên quyền sẵn có của người dùng.
+function mergePermissions(existing, incoming) {
+  const merged = Object.assign(Object.create(null), object(existing, 'Existing permissions'));
+  for (const [list, entries] of Object.entries(object(incoming, 'Source permissions'))) {
+    if (!Array.isArray(entries) || (Object.hasOwn(merged, list) && !Array.isArray(merged[list]))) {
+      if (Object.hasOwn(merged, list) && canonical(merged[list]) !== canonical(entries)) throw new InstallConflictError(`.claude/settings.json (permissions.${list})`);
+      merged[list] = entries;
+      continue;
+    }
+    merged[list] = [...new Set([...(merged[list] ?? []), ...entries])];
+  }
+  return merged;
+}
+
 function mergeSettings(existing, incoming, { overwrite = false } = {}) {
   const merged = Object.assign(Object.create(null), object(existing, 'Existing settings'));
   for (const [key, value] of Object.entries(object(incoming, 'Source settings'))) {
     if (key === 'hooks') continue;
+    if (key === 'permissions' && Object.hasOwn(merged, key)) {
+      merged[key] = mergePermissions(merged[key], value);
+      continue;
+    }
     if (Object.hasOwn(merged, key) && canonical(merged[key]) !== canonical(value) && !overwrite) {
       throw new InstallConflictError(`.claude/settings.json (${key})`);
     }
@@ -261,10 +279,16 @@ export async function installFromSource({ source, target, dryRun = false, global
   }
   // ! Global mode bỏ .claude/rules — Claude tự nạp ~/.claude/rules, trùng với .claude/rules của project (rule bị nạp hai lần).
   if (global) allEntries.delete('.claude/rules');
+  // ! Global mode đặt CONTRACT.md ở ~/.agents/ (dùng chung Claude/Codex), không ghi ~/CONTRACT.md.
+  const contractEntry = allEntries.get('CONTRACT.md');
+  if (global && contractEntry) {
+    allEntries.delete('CONTRACT.md');
+    allEntries.set('.agents/CONTRACT.md', { ...contractEntry, relative: '.agents/CONTRACT.md' });
+  }
   const entries = allEntries;
   let block = instructionBlock;
   if (global) {
-    block = instructionBlock.replace(/\]\(\.\/([^)]*)\)/g, (_, relative) => `](<${path.join(target, relative)}>)`);
+    block = instructionBlock.replace(/\]\(\.\/([^)]*)\)/g, (_, relative) => `](<${path.join(target, relative === 'CONTRACT.md' ? '.agents/CONTRACT.md' : relative)}>)`);
     const settingsEntry = entries.get('.claude/settings.json');
     if (settingsEntry) {
       const settings = object(parseSettings(settingsEntry.content, 'Source settings'), 'Source settings');

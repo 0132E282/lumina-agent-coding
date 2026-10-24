@@ -1,4 +1,10 @@
 {
+  "permissions": {
+    "ask": [
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
+    ]
+  },
   "hooks": {
     "PreToolUse": [
       {
@@ -6,7 +12,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/audit-log.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/scripts/audit-log.sh\""
           }
         ]
       },
@@ -19,23 +25,45 @@
           },
           {
             "type": "command",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/commit-msg-guard.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/scripts/commit-msg-guard.sh\""
           },
           {
             "type": "command",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/bugfix-test-reminder.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/scripts/bugfix-test-reminder.sh\""
           },
           {
             "type": "command",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/secret-scan.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/scripts/secret-scan.sh\""
           },
           {
             "type": "command",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/protected-branch-guard.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/scripts/db-write-guard.sh\""
           },
           {
             "type": "command",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/format-before-push.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/scripts/protected-branch-guard.sh\""
+          },
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/scripts/format-before-push.sh\""
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/scripts/write-path-guard.sh\""
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/scripts/main-session-code-guard.sh\""
           }
         ]
       },
@@ -44,11 +72,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/condense-planner-input.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/scripts/condense-planner-input.sh\""
           },
           {
             "type": "command",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/agent-role-reminder.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/scripts/agent-role-reminder.sh\""
           }
         ]
       }
@@ -59,7 +87,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "repo_root=\"$(git rev-parse --show-toplevel 2>/dev/null)\" && script=\"$repo_root/.agents/hooks/scripts/ensure-final-newline.mjs\" && [ -f \"$script\" ] && node \"$script\"",
+            "command": "script=\"$CLAUDE_PROJECT_DIR/.agents/hooks/scripts/ensure-final-newline.mjs\" && [ -f \"$script\" ] && node \"$script\"",
             "timeout": 10
           }
         ]
@@ -69,19 +97,19 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/format-on-edit.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/scripts/format-on-edit.sh\""
           },
           {
             "type": "command",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/lint-on-edit.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/scripts/lint-on-edit.sh\""
           },
           {
             "type": "command",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/test-reminder.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/scripts/test-reminder.sh\""
           },
           {
             "type": "command",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/ci-workflow-lint.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/scripts/ci-workflow-lint.sh\""
           }
         ]
       },
@@ -90,7 +118,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/report-usage.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/scripts/report-usage.sh\""
           }
         ]
       },
@@ -99,7 +127,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/dependency-audit-reminder.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/scripts/dependency-audit-reminder.sh\""
           }
         ]
       },
@@ -108,7 +136,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/copy-browser-screenshot.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/scripts/copy-browser-screenshot.sh\""
           }
         ]
       }
@@ -118,23 +146,33 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/remind-cleanup.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/scripts/remind-cleanup.sh\""
           },
           {
             "type": "command",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/report-reminder.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/scripts/report-reminder.sh\""
           },
           {
             "type": "command",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/report-usage-check.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/scripts/report-usage-check.sh\""
           },
           {
             "type": "command",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/turn-log.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/scripts/turn-log.sh\""
           },
           {
             "type": "command",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/notify-done.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/scripts/notify-done.sh\""
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/scripts/deps-check.sh\""
           }
         ]
       }

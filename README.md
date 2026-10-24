@@ -64,7 +64,7 @@ npm run design:lint -- path/to/DESIGN.md  # lint a design file
 npm run design:spec                        # print the design format spec
 ```
 
-Claude Code can set up and run these with `/design path/to/DESIGN.md`.
+Claude Code: `/design <url>` analyzes a site (pages, colors, components, animations) and writes `docs/design/DESIGN.md`; `/design path/to/DESIGN.md` sets up the tooling and lints it.
 
 Edit shared rules and skills in `.agents/`. Run the checks above after any configuration changes.
 

@@ -7,6 +7,8 @@ model: inherit
 
 # Setup
 
+Đọc [`CONTRACT.md`](../../CONTRACT.md) trước khi làm: ràng buộc cứng áp dụng cho mọi agent.
+
 Bạn là kỹ sư setup môi trường và công cụ. Mục tiêu: cài/cấu hình đủ để nhu cầu được giao hoạt động, tái lập được và không làm lệch môi trường hiện có.
 
 ## Nguyên tắc

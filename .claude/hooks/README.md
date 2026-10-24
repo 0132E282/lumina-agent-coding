@@ -270,9 +270,47 @@ Tool Claude in Chrome lưu ảnh chụp ở thư mục tạm hệ thống mà OS
 - **Phụ thuộc**: cần `jq`. Chỉ Claude Code (Codex không có tool này).
 - **Giới hạn**: chưa kiểm với `tool_response` thật của Chrome; ảnh chỉ trả về dạng base64 (không có đường dẫn file) thì không copy được.
 
+## write-path-guard — chặn ghi secret và plan ngoài repo
+
+Trước mỗi `Write`/`Edit`, hook `deny` khi ghi file `.env`/`.env.*` (trừ `.env.example|sample|template|dist`) hoặc nội dung chứa header private key — enforce [CONTRACT](../../CONTRACT.md) #6; và khi đường dẫn nằm ngoài project mà khớp `*/.claude/plans/*`, `*/.codex/*`, `*/.gemini/*` hoặc `*/plans/*` (plan chỉ lưu ở `docs/plans/`, xem [`rules/docs`](../rules/docs.md#implementation-plan-contract)).
+
+- **Script**: [`scripts/write-path-guard.sh`](./scripts/write-path-guard.sh) (dùng helper [`_resolve-path.sh`](./scripts/_resolve-path.sh))
+- **Loại hook**: `PreToolUse`, matcher `Write|Edit`
+- **Chuẩn hoá path**: mở `~`, gộp `.`/`..`, realpath thư mục tổ tiên gần nhất còn tồn tại (đi qua symlink). Đường dẫn trong project luôn qua bước kiểm path ngoài project; memory (`~/.claude/projects/*/memory/`), backup, scratchpad, evidence vẫn ghi được.
+- **An toàn**: thông báo không in nội dung ghi; thiếu `jq` hoặc không chuẩn hoá được path → không chặn.
+- **Giới hạn**: chỉ xét `content`/`new_string`; `..` được gộp theo chữ trước khi resolve symlink; Bash ghi file (`echo > .env`) không bị chặn.
+
+## main-session-code-guard — phiên chính sửa code thì hỏi
+
+`ask` khi payload không có `agent_id` (phiên chính; subagent có field này — xem `audit-log`) mà file là code. Không hỏi với config/docs (`*.md|json|toml|yml|yaml`, mọi path dưới `.agents/ .claude/ .codex/ docs/ .github/`) và file ngoài project — [CONTRACT](../../CONTRACT.md) #3.
+
+- **Script**: [`scripts/main-session-code-guard.sh`](./scripts/main-session-code-guard.sh)
+- **Loại hook**: `PreToolUse`, matcher `Edit|Write`
+- **Giới hạn**: file không đuôi/dotfile (`.gitignore`...) tính là code nên bị hỏi; thiếu `jq` → không hỏi.
+
+## db-write-guard — hỏi trước lệnh ghi database
+
+`ask` (không `deny`) khi lệnh Bash thực thi SQL ghi qua `psql|mysql|mariadb|sqlite3|mongosh|redis-cli` (INSERT/UPDATE/DELETE/DROP/ALTER/TRUNCATE/CREATE/FLUSHALL/FLUSHDB, kể cả SQL trong heredoc) hoặc migrate/seed (`artisan migrate|db:seed`, `prisma migrate|db push|db seed`, `rails db:migrate|db:seed`, `knex migrate|seed`, `alembic upgrade`, `sequelize db:migrate|db:seed`, `typeorm migration:run`) — [CONTRACT](../../CONTRACT.md) #2.
+
+- **Script**: [`scripts/db-write-guard.sh`](./scripts/db-write-guard.sh), tách lệnh bằng `command_invocations` của [`_shell-command.sh`](./scripts/_shell-command.sh)
+- **Loại hook**: `PreToolUse`, matcher `Bash`
+- **Giới hạn**: không đọc file `psql -f x.sql`, `npm run migrate`, alias/script; không phân biệt DB thật với sandbox.
+
+## deps-check — cảnh báo thiếu jq/node
+
+Khi bắt đầu phiên, nếu thiếu `jq` hoặc `node` trong `PATH`, hook in `additionalContext` báo các guard bị vô hiệu (chúng fail-open); đủ cả hai thì im lặng.
+
+- **Script**: [`scripts/deps-check.sh`](./scripts/deps-check.sh)
+- **Loại hook**: `SessionStart`
+- **An toàn**: luôn `exit 0`; dựng JSON bằng `printf` vì `jq` có thể chính là thứ thiếu.
+
+## Quyền hỏi cho commit/push
+
+`.claude/settings.json` có `permissions.ask` = `Bash(git commit:*)`, `Bash(git push:*)`: Claude Code luôn hỏi người dùng trước `git commit`/`git push` — [CONTRACT](../../CONTRACT.md) #1. Hook `commit-msg-guard`/`protected-branch-guard` vẫn chạy như cũ.
+
 ## Giới hạn chung (best-effort)
 
-Các hook dò lệnh git (`commit-msg-guard`, `bugfix-test-reminder`, `secret-scan`, `protected-branch-guard`, `format-before-push`) phân tích tĩnh chuỗi lệnh Bash bằng [`scripts/_shell-command.sh`](./scripts/_shell-command.sh), không chạy shell thật. Các dạng sau vẫn không quét được:
+Mọi guard cần `jq`: thiếu `jq` thì fail-open (cho qua, `deps-check` chỉ cảnh báo). Các hook dò lệnh git (`commit-msg-guard`, `bugfix-test-reminder`, `secret-scan`, `protected-branch-guard`, `format-before-push`) phân tích tĩnh chuỗi lệnh Bash bằng [`scripts/_shell-command.sh`](./scripts/_shell-command.sh), không chạy shell thật. Các dạng sau vẫn không quét được:
 
 - Alias git (`git ci`, alias trong `~/.gitconfig`) và hàm/alias shell bọc git.
 - Script file gọi git (`bash deploy.sh`, `make release`, `npm run release`), hook git, chương trình khác tự gọi git.
@@ -282,7 +320,7 @@ Các hook dò lệnh git (`commit-msg-guard`, `bugfix-test-reminder`, `secret-sc
 
 ## _dedupe-guard — tránh hook chạy hai lần
 
-Khi cài global, hook được đăng ký ở cả `~/.claude/settings.json` (đường dẫn tuyệt đối) và `.claude/settings.json` của project (`$(git rev-parse --show-toplevel)`). Hai chuỗi lệnh khác nhau nên Claude Code chạy cả hai trên mỗi event, làm lặp log và kết quả.
+Khi cài global, hook được đăng ký ở cả `~/.claude/settings.json` (đường dẫn tuyệt đối) và `.claude/settings.json` của project (`"$CLAUDE_PROJECT_DIR"`). Hai chuỗi lệnh khác nhau nên Claude Code chạy cả hai trên mỗi event, làm lặp log và kết quả.
 
 - **File**: [`scripts/_dedupe-guard.sh`](./scripts/_dedupe-guard.sh), được `source` ở đầu mọi hook `.sh`; `ensure-final-newline.mjs` có đoạn kiểm tra tương đương ở chế độ hook.
 - **Cơ chế**: bản chạy từ thư mục khác `<project>/.claude/hooks/scripts` thoát ngay (`exit 0`, không đọc stdin, không in gì) nếu project đã có cùng script; project khác không có script thì bản user-level chạy bình thường. So sánh bằng đường dẫn vật lý (`pwd -P`), nên đi qua symlink `.agents/hooks` vẫn tính là bản project.
@@ -291,4 +329,4 @@ Khi cài global, hook được đăng ký ở cả `~/.claude/settings.json` (đ
 
 ## Đã bật sẵn trong chính repo này
 
-Thư mục thật là `.claude/hooks/`; `.agents/hooks` là symlink tới `../.claude/hooks`. `.claude/settings.json` và `.codex/hooks.json` gọi script qua `.agents/hooks/scripts/...`. `settings.json` trỏ cả 21 hook tự viết (danh sách ở các mục trên); `.codex/hooks.json` trỏ 17, thiếu 4 hook chỉ dành cho Claude Code (`copy-browser-screenshot`, `report-usage`, `report-usage-check`, `turn-log`). Dùng ngay trong repo này. `rtk hook claude` gọi tool ngoài, chỉ chạy khi máy có [`rtk`](https://github.com/rtk-ai/rtk). Sang project khác: dùng installer `lumina-agent` hoặc merge key `hooks` của `.claude/settings.json`.
+Thư mục thật là `.claude/hooks/`; `.agents/hooks` là symlink tới `../.claude/hooks`. `.claude/settings.json` gọi script qua `"$CLAUDE_PROJECT_DIR"/.agents/hooks/scripts/...` (chạy được khi cwd ngoài git repo), `.codex/hooks.json` qua `$(git rev-parse --show-toplevel)/.agents/hooks/scripts/...`. `settings.json` trỏ cả 25 hook tự viết (danh sách ở các mục trên); `.codex/hooks.json` trỏ 17, thiếu 8 hook chỉ dành cho Claude Code (`copy-browser-screenshot`, `report-usage`, `report-usage-check`, `turn-log`, `write-path-guard`, `main-session-code-guard`, `db-write-guard`, `deps-check`). Dùng ngay trong repo này. `rtk hook claude` gọi tool ngoài, chỉ chạy khi máy có [`rtk`](https://github.com/rtk-ai/rtk). Sang project khác: dùng installer `lumina-agent` hoặc merge key `hooks` của `.claude/settings.json`.

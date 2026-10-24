@@ -1,33 +1,28 @@
 ---
-description: Setup DESIGN.md tooling trong project, xem spec và lint tài liệu thiết kế
-argument-hint: "[đường dẫn DESIGN.md; mặc định DESIGN.md tại project hiện tại]"
+description: Tự tạo DESIGN.md và tài liệu design vào docs/design/ từ link (website, sitemap, ảnh, hoạt ảnh); không có link thì lint DESIGN.md
+argument-hint: "[URL | sitemap | ảnh | đường dẫn DESIGN.md] [ghi chú]"
 ---
 
-Giao vai trò `setup` thiết lập DESIGN.md tooling cho **project đang mở**: $ARGUMENTS
+Chọn một chế độ theo `$ARGUMENTS`: **tạo** nếu có URL/sitemap/ảnh/recording, **lint** nếu là đường dẫn `DESIGN.md` hoặc không có argument.
 
-Agent đọc vai trò [`setup`](../agents/setup.md), hướng dẫn project và rule liên quan trước khi thực hiện. Nếu runtime không hỗ trợ delegation, thực hiện tuần tự theo cùng vai trò và nêu rõ giới hạn.
+## Chế độ tạo (có link hoặc ảnh)
 
-## Phạm vi
+Đọc `AGENTS.md`, `CONTRACT.md`, [`rules/frontend`](../rules/frontend.md), skill [`clone-website`](../skills/clone-website/SKILL.md) và [`animations`](../skills/animations/SKILL.md) trước. Giao `ui-cloner` (khảo sát) rồi `designer` (viết tài liệu); runtime không hỗ trợ delegation thì làm tuần tự cùng vai trò và nêu giới hạn. Không viết code sản phẩm, không clone UI, không commit/push.
 
-- Lệnh này cho phép cài devDependency `@google/design.md` và thêm hai npm scripts bên dưới vào package của project đang mở. Giữ package manager, phiên bản đã có, lockfile, scripts và dependency khác; không cài global vào `~/` dù command được cài tại home.
-- Nếu project chưa có `package.json`, tạo manifest tối thiểu `private: true` để phục vụ tooling; không đổi manifest của workspace cha. Với monorepo, dùng package đang làm việc; nếu chưa xác định được package đích, hỏi đường dẫn trước khi cài.
-- Không tạo lại UI, theme hoặc tự sinh/ghi đè `DESIGN.md`. Chỉ đọc file được chỉ định; không có file thì setup + spec, báo lint chưa chạy vì thiếu file.
+1. **Thu thập toàn bộ nguồn**: kiểm tra truy cập, status/redirect; liệt kê mọi trang cùng origin qua sitemap/điều hướng (nhiều trang thì chốt danh sách với người dùng); với mỗi trang đọc HTML/DOM, CSS, computed style, font, asset, breakpoint, trạng thái và tương tác. Dùng công cụ trình duyệt nếu runtime có để chụp ảnh và đo computed style; thiếu thì dùng pipeline của `clone-website` và ghi rõ phần không quan sát được.
+2. **Phân tích hoạt ảnh** từ link: `@keyframes`, `transition`, `animation-timeline`, thư viện (GSAP, Motion, Lottie...), trigger (hover, scroll, load, click), thuộc tính đổi, thời lượng, easing, nhánh reduced-motion. Giá trị không đo được ghi "chưa xác minh", không đoán.
+3. **Ghi vào `docs/design/`** (thư mục khác nếu người dùng chỉ định):
+   - `DESIGN.md` đúng spec (`npm run design:spec`): front matter token (`colors`, `typography`, `rounded`, `spacing`, `components`) và các section Overview, Colors, Typography, Layout, Elevation & Depth, Shapes, Components, Do's and Don'ts, rồi `## Images`, `## Motion`, `## Pages`. Component dùng chung nằm ở đây; màu có hex thật và contrast tính bằng công thức, không ước lượng.
+   - `index.md` liệt kê mọi trang và trạng thái; mỗi trang một file (section từ trên xuống, nội dung, trạng thái, responsive, hoạt ảnh); `animations.md` cho hoạt ảnh.
+   - `images/`: ảnh chứng thật của từng trang (cùng viewport) và ảnh màu; không chụp được thì ghi lý do, không dùng ảnh giả.
+   - Cập nhật `docs/index.json` cho mọi file `.md` mới. Chỉ ghi giá trị quan sát được; chỗ thiếu ghi "chưa xác minh".
+4. **Chứng minh**: chạy `npm run design:lint -- docs/design/DESIGN.md` và `python3 scripts/check_docs.py`; giữ exit code và findings thật, không sửa nội dung chỉ để lint đạt. Đối chiếu mọi hex trong ảnh/trang với token trong `DESIGN.md`.
+5. Báo bằng skill `report`: link đã đọc, số trang đã/chưa phân tích, ảnh chứng, kết quả lint, phần chưa xác minh. Việc code sau đó giao `coder`, bám đúng `docs/design/`.
 
-## Thực hiện
+## Chế độ lint (đường dẫn hoặc không có argument)
 
-1. Đọc `package.json`, lockfile và hướng dẫn project. Xác định package manager, runtime tương thích và dependency đã cài. Tái sử dụng tooling hiện có; không tự nâng phiên bản nếu package đã khai báo.
-2. Nếu thiếu dependency, dùng package manager hiện có thêm `@google/design.md` làm devDependency. Với npm: `npm install --save-dev @google/design.md@^0.4.0`. Nếu đã khai báo nhưng binary chưa có, cài theo lockfile/hướng dẫn project thay vì tải qua `npx`. Giữ peer dependency và kiểm tra TLS mặc định; không dùng `--force`.
-3. Bổ sung các key còn thiếu vào `scripts`:
+Mặc định `docs/design/DESIGN.md`. Giao vai trò `setup`:
 
-   ```json
-   {
-     "design:lint": "designmd lint",
-     "design:spec": "designmd spec"
-   }
-   ```
-
-   Nếu key đã có nội dung khác, giữ nguyên và báo xung đột; không chạy script xung đột như thể đó là tooling này. Không thay toàn bộ `scripts`.
-4. Chạy spec bằng script của package manager hiện có (npm: `npm run design:spec`). Dùng kết quả làm căn cứ cho format, không suy đoán schema.
-5. Với file `$ARGUMENTS` hoặc `DESIGN.md` tại package đích nếu không truyền đường dẫn, kiểm tra file tồn tại rồi lint (npm: `npm run design:lint -- "path/to/DESIGN.md"`). Truyền đường dẫn như một argument, không nội suy input thành shell code. Giữ exit code/findings thật; không tự sửa tài liệu để lint đạt.
-6. Kiểm tra diff manifest/lockfile đúng phạm vi. Báo dependency/phiên bản, package đích, script đã thêm, kết quả spec/lint và lỗi còn lại bằng skill `report`. Không commit/push.
-
+- Dependency `@google/design.md` đã khai báo thì cài theo lockfile (`npm ci`), không tải qua `npx`; chưa khai báo thì thêm devDependency `@google/design.md@^0.4.0` và hai script `"design:lint": "designmd lint"`, `"design:spec": "designmd spec"` (giữ script khác, báo xung đột nếu key đã có nội dung khác). Không cài global vào `~/`, không `--force`; chưa có `package.json` thì tạo manifest tối thiểu `private: true`, monorepo chưa rõ package đích thì hỏi trước.
+- Chạy `npm run design:spec` làm căn cứ, rồi `npm run design:lint -- "<đường dẫn>"` (truyền path như argument, không nội suy shell). Không tự ghi đè hay sửa `DESIGN.md` để lint đạt; thiếu file thì báo lint chưa chạy.
+- Báo dependency/phiên bản, script, kết quả spec/lint và lỗi còn lại bằng skill `report`; kiểm diff manifest/lockfile đúng phạm vi.

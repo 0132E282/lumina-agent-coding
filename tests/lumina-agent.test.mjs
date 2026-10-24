@@ -342,11 +342,13 @@ test('global install preserves user configuration and resolves hooks from anothe
   for (const relative of ['.claude/CLAUDE.md', '.codex/AGENTS.md']) {
     const content = await fs.readFile(path.join(options.target, relative), 'utf8');
     assert.match(content, /^# Existing/);
-    assert.ok(content.includes(`](<${path.join(options.target, 'CONTRACT.md')}>)`));
+    assert.ok(content.includes(`](<${path.join(options.target, '.agents/CONTRACT.md')}>)`));
     assert.doesNotMatch(content, /\]\(\.\//);
   }
   await assert.rejects(fs.stat(path.join(options.target, 'AGENTS.md')), { code: 'ENOENT' });
   await assert.rejects(fs.stat(path.join(options.target, 'CLAUDE.md')), { code: 'ENOENT' });
+  await assert.rejects(fs.stat(path.join(options.target, 'CONTRACT.md')), { code: 'ENOENT' });
+  assert.ok(await fs.stat(path.join(options.target, '.agents/CONTRACT.md')));
   const settings = JSON.parse(await fs.readFile(path.join(options.target, '.claude/settings.json'), 'utf8'));
   assert.equal(settings.model, 'existing-model');
   const command = settings.hooks.PreToolUse[0].hooks[0].command;
@@ -414,7 +416,7 @@ test('project instructions and settings survive; matching hook commands are dedu
     model: 'existing-model',
     hooks: { PreToolUse: [{ matcher: '.*', hooks: [
       { type: 'command', command: 'bash custom.sh' },
-      { type: 'command', command: 'bash "$(git rev-parse --show-toplevel)/.agents/hooks/scripts/audit-log.sh"' },
+      { type: 'command', command: 'bash "$CLAUDE_PROJECT_DIR/.agents/hooks/scripts/audit-log.sh"' },
     ] }] },
   };
   await fs.writeFile(path.join(options.target, '.claude/settings.json'), JSON.stringify(settings));
@@ -422,7 +424,8 @@ test('project instructions and settings survive; matching hook commands are dedu
   const instructions = await fs.readFile(path.join(options.target, 'AGENTS.md'), 'utf8');
   assert.ok(instructions.startsWith(projectInstructions));
   const merged = JSON.parse(await fs.readFile(path.join(options.target, '.claude/settings.json'), 'utf8'));
-  assert.deepEqual(merged.permissions, settings.permissions);
+  assert.deepEqual(merged.permissions.deny, settings.permissions.deny);
+  assert.ok(merged.permissions.ask.includes('Bash(git commit:*)'));
   assert.equal(merged.model, 'existing-model');
   assert.equal(merged.hooks.PreToolUse[0].hooks.length, 2);
   assert.equal((await installFromSource(options)).changes, 0);

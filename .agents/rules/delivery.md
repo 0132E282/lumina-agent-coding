@@ -8,7 +8,7 @@ description: "Áp dụng khi triển khai, kiểm thử/kiểm chứng và báo 
 ## Triển khai theo yêu cầu
 
 - Triển khai/sửa code phải theo vai trò [`coder`](../agents/coder.md), đúng task/plan, dependency và file/hành vi đã được duyệt.
-- Trước khi ghi đè/đồng bộ config agent ngoài repo (`~/.agents`, `~/.claude`, `~/.codex`, `~/.gemini`, `~/CONTRACT.md`), luôn backup bản cũ vào `~/Documents/backup/agents/<tên>-<yyyyMMdd>/`; không ghi đè backup cũ, không để backup ở scratchpad hay `/tmp`.
+- Trước khi ghi đè/đồng bộ config agent ngoài repo (`~/.agents`, `~/.claude`, `~/.codex`, `~/.gemini`), luôn backup bản cũ vào `~/Documents/backup/agents/<tên>-<yyyyMMdd>/`; không ghi đè backup cũ, không để backup ở scratchpad hay `/tmp`.
 - Trước bàn giao, loại hunk ngoài scope, kiểm chứng luồng bị ảnh hưởng, sync docs/testcase repo và dùng [`report`](../skills/report/SKILL.md); không tự review/commit.
 
 Trình tự đọc plan, triển khai, kiểm chứng và bàn giao: [`workflow-implement`](../skills/workflow-implement/SKILL.md).

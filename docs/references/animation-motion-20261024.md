@@ -15,12 +15,7 @@ Ngày kiểm: 2026-10-24. Kết quả nghiên cứu bằng subagent `researcher`
 - [SL] Nên animate: feedback hành động, chuyển trạng thái, định hướng không gian, thứ bậc. Không nên: trang trí lặp vô hạn, animation chặn thao tác, animation là thông tin duy nhất.
 - [KT] Số ms/easing chính thức: trang token Material 3 trả rỗng (https://m3.material.io/styles/motion/easing-and-duration/tokens-specs). Chỉ xác nhận M3 có token duration `short1..extra-long4` và easing emphasized/standard.
 
-### Thời lượng đề xuất [SL]
-
-- Hover/focus/press 100–150 ms ease-out; toggle/tab 150–250 ms.
-- Modal/drawer/popover 200–300 ms, thoát ngắn hơn khoảng 70–80%.
-- Route 200–400 ms (ưu tiên crossfade); stagger 30–60 ms/mục, tổng ≤ khoảng 400 ms.
-- Scroll reveal 300–500 ms một lần; skeleton shimmer chậm; spinner tuyến tính liên tục.
+Thời lượng đề xuất [SL]: xem [`SKILL.md`](../../.agents/skills/animations/SKILL.md#thời-lượng-và-easing-mặc-định).
 
 ## Accessibility
 
@@ -47,14 +42,7 @@ Ngày kiểm: 2026-10-24. Kết quả nghiên cứu bằng subagent `researcher`
 
 ## Mẫu hiệu ứng web [SL]
 
-Chung cho reduced-motion: bỏ transform/scale/slide, giữ fade ngắn hoặc đổi trạng thái tức thì.
-
-- Hover/press: transition `transform`/`opacity`/màu. Focus ring không animate chuyển động.
-- Toggle/tab: translate/`scaleX`. Accordion: `grid-template-rows 0fr→1fr` hoặc `interpolate-size`.
-- Modal/drawer/popover: `@starting-style` + `allow-discrete`. Toast: fade + translate nhỏ + `aria-live`.
-- Skeleton: shimmer chậm; reduced tĩnh/pulse nhẹ. Stagger: delay theo index; reduced bỏ delay.
-- Scroll reveal: `IntersectionObserver` hoặc scroll-driven; reduced hiện luôn. Number counter: reduced hiện giá trị cuối.
-- Route: View Transitions crossfade. Spinner: giữ nếu thiết yếu hoặc thay bằng text/progress tĩnh.
+Xem [`references/web.md`](../../.agents/skills/animations/references/web.md#mẫu-hiệu-ứng-thông-dụng).
 
 ## App/mobile
 
@@ -67,8 +55,3 @@ Chung cho reduced-motion: bỏ transform/scale/slide, giữ fade ngắn hoặc �
 ## Cần xác minh trước khi coi là chuẩn
 
 Bảng hỗ trợ MDN/caniuse (cross-document View Transitions, scroll-driven, `allow-discrete`), W3C 2.2.2/2.3.1, CLS/INP trên web.dev, token M3, tài liệu Apple/Android/Reanimated, license Motion/Lottie/auto-animate.
-
-## Quy tắc áp dụng
-
-- UX trước UI; giao diện quản trị đơn giản, dễ dùng, chỉ hiệu ứng có chức năng.
-- Mọi hiệu ứng có nhánh reduced-motion; không là thông tin duy nhất.

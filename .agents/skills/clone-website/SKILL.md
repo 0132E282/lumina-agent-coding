@@ -30,6 +30,8 @@ Nguồn tham chiếu (ảnh, website, sitemap, recording, HTML, design file) là
 
 ## Quy trình
 
+**Chuyển nguồn thành tài liệu design trước khi code**: mọi nguồn (URL, ảnh, sitemap, recording, HTML, link hoạt ảnh) phải được phân tích và ghi vào `docs/design/` rồi mới giao `coder`: `DESIGN.md` (đúng spec `npm run design:spec`: token màu/typography/layout/component, lint bằng `npm run design:lint`), `index.md` (mọi trang), một file cho mỗi trang, `animations.md` (hoạt ảnh quan sát được: trigger, thuộc tính đổi, thời lượng, easing, reduced-motion) và ảnh chứng trong `images/`; cập nhật `docs/index.json`. Phần không đọc được ghi rõ chưa xác minh, không đoán. `coder` bám tài liệu này, không tự thiết kế.
+
 Trước khi code từ URL, phải kiểm tra khả năng truy cập, status/redirect, HTML/DOM, computed style, font, asset, viewport/responsive và interaction; ghi rõ phần hoạt động, bị chặn hoặc chưa kiểm chứng.
 
 1. **Xác định nguồn chuẩn**: phân loại ảnh/screenshot, URL website, URL sitemap, recording, HTML, Figma hoặc nhiều nguồn; ghi rõ nguồn nào ưu tiên khi có mâu thuẫn. Với sitemap, chỉ dùng nó để inventory và phải chốt URL route hoặc nhóm route cần clone trước khi code, không tự clone toàn bộ sitemap. Nếu không truy cập/đọc được nguồn, dừng phần suy đoán và báo blocker cụ thể.

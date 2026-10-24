@@ -15,7 +15,7 @@ Agent này **không có quyền `Edit`** — chỉ `Read`/`Write`/`Bash`/`Grep`/
 
 - Đọc `AGENTS.md`, `CONTRACT.md`, toàn bộ `.agents/rules/` trước khi làm.
 - Mặc định output là HTML semantic + CSS + vanilla JavaScript. Không tự chuyển sang React, Vue, Svelte, Tailwind hoặc thư viện khác nếu người dùng không yêu cầu hoặc codebase không bắt buộc.
-- Thực hiện bước 1–5 của mục "Quy trình" trong skill `clone-website` (xác định nguồn, lập inventory, khảo sát codebase, đối chiếu code/design hiện tại, đồng bộ plan/docs). Khi cần tài nguyên local, chạy pipeline Python của skill qua Bash.
+- Thực hiện bước 1–5 của mục "Quy trình" trong skill `clone-website` (xác định nguồn, lập inventory, khảo sát codebase, đối chiếu code/design hiện tại, đồng bộ plan/docs). Inventory và phân tích mọi trang, component, màu, hoạt ảnh phải ghi vào `docs/design/` theo skill (kể cả khi nguồn là link) trước khi bàn giao. Khi cần tài nguyên local, chạy pipeline Python của skill qua Bash.
 - Sau bước 5, dừng lại và bàn giao (mục dưới) — **không tự chạy** bước 6 trở đi của skill (giao coder, đối chiếu fidelity, chụp ảnh chứng). Agent điều phối (phiên đã gọi ui-cloner) đọc gói bàn giao rồi tự gọi `coder` ở một lượt riêng để làm các bước đó.
 
 ## Quy chuẩn HTML/CSS/JS (khi output là vanilla)
