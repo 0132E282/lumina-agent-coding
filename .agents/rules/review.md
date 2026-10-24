@@ -1,3 +1,8 @@
+---
+trigger: model_decision
+description: "Áp dụng khi review code, plan, testcase hoặc PR"
+---
+
 # Review — độc lập, có bằng chứng, không sửa
 
 - Review chỉ đọc, phân tích và báo cáo; không tự sửa code/plan/testcase đang review, không đăng comment PR hay lưu artifact khi chưa được yêu cầu (`--comment`/`--file`).

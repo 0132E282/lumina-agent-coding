@@ -97,8 +97,25 @@ test('a broken .claude/skills symlink is reported', context => {
 
 test('a broken symlink directly under .agents is reported', context => {
   const root = validTree(context);
-  fs.rmSync(path.join(root, '.claude/hooks'), { recursive: true });
-  assertFails(root, /^Broken link: \.agents\/hooks$/m);
+  link(root, '../nope', '.agents/dangling');
+  const result = assertFails(root, /^Broken link: \.agents\/dangling$/m);
+  assert.equal(result.stderr.trim().split('\n').length, 1, result.stderr);
+});
+
+test('hook script paths with shell variables are skipped and trailing punctuation is not part of the path', context => {
+  const root = validTree(context);
+  write(root, '.claude/settings.json', { hooks: { Stop: [{ hooks: [
+    { type: 'command', command: 'bash "$ROOT/.agents/hooks/scripts/$NAME.sh"' },
+    { type: 'command', command: 'bash "${ROOT}/.agents/hooks/scripts/${NAME}"' },
+    { type: 'command', command: 'echo run .agents/hooks/scripts/hook.sh.' },
+    { type: 'command', command: 'bash ".agents/hooks/scripts/hook.sh"' },
+  ] }] } });
+  const result = check(root);
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, SUCCESS);
+
+  write(root, '.claude/settings.json', { hooks: { Stop: [{ hooks: [{ type: 'command', command: 'echo .agents/hooks/scripts/gone.sh.' }] }] } });
+  assertFails(root, /^\.claude\/settings\.json: missing hook script \.agents\/hooks\/scripts\/gone\.sh$/m);
 });
 
 test('.agents hooks/agents/commands must be relative symlinks to .claude', context => {

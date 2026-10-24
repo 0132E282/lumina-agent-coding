@@ -1,6 +1,8 @@
 ---
 trigger: model_decision
 description: "Áp dụng khi sửa UI/frontend, clone-website hoặc component giao diện"
+paths:
+  - "**/*.{tsx,jsx,vue,svelte,astro,html,css,scss,sass,less}"
 ---
 
 # Frontend — đúng mẫu, dễ dùng, an toàn

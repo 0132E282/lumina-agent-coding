@@ -15,7 +15,7 @@ description: "Bổ sung quy trình lập kế hoạch của project vào Plan mo
 
 ## Khảo sát và báo cáo trước khi lập plan
 
-Khi yêu cầu plan là một tính năng, luồng hoặc khu vực của dự án (không phải thay đổi nhỏ đã rõ file), chưa lập plan ngay: dùng [`system-understanding`](../system-understanding/SKILL.md) đọc toàn bộ phần dự án liên quan, rồi báo cáo cho người dùng mọi chỗ **cần fix** và **cần làm** (có `file:dòng`, bằng chứng, tác động). Chỉ lên plan sau khi người dùng đã xem báo cáo và chốt phạm vi; không tự chuyển bước.
+Khi yêu cầu plan là một tính năng, luồng hoặc khu vực của dự án và chưa nêu rõ file/hành vi cần đổi (thay đổi đã chỉ rõ file thì bỏ qua mục này), chưa lập plan ngay: dùng [`system-understanding`](../system-understanding/SKILL.md) đọc toàn bộ phần dự án liên quan, rồi báo cáo cho người dùng mọi chỗ **cần fix** và **cần làm** (có `file:dòng`, bằng chứng, tác động). Chỉ lên plan sau khi người dùng đã xem báo cáo và chốt phạm vi; không tự chuyển bước.
 
 ## Quy trình theo phạm vi
 

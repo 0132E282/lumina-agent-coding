@@ -1,3 +1,8 @@
+---
+trigger: model_decision
+description: "Áp dụng khi debug, sửa lỗi hoặc xử lý hành vi sai"
+---
+
 # Debug — có bằng chứng, đúng nguyên nhân gốc
 
 - Không sửa lỗi dựa trên phỏng đoán: phải tái hiện được hoặc xác định rõ điều kiện xảy ra, có expected vs actual theo đặc tả và bằng chứng thật (log, stack trace, request/response, query, dữ liệu); dữ liệu/database thật chỉ đọc, không lộ secret/PII khi thu bằng chứng.

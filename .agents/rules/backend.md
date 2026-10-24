@@ -1,6 +1,9 @@
 ---
 trigger: model_decision
 description: "Áp dụng khi sửa backend, API, database hoặc xử lý dữ liệu/phân quyền"
+paths:
+  - "**/*.{sql,prisma,php,py,rb,go,java,cs}"
+  - "**/{api,routes,controllers,services,models,migrations,database,db}/**"
 ---
 
 # Quy tắc backend và dữ liệu

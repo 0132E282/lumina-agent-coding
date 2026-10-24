@@ -20,11 +20,14 @@ for folder in ('hooks', 'agents', 'commands'):
     path = root / '.agents' / folder
     if not path.is_symlink() or os.readlink(path) != f'../.claude/{folder}':
         errors.append(f'.agents/{folder}: expected symlink to ../.claude/{folder}')
-hook_script = re.compile(r'\.agents/hooks/scripts/[\w./-]+')
+# Must end on a filename character (no trailing "." or quote); paths with shell variables ($X, ${X}) cannot be checked statically.
+hook_script = re.compile(r'\.agents/hooks/scripts/[\w./${}-]*[\w}-]')
 for config in ('.claude/settings.json', '.codex/hooks.json'):
     if not (root / config).is_file():
         continue
     for script in sorted(set(hook_script.findall((root / config).read_text()))):
+        if '$' in script:
+            continue
         if not (root / script).is_file():
             errors.append(f'{config}: missing hook script {script}')
 for path in (root / '.agents').iterdir():
