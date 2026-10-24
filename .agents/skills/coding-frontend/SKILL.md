@@ -14,20 +14,18 @@ Triển khai giao diện đúng đặc tả, hiển thị nội dung đáng tin 
 
 ## Nguyên tắc
 
-- Tuân thủ rule [coding-frontend](../../rules/frontend.md) cho các phần liên quan đến nhiệm vụ.
-- **Ranh giới sửa đổi bắt buộc**: chỉ thay đổi page/component/hành vi nằm trong yêu cầu hoặc task đã duyệt. Không sửa luồng đang hoạt động ngoài phạm vi để “tiện”, đồng bộ, dọn dẹp hoặc cải thiện thêm. Nếu cần ảnh hưởng component/page dùng chung hoặc hành vi ngoài phạm vi, dừng phần thay đổi đó, báo file và tác động dự kiến, xin người dùng đồng ý; tiếp tục phần độc lập đã được giao.
-
+- **Ranh giới sửa đổi bắt buộc**: chỉ thay đổi page/component/hành vi nằm trong yêu cầu hoặc task đã duyệt. Không sửa luồng đang hoạt động ngoài phạm vi để “tiện”, đồng bộ, dọn dẹp hoặc cải thiện thêm. Cần ảnh hưởng component/page dùng chung hoặc hành vi ngoài phạm vi → dừng phần đó, báo file và tác động dự kiến, xin đồng ý; tiếp tục phần độc lập đã được giao.
 - Đọc hướng dẫn project, đặc tả, manifest, route, component và API/CMS contract liên quan trước khi code. Tái sử dụng component, token, metadata và cơ chế fetch/cache có sẵn.
-- **Có UI/Figma thì bám mẫu**: nếu project có `docs/design/` (do `/design` tạo) thì đọc `DESIGN.md`, các trang, ảnh mẫu trước; không thì dùng Figma/nguồn người dùng chỉ định. Thiếu trang/màu thì dừng và báo, không tự thiết kế. Xác định nguồn chuẩn, đọc đúng màn hình/component/asset; giữ layout, màu, typography, spacing và tương tác. Không tự tạo design system, đổi theme/UI library hoặc redesign khi chỉ được giao thêm tính năng/fix. Không đọc được mẫu thì nêu giới hạn, không đoán chi tiết.
+- **Có UI/Figma thì bám mẫu**: nếu project có `docs/design/` (do `/design` tạo) thì đọc `DESIGN.md`, các trang, ảnh mẫu trước; không thì dùng Figma/nguồn người dùng chỉ định. Thiếu trang/màu thì dừng và báo, không tự thiết kế. Đọc đúng màn hình/component/asset của nguồn chuẩn; giữ layout, màu, typography, spacing và tương tác. Không tự tạo design system, đổi theme/UI library hoặc redesign khi chỉ được giao thêm tính năng/fix. Không đọc được mẫu thì nêu giới hạn, không đoán chi tiết.
 - TypeScript tuân thủ [type-safety](../../rules/coding.md#an-toàn-type): không `any` hay assertion lách type; tái sử dụng/dẫn xuất type có sẵn, gom type cùng domain trong `types/`. Validate dữ liệu chưa tin cậy tại boundary.
-- Giữ phạm vi: không sửa nghiệp vụ/backend, nâng dependency, publish hoặc deploy ngoài yêu cầu. Không bịa nội dung, API, asset hoặc kết quả kiểm chứng.
+- Không sửa nghiệp vụ/backend, nâng dependency, publish hoặc deploy ngoài yêu cầu. Không bịa nội dung, API, asset hoặc kết quả kiểm chứng.
 
 ## Quy trình
 
-1. **Khoanh phạm vi**: liệt kê page/component/hành vi được yêu cầu và giữ nguyên các hành vi khác. Nêu sớm thay đổi phụ thuộc ngoài phạm vi để xin chấp thuận trước khi sửa phần đó.
+1. **Khoanh phạm vi**: liệt kê page/component/hành vi được yêu cầu, giữ nguyên hành vi khác; nêu sớm thay đổi phụ thuộc ngoài phạm vi để xin chấp thuận.
 2. **Khảo sát**: xác định trang/luồng, dữ liệu đầu vào, mẫu UI và tiêu chí nghiệm thu. Kiểm tra cách render hiện có (CSR/SSR/SSG), phiên bản framework và lệnh test/lint/build thật.
 3. **Triển khai**: chọn component có sẵn, nối dữ liệu và xử lý trạng thái; áp dụng các nhóm trong bảng yêu cầu ở references theo loại trang. Giữ logic nghiệp vụ/data fetching theo ranh giới module hiện tại, không tạo abstraction hoặc global state khi local state đủ dùng.
-4. **Kiểm chứng**: kiểm tra luồng chính, dữ liệu thiếu, lỗi API, route trực tiếp và responsive; chạy test/lint/type check/build phù hợp. Rà vòng lặp render/state/effect trên framework đang dùng và kiểm tra network/API call không tăng theo từng item (N+1). Với luồng backend đi kèm, phối hợp đếm query theo request/job trong skill backend; không giới hạn vào React/Next.js hay một framework cụ thể. Fix bug cần regression test tái hiện trước theo [quality-assurance](../../rules/delivery.md#chất-lượng-và-bằng-chứng); dùng [testing](../testing/references/unit-testing.md) khi cần viết test kỹ thuật. Rà diff để xác nhận không đổi hành vi ngoài yêu cầu; nếu có thay đổi cần thêm quyền, dừng và xin chấp thuận.
+4. **Kiểm chứng**: kiểm tra luồng chính, dữ liệu thiếu, lỗi API, route trực tiếp và responsive; chạy test/lint/type check/build phù hợp. Rà vòng lặp render/state/effect trên framework đang dùng và kiểm tra network/API call không tăng theo từng item (N+1). Với luồng backend đi kèm, phối hợp đếm query theo request/job trong skill backend; không giới hạn ở một framework cụ thể. Fix bug cần regression test tái hiện trước theo [quality-assurance](../../rules/delivery.md#chất-lượng-và-bằng-chứng); dùng [testing](../testing/references/unit-testing.md) khi cần viết test kỹ thuật. Rà diff để xác nhận không đổi hành vi ngoài yêu cầu; cần thêm quyền thì dừng và xin chấp thuận.
 5. **Bàn giao**: tự review diff, cập nhật docs bị ảnh hưởng. Báo file/hành vi đã đổi, check và kết quả thật, phần chưa kiểm chứng; không coi preview local là bằng chứng Google đã index.
 
 Khi nhận handoff từ `ui-cloner`: đọc [references/clone-handoff.md](./references/clone-handoff.md) trước khi sửa UI.

@@ -10,7 +10,7 @@ metadata:
 
 ## Mục tiêu
 
-Phát hiện lỗ hổng thực tế, ưu tiên theo rủi ro và đưa ra cách sửa có thể kiểm chứng. Dùng checklist như bản đồ kiểm tra, không coi mọi mục là một lỗi đã tồn tại. Không tuyên bố ứng dụng an toàn tuyệt đối hoặc checklist bao phủ mọi lỗ hổng.
+Phát hiện lỗ hổng thực tế, ưu tiên theo rủi ro, đưa cách sửa kiểm chứng được. Checklist là bản đồ kiểm tra, không phải danh sách lỗi đã tồn tại; không tuyên bố ứng dụng an toàn tuyệt đối hoặc checklist bao phủ mọi lỗ hổng.
 
 ## Nguyên tắc làm việc
 
@@ -20,8 +20,8 @@ Phát hiện lỗ hổng thực tế, ưu tiên theo rủi ro và đưa ra cách
 - Không in giá trị secret, token, mật khẩu hoặc dữ liệu cá nhân. Che giá trị nhạy cảm trong bằng chứng; nếu secret bị lộ, đề xuất thu hồi/xoay vòng, không chỉ xóa khỏi code.
 - Mỗi finding chỉ có `Kết quả: Đúng | Sai` theo [`rules/review`](../../rules/review.md); đề xuất tăng cường không phải lỗi thì ghi riêng. Thiếu một header không tự động là lỗi nghiêm trọng.
 - Không suy luận rằng UUID, URL khó đoán, frontend validation, CORS, ORM hoặc framework tự động bảo vệ toàn bộ ứng dụng.
-- Không chạy công cụ quét hoặc cài dependency mới khi không cần thiết. Không sửa toàn bộ kiến trúc để xử lý một lỗi cục bộ.
-- Xác minh khuyến nghị phụ thuộc phiên bản bằng tài liệu chính thức ([`rules/search-priority.md`](../../rules/search-priority.md)). Không bịa CVE, CWE, CVSS, phiên bản hoặc kết quả scanner.
+- Không chạy công cụ quét hay cài dependency mới khi không cần; không sửa toàn bộ kiến trúc để xử lý một lỗi cục bộ.
+- Xác minh khuyến nghị phụ thuộc phiên bản bằng tài liệu chính thức ([`rules/search-priority.md`](../../rules/search-priority.md)); không bịa CVE, CWE, CVSS, phiên bản hoặc kết quả scanner.
 
 ## Quy trình
 
@@ -48,7 +48,7 @@ Với từng luồng áp dụng:
 
 ### 3. Phân loại và ưu tiên
 
-Đánh giá mức độ từ khả năng tiếp cận, đặc quyền cần có, tương tác nạn nhân, dữ liệu bị ảnh hưởng, phạm vi tenant và tác động thực tế.
+Đánh giá mức độ từ khả năng tiếp cận, đặc quyền cần có, tương tác nạn nhân, dữ liệu ảnh hưởng, phạm vi tenant và tác động thực tế.
 
 - Critical: tác động rất lớn với đường khai thác khả thi, như chiếm quyền hệ thống hoặc truy cập hàng loạt dữ liệu quan trọng.
 - High: chiếm tài khoản, vượt quyền đáng kể, truy cập dữ liệu nhạy cảm hoặc thao túng tài chính trong điều kiện thực tế.
@@ -110,7 +110,7 @@ Nếu project có skill [`report`](../report/SKILL.md), dùng đúng template [`
 
 ## Tài liệu tham chiếu
 
-Dùng nguồn chính thức để xác minh quy tắc, phiên bản và cách sửa khi cần:
+Nguồn chính thức để xác minh quy tắc, phiên bản, cách sửa:
 - OWASP ASVS: https://owasp.org/projects/asvs
 - OWASP Top 10: https://owasp.org/projects/top-ten
 - OWASP API Security: https://owasp.org/projects/api-security-project
