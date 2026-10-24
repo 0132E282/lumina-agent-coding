@@ -21,13 +21,18 @@ command -v jq >/dev/null 2>&1 || exit 0
 
 input="$(cat)"
 
-if [ -n "$CLAUDE_PROJECT_DIR" ] && [ -d "$CLAUDE_PROJECT_DIR" ]; then
-  project_dir="$CLAUDE_PROJECT_DIR"
-else
-  project_dir="$(printf '%s' "$input" | jq -r '.cwd // ""' 2>/dev/null)"
-  [ -n "$project_dir" ] && [ -d "$project_dir" ] || project_dir="$(pwd)"
+project_dir="$(printf '%s' "$input" | jq -r '.cwd // ""' 2>/dev/null)"
+if [ -z "$project_dir" ] || [ ! -d "$project_dir" ]; then
+  if [ -n "$CLAUDE_PROJECT_DIR" ] && [ -d "$CLAUDE_PROJECT_DIR" ]; then
+    project_dir="$CLAUDE_PROJECT_DIR"
+  else
+    project_dir="$(pwd)"
+  fi
 fi
+git_root="$(git -C "$project_dir" rev-parse --show-toplevel 2>/dev/null || true)"
+[ -z "$git_root" ] || project_dir="$git_root"
 project_dir_real="$(cd "$project_dir" 2>/dev/null && pwd -P)" || exit 0
+project_dir="$project_dir_real"
 
 candidates="$(printf '%s' "$input" \
   | jq -r '[.tool_response | .. | strings] | join("\n")' 2>/dev/null \
@@ -53,7 +58,23 @@ is_under_temp_root() {
   return 1
 }
 
-destination_dir="$project_dir/.agents/storage/evidence/browser/$(date +%Y%m%d)"
+task_slug="${LUMINA_TASK_SLUG:-}"
+if [[ "$task_slug" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$ ]]; then
+  destination_dir="$project_dir/.agents/storage/evidence/$task_slug"
+  context_header="Ảnh chụp trình duyệt đã được copy vào thư mục evidence của task trong project đang hoạt động:"
+  context_footer="Dùng đường dẫn trong project ở trên thay cho đường dẫn tạm."
+else
+  destination_dir="$project_dir/.agents/storage/evidence/browser/$(date +%Y%m%d)"
+  context_header="Ảnh chụp trình duyệt đã được copy vào staging inbox của project đang hoạt động:"
+  context_footer="Đây chưa phải evidence cuối. Trước khi dẫn trong báo cáo, hãy chuyển ảnh cần dùng vào .agents/storage/evidence/<task-slug>/ của project này."
+fi
+destination_relative="${destination_dir#"$project_dir"/}"
+destination_cursor="$project_dir"
+IFS='/' read -r -a destination_components <<< "$destination_relative"
+for component in "${destination_components[@]}"; do
+  destination_cursor="$destination_cursor/$component"
+  [ ! -L "$destination_cursor" ] || exit 0
+done
 copied_lines=""
 
 while IFS= read -r source_path; do
@@ -84,9 +105,9 @@ done <<< "$candidates"
 
 [ -z "$copied_lines" ] && exit 0
 
-context="Ảnh chụp trình duyệt trong thư mục tạm đã được copy vào project:
+context="${context_header}
 ${copied_lines}
-Dẫn đường dẫn trong project ở trên (không dùng đường dẫn tạm) khi báo cáo hoặc làm bằng chứng."
+${context_footer}"
 
 jq -n --arg ctx "$context" '{
   hookSpecificOutput: {

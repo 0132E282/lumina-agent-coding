@@ -28,10 +28,11 @@ function fixture(context) {
   context.after(() => fs.rmSync(root, { recursive: true, force: true }));
   const repository = path.join(root, 'repo');
   const temporary = path.join(root, 'tmp');
-  const evidence = path.join(root, 'evidence');
+  const evidence = path.join(repository, '.agents/storage/evidence/test');
   fs.mkdirSync(repository);
   fs.mkdirSync(temporary);
   git(repository, 'init', '-q', '-b', 'fix/sum');
+  write(repository, '.gitignore', '.agents/storage/\n');
   write(repository, 'package.json', '{"type":"module"}\n');
   write(repository, 'src/sum.mjs', buggySum);
   git(repository, 'add', '.');
@@ -40,6 +41,10 @@ function fixture(context) {
 }
 
 function verify({ repository, temporary, evidence, base }, ...command) {
+  return verifyWithEvidence({ repository, temporary, base }, evidence, ...command);
+}
+
+function verifyWithEvidence({ repository, temporary, base }, evidence, ...command) {
   return spawnSync('bash', [script, '--evidence-dir', evidence, base, '--', ...command], {
     cwd: repository,
     encoding: 'utf8',
@@ -117,5 +122,56 @@ test('invalid usage -> exit 2', context => {
   assert.equal(result.status, 2);
   const unknown = verify({ ...setup, base: 'no-such-ref' }, 'node', '-e', '0');
   assert.equal(unknown.status, 2);
+  assertCleaned(setup);
+});
+
+test('rejects evidence directories outside the repository evidence root before creating them', context => {
+  const setup = fixture(context);
+  write(setup.repository, 'tests/sum.test.mjs', sumTest);
+  const outsideAbsolute = path.join(path.dirname(setup.repository), 'outside-absolute', 'nested');
+  const traversalTarget = path.join(path.dirname(setup.repository), 'outside-traversal');
+
+  for (const evidence of [outsideAbsolute, '../outside-traversal']) {
+    const result = verifyWithEvidence(setup, evidence, 'node', 'tests/sum.test.mjs');
+    assert.equal(result.status, 2, result.stdout + result.stderr);
+    assert.match(result.stdout + result.stderr, /evidence.*\.agents\/storage\/evidence/i);
+  }
+
+  assert.equal(fs.existsSync(outsideAbsolute), false);
+  assert.equal(fs.existsSync(traversalTarget), false);
+  assertCleaned(setup);
+});
+
+test('rejects an evidence directory that escapes through a symlink without writing outside', context => {
+  const setup = fixture(context);
+  write(setup.repository, 'tests/sum.test.mjs', sumTest);
+  const evidenceRoot = path.join(setup.repository, '.agents/storage/evidence');
+  const outside = path.join(path.dirname(setup.repository), 'outside-symlink');
+  fs.mkdirSync(evidenceRoot, { recursive: true });
+  fs.mkdirSync(outside);
+  fs.symlinkSync(outside, path.join(evidenceRoot, 'escape'));
+
+  const result = verifyWithEvidence(setup, '.agents/storage/evidence/escape/nested', 'node', 'tests/sum.test.mjs');
+
+  assert.equal(result.status, 2, result.stdout + result.stderr);
+  assert.match(result.stdout + result.stderr, /evidence.*\.agents\/storage\/evidence/i);
+  assert.equal(fs.existsSync(path.join(outside, 'nested')), false);
+  assertCleaned(setup);
+});
+
+test('rejects a symlinked evidence root without creating its target directory', context => {
+  const setup = fixture(context);
+  write(setup.repository, 'tests/sum.test.mjs', sumTest);
+  const storage = path.join(setup.repository, '.agents/storage');
+  const outside = path.join(path.dirname(setup.repository), 'outside-root-symlink');
+  fs.mkdirSync(storage, { recursive: true });
+  fs.mkdirSync(outside);
+  fs.symlinkSync(outside, path.join(storage, 'evidence'));
+
+  const result = verifyWithEvidence(setup, '.agents/storage/evidence/nested', 'node', 'tests/sum.test.mjs');
+
+  assert.equal(result.status, 2, result.stdout + result.stderr);
+  assert.match(result.stdout + result.stderr, /evidence.*symlink/i);
+  assert.equal(fs.existsSync(path.join(outside, 'nested')), false);
   assertCleaned(setup);
 });

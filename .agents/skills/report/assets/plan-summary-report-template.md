@@ -2,18 +2,17 @@
 
 Dùng ngay sau khi `planner` ghi xong plan JSON trong `docs/plans/`, trước khi chờ duyệt. Dạng text, không bảng, không code fence, không `Description`; không chép lại nguyên văn plan.
 
-- Mỗi task một mục, mở đầu bằng dòng phân cách; bullet nêu việc cần làm.
+- Mỗi task một mục, mở đầu bằng dòng phân cách; đơn giản: tên nêu làm gì, `Chứng minh` là bằng chứng có `file:dòng`, `Làm` là một câu việc cụ thể. Không bullet dài.
 - `Status` dùng đúng `TODO | IN_PROGRESS | BLOCKED | DONE`.
 - Task có UI: thêm `URL:` (route) và `Ảnh chứng:` khi đã có. Task có API: thêm `API:` khi đã chạy thật.
 
 `------------------------`
 
-Task: TASK-001 — Tên nêu rõ kết quả
+Task: TASK-001 — Làm gì (nêu rõ kết quả)
 Status: TODO
 File: path/to/file.ext
-
-- Việc cần làm 1
-- Việc cần làm 2
+Chứng minh: bằng chứng ngắn tại `file:dòng` cho thấy cần làm
+Làm: một câu việc cụ thể
 
 `------------------------`
 

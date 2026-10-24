@@ -68,6 +68,8 @@ Claude Code can set up and run these with `/design path/to/DESIGN.md`.
 
 Edit shared rules and skills in `.agents/`. Run the checks above after any configuration changes.
 
+`docs/` is git-ignored except `docs/handoffs/`, so the `docs/**/index.json` checks run only locally, not in CI.
+
 > The installer package is private and fetched from GitHub over SSH — it is not published to the public npm registry.
 
 ---

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Validate shared directories and tool adapters without modifying files."""
 from pathlib import Path
+import os
 import re
 import sys
 import tomllib
@@ -15,6 +16,17 @@ for tool in ('.claude', '.codex'):
         path = root / tool / folder
         if not path.is_symlink() or path.resolve() != (root / '.agents' / folder).resolve():
             errors.append(f'{tool}/{folder}: expected link to .agents/{folder}')
+for folder in ('hooks', 'agents', 'commands'):
+    path = root / '.agents' / folder
+    if not path.is_symlink() or os.readlink(path) != f'../.claude/{folder}':
+        errors.append(f'.agents/{folder}: expected symlink to ../.claude/{folder}')
+hook_script = re.compile(r'\.agents/hooks/scripts/[\w./-]+')
+for config in ('.claude/settings.json', '.codex/hooks.json'):
+    if not (root / config).is_file():
+        continue
+    for script in sorted(set(hook_script.findall((root / config).read_text()))):
+        if not (root / script).is_file():
+            errors.append(f'{config}: missing hook script {script}')
 for path in (root / '.agents').iterdir():
     if path.is_symlink() and not path.exists():
         errors.append(f'Broken link: {path.relative_to(root)}')

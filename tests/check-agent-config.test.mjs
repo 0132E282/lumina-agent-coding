@@ -41,6 +41,11 @@ function validTree(context) {
   }
   link(root, '../.claude/agents', '.agents/agents');
   link(root, '../.claude/hooks', '.agents/hooks');
+  write(root, '.claude/commands/.gitkeep', '');
+  link(root, '../.claude/commands', '.agents/commands');
+  write(root, '.claude/settings.json', {
+    hooks: { Stop: [{ hooks: [{ type: 'command', command: 'bash "$(git rev-parse --show-toplevel)/.agents/hooks/scripts/hook.sh"' }] }] },
+  });
   write(root, 'docs/index.json', { version: 1, entries: [DOCS_ENTRY] });
   return root;
 }
@@ -94,6 +99,27 @@ test('a broken symlink directly under .agents is reported', context => {
   const root = validTree(context);
   fs.rmSync(path.join(root, '.claude/hooks'), { recursive: true });
   assertFails(root, /^Broken link: \.agents\/hooks$/m);
+});
+
+test('.agents hooks/agents/commands must be relative symlinks to .claude', context => {
+  const root = validTree(context);
+  fs.rmSync(path.join(root, '.agents/commands'));
+  link(root, path.join(root, '.claude/commands'), '.agents/commands');
+  fs.rmSync(path.join(root, '.agents/agents'));
+  const result = assertFails(root, /^\.agents\/commands: expected symlink to \.\.\/\.claude\/commands$/m);
+  assert.match(result.stderr, /^\.agents\/agents: expected symlink to \.\.\/\.claude\/agents$/m);
+});
+
+test('a hook script referenced by settings or Codex hooks but missing is reported; external commands are ignored', context => {
+  const root = validTree(context);
+  write(root, '.claude/settings.json', { hooks: { Stop: [{ hooks: [
+    { type: 'command', command: 'bash "$(git rev-parse --show-toplevel)/.agents/hooks/scripts/gone.sh"' },
+    { type: 'command', command: 'rtk hook claude' },
+  ] }] } });
+  write(root, '.codex/hooks.json', { hooks: { Stop: [{ hooks: [{ type: 'command', command: 'node .agents/hooks/scripts/absent.mjs' }] }] } });
+  const result = assertFails(root, /^\.claude\/settings\.json: missing hook script \.agents\/hooks\/scripts\/gone\.sh$/m);
+  assert.match(result.stderr, /^\.codex\/hooks\.json: missing hook script \.agents\/hooks\/scripts\/absent\.mjs$/m);
+  assert.doesNotMatch(result.stderr, /rtk/);
 });
 
 test('a skill folder without SKILL.md is reported; dot folders are ignored', context => {

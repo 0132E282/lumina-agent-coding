@@ -13,6 +13,10 @@ description: "Bổ sung quy trình lập kế hoạch của project vào Plan mo
 - Không sửa code sản phẩm, cài dependency, migrate hoặc commit/push khi đang planning. Tái dùng handoff/plan còn hợp lệ; không chạy lại phân tích cho cùng input.
 - Không ghi plan file chuyên biệt của runtime ngoài repo hay dưới `~/` (vd `~/.claude/plans/`, `~/.codex/`, `~/.gemini/`), kể cả khi Plan mode của Claude/Codex/Antigravity gợi ý; plan chỉ lưu trong repo theo [`plan-format`](../../rules/docs.md#implementation-plan-contract). Khi native mode read-only, trình bày plan trong chat, ghi rõ JSON/index chưa lưu, rồi lưu ngay sau khi được duyệt và trước triển khai. Không nói đã lưu khi chưa ghi.
 
+## Khảo sát và báo cáo trước khi lập plan
+
+Khi yêu cầu plan là một tính năng, luồng hoặc khu vực của dự án (không phải thay đổi nhỏ đã rõ file), chưa lập plan ngay: dùng [`system-understanding`](../system-understanding/SKILL.md) đọc toàn bộ phần dự án liên quan, rồi báo cáo cho người dùng mọi chỗ **cần fix** và **cần làm** (có `file:dòng`, bằng chứng, tác động). Chỉ lên plan sau khi người dùng đã xem báo cáo và chốt phạm vi; không tự chuyển bước.
+
 ## Quy trình theo phạm vi
 
 1. Đọc yêu cầu và hướng dẫn project; đọc `docs/plans/index.json` nếu có, tìm bằng title/description/tags rồi mở file liên quan qua path. Tái sử dụng `docs/requirement-analysis.md`/`docs/system-design.md` nếu còn đúng. Khảo sát stack, file và hành vi bị ảnh hưởng; không dump toàn repo.

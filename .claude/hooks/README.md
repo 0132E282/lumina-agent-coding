@@ -41,9 +41,9 @@ Trước mỗi lần Claude Code (hoặc subagent) gọi **bất kỳ tool nào*
 - **Script**: [`scripts/audit-log.sh`](./scripts/audit-log.sh)
 - **Loại hook**: `PreToolUse`, matcher `.*` (mọi tool)
 - **File log**: `.agents/storage/logs/logs.jsonl` (JSON Lines, append-only) — cả thư mục `.agents/storage/` đã nằm trong `.gitignore`, không commit nhầm.
-- **Xoay vòng**: trước mỗi lần ghi, helper dùng chung [`scripts/_log-rotate.sh`](./scripts/_log-rotate.sh) (source, không đăng ký trong settings) đổi tên `logs.jsonl` thành `logs-<UTC yyyyMMdd-HHmmss>[-N].jsonl` khi file ≥ `LUMINA_LOG_MAX_BYTES` (mặc định 1048576 = 1 MiB) rồi ghi dòng mới vào file mới; chỉ giữ `LUMINA_LOG_KEEP` file đã xoay mới nhất (mặc định 5) và chỉ xoá file khớp đúng mẫu tên đó, không đụng file đang ghi hay file khác trong thư mục. Đổi tên bằng `mv -n` (rename nguyên tử, không ghi đè); hook khác xoay trước thì bỏ qua, dòng đang ghi không mất (writer đã mở file cũ thì dòng nằm trong file đã xoay). Best-effort, luôn `exit 0`; thiếu helper thì vẫn ghi log, chỉ không xoay. File đã xoay tạo trước bản che secret có thể còn secret chưa che — retention sẽ dần xoá; cần xoá sớm thì xoá tay các file `logs-*.jsonl` cũ.
-- **Nội dung mỗi dòng**: `ts` (UTC ISO8601), `session_id`, `tool`, `cwd`, `input` (tóm tắt — chỉ `file_path`/`command` (≤200 ký tự, che secret dạng phổ biến như `token=`/`password=`/`Bearer`/URL credential/prefix `ghp_`, `sk_live_`, `AKIA`... thành `***` trước khi cắt — heuristic, không bảo đảm che hết)/`pattern`/`skill` (tên skill khi tool là `Skill`) tùy loại tool, **không** ghi nguyên nội dung file Write/Edit để tránh log phình to và rò rỉ dữ liệu nhạy cảm). Thêm `agent_id` khi tool chạy trong subagent (Claude Code chỉ gửi field này cho subagent; phiên chính không có). Hook [`turn-log`](#turn-log--một-dòng-tóm-tắt-mỗi-lượt) ghi thêm vào cùng file một dòng `type: "turn"` mỗi lượt.
-- **An toàn**: luôn `exit 0`; input JSON hỏng, thiếu `jq`, hoặc `tool_name` rỗng đều bị bỏ qua êm, không ghi dòng rác. Thư mục ghi log lấy từ `CLAUDE_PROJECT_DIR` (luôn là project root, bất kể agent đã `cd` sang thư mục con), fallback sang `cwd` trong payload rồi `pwd` nếu biến đó không có — tránh ghi log lạc vào thư mục con khi session đổi cwd. Field `cwd` trong mỗi dòng log vẫn giữ nguyên giá trị gốc từ payload để phục vụ truy vết.
+- **Xoay vòng**: helper [`_log-rotate.sh`](./scripts/_log-rotate.sh) (source, không đăng ký trong settings) đổi `logs.jsonl` thành `logs-<UTC yyyyMMdd-HHmmss>[-N].jsonl` khi ≥ `LUMINA_LOG_MAX_BYTES` (mặc định 1 MiB), giữ `LUMINA_LOG_KEEP` file xoay mới nhất (mặc định 5), chỉ xoá file khớp mẫu tên đó. Best-effort, luôn `exit 0`. File xoay trước bản che secret có thể còn secret chưa che — cần thì xoá tay `logs-*.jsonl` cũ.
+- **Nội dung mỗi dòng**: `ts` (UTC), `session_id`, `tool`, `cwd`, `input` (tóm tắt `file_path`/`command` ≤200 ký tự/`pattern`/`skill`; secret phổ biến che thành `***` — heuristic, không bảo đảm; **không** ghi nội dung file Write/Edit), thêm `agent_id` khi chạy trong subagent. [`turn-log`](#turn-log--một-dòng-tóm-tắt-mỗi-lượt) ghi thêm dòng `type: "turn"` vào cùng file.
+- **An toàn**: luôn `exit 0`; input JSON hỏng, thiếu `jq` hoặc `tool_name` rỗng thì bỏ qua êm. Thư mục log lấy từ `CLAUDE_PROJECT_DIR`, fallback `cwd` trong payload rồi `pwd`; field `cwd` trong dòng log giữ nguyên giá trị gốc để truy vết.
 - **Phụ thuộc**: cần `jq`.
 
 ### Xem log
@@ -65,7 +65,7 @@ Trước mỗi lần chạy `git commit` (qua tool Bash), hook này trích messa
 
 - **Script**: [`scripts/commit-msg-guard.sh`](./scripts/commit-msg-guard.sh)
 - **Loại hook**: `PreToolUse`, matcher `Bash`
-- **Nhận diện commit**: helper dùng chung [`scripts/_shell-command.sh`](./scripts/_shell-command.sh) tách lệnh Bash thành lệnh đơn (sau `;`/`&&`/`||`/`|`/`&`/`(`/`)`/xuống dòng), bỏ nháy và thân heredoc, rồi chỉ nhận `git commit` là lệnh thực thi — kể cả sau tiền tố gán biến `X=1`, wrapper `sudo`/`env`/`command`/`time`/`nohup`/`exec`/`nice -n`/`timeout [opts] <n>`/`xargs [opts]`/`stdbuf`/`ionice`/`flock <file>`, `!`, từ khoá `if`/`then`/`do`/`else`/`elif`/`while`/`until`/`{` và global option git (`-C <dir>` lặp, `-c <kv>`, `--git-dir`, `--work-tree`, `--no-pager`…). Script con được phân tích như lệnh (tối đa 4 tầng, cùng một tiến trình awk): nội dung `$(...)`/backtick, chuỗi của `bash|sh|zsh|dash|ksh -c` và `eval`. `cd <dir>` tĩnh trước đó trong cùng chuỗi lệnh đổi thư mục chạy git (dir động như `cd "$x"` bị bỏ qua). Chữ `git commit` trong thân heredoc/chuỗi (vd script `python3 - <<'EOF'` ghi Markdown) bị bỏ qua; `<<` trong `((...))`/`$((...))`/`let` không mở heredoc, heredoc thiếu dòng kết thúc không nuốt phần lệnh phía sau. Fail-safe: subcommand động (`git "$x"`, `git $(...)`) được kiểm như subcommand đang xét.
+- **Nhận diện commit**: helper [`_shell-command.sh`](./scripts/_shell-command.sh) tách lệnh Bash thành lệnh đơn, bỏ nháy và thân heredoc, chỉ nhận `git commit` thực thi (kể cả sau tiền tố gán biến, wrapper như `sudo`/`env`/`timeout`, global option git, `bash -c`/`eval`/`$(...)` tối đa 4 tầng). `cd <dir>` tĩnh đổi thư mục chạy git; dir động bị bỏ qua. Chữ `git commit` trong heredoc/chuỗi bị bỏ qua.
 - **Cách trích message**: chỉ từ đối số của chính lệnh `git commit` — `-m`/`--message` (lặp lại thì nối bằng dòng trống; `-m "$(cat <<'EOF' ... EOF)"` lấy thân heredoc) hoặc `-F -` kèm heredoc; không lấy heredoc/`-m` của lệnh khác (`cat <<EOF`, `git tag -m`). Mỗi lệnh `git commit` trong chuỗi được kiểm riêng.
 - **An toàn**: best-effort — không trích được message (commit mở editor, dùng `-F`, thiếu `jq`/validator) thì không chặn, để git tự xử lý.
 - **Phụ thuộc**: cần `jq` và `skills/git-workflow/scripts/validate-commit-message.sh`.
@@ -77,7 +77,7 @@ Trước mỗi lần `git commit` có type Conventional Commit `fix` (`fix:`, `f
 - **Script**: [`scripts/bugfix-test-reminder.sh`](./scripts/bugfix-test-reminder.sh)
 - **Loại hook**: `PreToolUse`, matcher `Bash`
 - **Nhận diện commit và trích message**: giống `commit-msg-guard` (cùng helper `_shell-command.sh`, kể cả `-am`); chỉ xét lệnh `git commit` đầu tiên có subcommand tĩnh, đọc staged trong `<dir>` khi dùng `git -C <dir>`. Coi là sửa bug khi type `fix` hoặc message có `Fixes|Closes|Resolves #<số>`.
-- **File được xét**: `git diff --cached --name-only`; thêm file tracked đã sửa khi dùng `-a`/`--all`; thêm file mà `git add` trong cùng lệnh sẽ stage — pathspec (path có dấu cách, thư mục như `tests`, glob chưa expand) được resolve thật bằng `git ls-files --modified --others --exclude-standard -- <pathspec>` trong thư mục của lệnh, không đoán theo chuỗi (`-A`/`-u` tính mọi file đã sửa và untracked). File test: tên chứa `.test.`/`.spec.`/`_test.`/bắt đầu `test_`, hoặc nằm trong `tests/`/`test/`/`__tests__/`.
+- **File được xét**: `git diff --cached --name-only`; thêm file tracked đã sửa khi `-a`/`--all`; thêm file mà `git add` trong cùng lệnh sẽ stage (pathspec resolve thật bằng `git ls-files --modified --others --exclude-standard`, `-A`/`-u` tính mọi file đã sửa và untracked). File test: tên chứa `.test.`/`.spec.`/`_test.`/bắt đầu `test_`, hoặc nằm trong `tests/`/`test/`/`__tests__/`.
 - **An toàn**: chỉ nhắc, không deny/ask; không phải commit fix, không trích được message (editor, `-F`), thiếu `jq`/`git`, không ở repo git, hoặc không vào được thư mục `cd`/`-C` → im lặng; luôn `exit 0`. Im lặng khi không vào được thư mục là cố ý: hook chỉ cố vấn, không phải guard bảo vệ.
 - **Phụ thuộc**: cần `jq`, `git`.
 
@@ -87,7 +87,7 @@ Trước mỗi lần `git add`/`git commit`, hook này quét path sắp add (th�
 
 - **Script**: [`scripts/secret-scan.sh`](./scripts/secret-scan.sh)
 - **Loại hook**: `PreToolUse`, matcher `Bash`
-- **Nhận diện lệnh**: cùng helper [`scripts/_shell-command.sh`](./scripts/_shell-command.sh) như `commit-msg-guard` — nhận cùng các dạng tiền tố/global option, bỏ qua chữ `git ...` trong heredoc/chuỗi, đối số đọc đã bỏ nháy (path có dấu cách vẫn đúng); `git -C <dir>` lấy từ chính lệnh git thực thi, git chạy trong `<dir>`. Không vào được `<dir>` thì guard hỏi (ask) kèm lý do thay vì bỏ qua (riêng `format-before-push` cố ý bỏ qua êm vì chỉ là bước format cố vấn, không phải guard).
+- **Nhận diện lệnh**: như `commit-msg-guard` (helper [`_shell-command.sh`](./scripts/_shell-command.sh)); `git -C <dir>` chạy git trong `<dir>`. Không vào được `<dir>` thì guard hỏi (ask) kèm lý do thay vì bỏ qua.
 - **Hành vi khi phát hiện**: `permissionDecision: "ask"` (không `"deny"`) — heuristic regex có thể false positive, nên hỏi lại người dùng thay vì chặn cứng.
 - **Phụ thuộc**: cần `jq`.
 
@@ -97,7 +97,7 @@ Trước mỗi lần `git push`, hook này cảnh báo (ask) nếu push thẳng 
 
 - **Script**: [`scripts/protected-branch-guard.sh`](./scripts/protected-branch-guard.sh)
 - **Loại hook**: `PreToolUse`, matcher `Bash`
-- **Nhận diện lệnh**: cùng helper [`scripts/_shell-command.sh`](./scripts/_shell-command.sh) như `commit-msg-guard` — nhận cùng các dạng tiền tố/global option, bỏ qua chữ `git ...` trong heredoc/chuỗi, đối số đọc đã bỏ nháy (path có dấu cách vẫn đúng); `git -C <dir>` lấy từ chính lệnh git thực thi, git chạy trong `<dir>`. Không vào được `<dir>` thì guard hỏi (ask) kèm lý do thay vì bỏ qua (riêng `format-before-push` cố ý bỏ qua êm vì chỉ là bước format cố vấn, không phải guard).
+- **Nhận diện lệnh**: như `commit-msg-guard` (helper [`_shell-command.sh`](./scripts/_shell-command.sh)); `git -C <dir>` chạy git trong `<dir>`. Không vào được `<dir>` thì guard hỏi (ask) kèm lý do thay vì bỏ qua.
 - **Hành vi khi phát hiện**: `permissionDecision: "ask"` — có tình huống hợp lệ cần push thẳng main/force push mà người dùng đã đồng ý, nên hỏi lại chứ không chặn cứng.
 - **Phụ thuộc**: cần `jq`, `git`.
 
@@ -107,7 +107,7 @@ Trước mỗi lần `git push`, hook này chạy `prettier --write` **một l�
 
 - **Script**: [`scripts/format-before-push.sh`](./scripts/format-before-push.sh)
 - **Loại hook**: `PreToolUse`, matcher `Bash`
-- **Nhận diện lệnh**: cùng helper [`scripts/_shell-command.sh`](./scripts/_shell-command.sh) như `commit-msg-guard` — nhận cùng các dạng tiền tố/global option, bỏ qua chữ `git ...` trong heredoc/chuỗi, đối số đọc đã bỏ nháy (path có dấu cách vẫn đúng); `git -C <dir>` lấy từ chính lệnh git thực thi, git chạy trong `<dir>`. Không vào được `<dir>` thì guard hỏi (ask) kèm lý do thay vì bỏ qua (riêng `format-before-push` cố ý bỏ qua êm vì chỉ là bước format cố vấn, không phải guard).
+- **Nhận diện lệnh**: như `commit-msg-guard` (helper [`_shell-command.sh`](./scripts/_shell-command.sh)); `git -C <dir>` chạy git trong `<dir>`. Không vào được `<dir>` thì bỏ qua êm, vì đây chỉ là bước format cố vấn, không phải guard.
 - **Không tự commit**: chỉ `prettier --write` lên working tree. Format sinh ra thay đổi → `permissionDecision: "ask"` cảnh báo các file đó CHƯA được commit (push hiện tại vẫn đẩy bản cũ) — người dùng tự quyết commit thêm hay bỏ qua, không tự ý commit giùm.
 - **An toàn**: luôn `exit 0` khi không cần cảnh báo; thiếu `jq`/`git`, không phải lệnh `git push`, không có remote tracking branch, thiếu Prettier, hoặc diff không có file nào cần format → bỏ qua êm.
 - **Phụ thuộc**: cần `jq`, `git`; Prettier (tuỳ chọn — thiếu thì bỏ qua, giống `format-on-edit`).
@@ -136,11 +136,11 @@ Sau mỗi lần Edit/Write một file nguồn, hook này tìm file test tương 
 
 ## dependency-audit-reminder — tự audit dependency sau khi cài
 
-Sau mỗi lần chạy lệnh cài/thêm dependency (`npm install`, `yarn add`, `pnpm add`, `composer require`, `pip install`...) qua tool Bash, hook này tự chạy lệnh audit **read-only** tương ứng của chính package manager (`npm audit`, `composer audit`, `pip-audit`...) và báo kết quả lại cho Claude qua `additionalContext`, trỏ tới skill [`dependency-audit`](../skills/dependency-audit/SKILL.md) — liên hệ [`rules/backend.md`](../rules/backend.md#database-read-only-mặc-định) (tinh thần tương tự áp cho package manager: audit tự do, không tự upgrade).
+Sau lệnh cài/thêm dependency (`npm install`, `yarn add`, `pnpm add`, `composer require`, `pip install`...) qua Bash, hook chạy lệnh audit **read-only** của chính package manager (`npm audit`, `composer audit`, `pip-audit`...) và báo kết quả qua `additionalContext`, trỏ tới skill [`dependency-audit`](../skills/dependency-audit/SKILL.md). Audit tự do, không tự upgrade.
 
 - **Script**: [`scripts/dependency-audit-reminder.sh`](./scripts/dependency-audit-reminder.sh)
 - **Loại hook**: `PostToolUse`, matcher `Bash`
-- **Nhận diện lệnh**: cùng helper [`scripts/_shell-command.sh`](./scripts/_shell-command.sh) (`command_invocations`) — chỉ nhận package manager là lệnh thực thi thật: `npm install|i|add`, `yarn add|install`, `pnpm add|install|i`, `composer require|update`, `pip|pip3 install`, `python|python3 -m pip install`, kể cả sau `cd x &&`, tiền tố gán biến, wrapper, `bash -c`, `eval`. Chữ lệnh cài nằm trong thân heredoc, chuỗi trong nháy, commit message, `echo`/`grep` bị bỏ qua. Lệnh cài đầu tiên trong chuỗi quyết định audit; audit chạy ở cwd của hook.
+- **Nhận diện lệnh**: helper [`_shell-command.sh`](./scripts/_shell-command.sh) (`command_invocations`) — chỉ nhận package manager là lệnh thực thi thật (`npm install|i|add`, `yarn add|install`, `pnpm add|install|i`, `composer require|update`, `pip|pip3 install`, `python -m pip install`); chữ trong heredoc, chuỗi, commit message, `echo`/`grep` bị bỏ qua. Lệnh cài đầu tiên quyết định audit; audit chạy ở cwd của hook.
 - **Chỉ chạy lệnh audit** (không `--fix`/`--force`, không tự install/update gì thêm); bỏ qua êm nếu tool báo không có lỗ hổng.
 - **An toàn**: luôn `exit 0`; thiếu `jq`, không khớp lệnh cài dependency nào, hoặc thiếu audit tool tương ứng → bỏ qua êm.
 - **Phụ thuộc**: cần `jq`; audit tool tương ứng ecosystem (tuỳ chọn, thiếu thì bỏ qua).
@@ -156,10 +156,10 @@ Sau mỗi lần Edit/Write một file workflow CI (`.github/workflows/*.yml`, `.
 
 ## remind-cleanup — nhắc dọn file tạm khi context gần đầy
 
-Khi Claude Code kết thúc một turn và context window của phiên đã dùng **≥ 80%**, hook này tìm file đã `Write` trong session hiện tại (qua `.agents/storage/logs/logs.jsonl` và file đã xoay mới nhất, lọc trước theo `session_id` bằng `grep`), giới hạn trong phạm vi dự án (so khớp `cwd`), còn tồn trên đĩa và khớp pattern tên file tạm (tên bắt đầu bằng `tmp`/`scratch`/`debug`/`draft`/`sandbox`/`test-output`, hoặc đuôi `.tmp`/`.bak`/`.orig`), trừ file nằm trong thư mục cấu hình/tài liệu của project (`.agents/rules/`, `.agents/skills/`, `.agents/agents/`, `.claude/`, `.codex/`, `docs/`) — nếu có, nhắc qua `additionalContext` (kèm % context, ví dụ `Context đã dùng 82% (164k/200k)`) để Claude thấy và tự quyết có dùng skill `cleanup-temp-files` để dọn file tạm không; `/cleanup` chỉ làm gọn context. Dưới ngưỡng thì không nhắc. Mỗi file chỉ nhắc một lần mỗi session: path đã nhắc được append vào `.agents/storage/state/<session_id>.cleanup-reminded`, chỉ nhắc (và đếm) path mới chưa từng nhắc; file state rỗng bị bỏ qua (grep BSD coi `-f` rỗng là khớp mọi dòng); ghi state lỗi không chặn hook. Liên hệ skill [`cleanup-temp-files`](../skills/cleanup-temp-files/SKILL.md).
+Khi kết thúc một turn mà context đã dùng **≥ 80%**, hook liệt kê file `Write` trong session (từ `logs.jsonl`, lọc `session_id`, trong dự án, còn trên đĩa) có tên tạm (bắt đầu `tmp`/`scratch`/`debug`/`draft`/`sandbox`/`test-output`, hoặc đuôi `.tmp`/`.bak`/`.orig`), trừ thư mục cấu hình/tài liệu (`.agents/rules/`, `.agents/skills/`, `.agents/agents/`, `.claude/`, `.codex/`, `docs/`). Có thì nhắc qua `additionalContext` kèm % context (vd `Context đã dùng 82% (164k/200k)`) để Claude tự quyết dùng skill [`cleanup-temp-files`](../skills/cleanup-temp-files/SKILL.md). Mỗi file chỉ nhắc một lần mỗi session (state ở `.agents/storage/state/<session_id>.cleanup-reminded`).
 
 - **Script**: [`scripts/remind-cleanup.sh`](./scripts/remind-cleanup.sh) — gọi `skills/cleanup-temp-files/scripts/find-session-scratch-files.sh`
-- **Đo context**: [`scripts/remind-cleanup-context.mjs`](./scripts/remind-cleanup-context.mjs) đọc toàn bộ `transcript_path`, context đang dùng là `message.usage` của message assistant cuối cùng có usage: `input_tokens + cache_read_input_tokens + cache_creation_input_tokens`; bỏ qua dòng JSON lỗi. Giới hạn: `CLAUDE_CONTEXT_LIMIT` nếu là số nguyên dương; không có/sai thì suy từ transcript — có message assistant nào vượt 200000 thì dùng 1000000 (model context 1M), ngược lại 200000; ngưỡng cố định 80%.
+- **Đo context**: [`scripts/remind-cleanup-context.mjs`](./scripts/remind-cleanup-context.mjs) đọc `transcript_path`; context đang dùng là `message.usage` của message assistant cuối có usage: `input_tokens + cache_read_input_tokens + cache_creation_input_tokens`; bỏ qua dòng JSON lỗi. Giới hạn: `CLAUDE_CONTEXT_LIMIT` nếu là số nguyên dương; không thì suy từ transcript (có message vượt 200000 → 1000000, ngược lại 200000); ngưỡng cố định 80%.
 - **Loại hook**: `Stop`
 - **Chỉ nhắc, không tự xóa**: dùng `hookSpecificOutput.additionalContext`, không dùng `decision`/`reason` (sẽ chặn Claude dừng lại).
 - **An toàn**: luôn `exit 0`; dưới ngưỡng, thiếu transcript/không đọc được usage, không có ứng viên, thiếu `jq`/`node`, hoặc thiếu script tìm file thì im lặng, không báo gì.
@@ -167,7 +167,7 @@ Khi Claude Code kết thúc một turn và context window của phiên đã dùn
 
 ## report-reminder — nhắc dùng skill `report` nếu chưa báo cáo thay đổi
 
-Khi Claude Code kết thúc một turn, hook này tìm trong `.agents/storage/logs/logs.jsonl` và file đã xoay mới nhất (lọc trước dòng của session bằng `grep -F`, không slurp cả log; session vắt qua hơn một lần xoay thì Edit/Write cũ hơn file đã xoay mới nhất không được tính) các lần `Edit`/`Write` của phiên chính trong session hiện tại (giới hạn `cwd` đúng dự án; bỏ entry có `agent_id` vì Edit/Write của subagent do phiên chính gộp vào báo cáo tổng) xảy ra **sau** lần gọi skill `report` gần nhất (hoặc từ đầu session nếu chưa gọi lần nào) — có thì nhắc qua `additionalContext`. Đây là lớp enforce cơ chế cho [`rules/delivery.md`](../rules/delivery.md#báo-cáo-bắt-buộc), thay vì chỉ dựa vào Claude tự giác nhớ gọi skill `report`.
+Khi kết thúc một turn, hook tìm trong `logs.jsonl` (và file xoay mới nhất) các `Edit`/`Write` của phiên chính, trong dự án, xảy ra **sau** lần gọi skill `report` gần nhất (hoặc từ đầu session) — có thì nhắc qua `additionalContext`. Bỏ entry có `agent_id` (subagent do phiên chính gộp vào báo cáo tổng). Enforce [`rules/delivery.md`](../rules/delivery.md#báo-cáo-bắt-buộc).
 
 - **Script**: [`scripts/report-reminder.sh`](./scripts/report-reminder.sh)
 - **Loại hook**: `Stop`
@@ -184,10 +184,10 @@ Khi skill `report` được gọi, hook đọc `transcript_path` bằng [`task-u
 - **Loại hook**: `PostToolUse`, matcher `Skill`; chỉ xử lý skill `report` (không phải `workflow-report`).
 - **Ngưỡng**: [`waste-criteria.json`](../skills/report/assets/waste-criteria.json) — mặc định đọc lại cùng file ≥ 3 lần, lặp cùng lệnh ≥ 3 lần, một kết quả tool > 20.000 ký tự, ≥ 3 lần gọi subagent, cache tạo mới > cache đọc khi ≥ 50.000 token.
 - **Cửa sổ đo**: từ lần gọi `report` trước (mốc lưu ở `.agents/storage/state/<session_id>.json`); lần đầu là cả phiên.
-- **Định dạng**: `📈 Token: input 18 | output 4.4k | cache đọc 912k | cache tạo 13.4k | tổng 930k (từ mốc trước).` — `tổng` = input + output + cache đọc + cache tạo; số rút gọn bằng CLI [`compact-number.mjs`](./scripts/compact-number.mjs) (đọc `{ usage }` từ stdin; < 1000 giữ nguyên; k/M, dưới 100 giữ 1 chữ số thập phân, từ 100 làm tròn số nguyên); nhãn `cả phiên` hoặc `từ mốc trước`. File `<session_id>.emitted.json` vẫn lưu số thô, thêm `total`.
+- **Định dạng**: `📈 Token: input 18 | output 4.4k | cache đọc 912k | cache tạo 13.4k | tổng 930k (từ mốc trước).` — `tổng` = input + output + cache đọc + cache tạo; số rút gọn bằng [`compact-number.mjs`](./scripts/compact-number.mjs) (< 1000 giữ nguyên; k/M, dưới 100 giữ 1 chữ số thập phân, từ 100 làm tròn); nhãn `cả phiên` hoặc `từ mốc trước`. `<session_id>.emitted.json` lưu số thô kèm `total`.
 - **An toàn**: luôn `exit 0`, không chặn; thiếu `jq`/`node`/script hoặc không đọc được transcript thì im lặng, không ghi N/A hay ước lượng.
 - **Phạm vi**: chỉ Claude Code (Codex không có hook này nên bỏ hai dòng đó khỏi báo cáo).
-- **Độ trễ**: transcript lúc hook chạy chưa gồm các message của lượt hiện tại nên số liệu tính đến lúc gọi skill; lượt đầu của phiên headless chưa có message nào nên hook im lặng. Phiên tương tác đã được kiểm chứng: hook chèn số liệu thật khi gọi `report`; độ lệch đo được trên phiên dài so với số cuối lượt chỉ khoảng 0,7–2,6% (input +1,45%, output +1,81%, cache đọc +2,59%, cache tạo +0,72%).
+- **Độ trễ**: transcript lúc hook chạy chưa gồm các message của lượt hiện tại nên số liệu tính đến lúc gọi skill; lượt đầu của phiên headless im lặng. Đo trên phiên tương tác dài: lệch so với số cuối lượt khoảng 0,7–2,6%.
 
 ## report-usage-check — đối chiếu dòng Token trong báo cáo với số hook đã chèn
 
@@ -195,7 +195,7 @@ Chặn việc điền số Token không có nguồn: hook `report-usage` ghi s�
 
 - **Script**: [`scripts/report-usage-check.sh`](./scripts/report-usage-check.sh) (logic ở [`report-usage-check.mjs`](./scripts/report-usage-check.mjs))
 - **Loại hook**: `Stop`; đọc `last_assistant_message` của payload, không có thì lấy tin nhắn cuối từ transcript.
-- **Cách so**: tách 4 số sau `input`, `output`, `cache đọc`, `cache tạo`; chấp nhận số thô (dấu `.` `,` và khoảng trắng là phân cách nghìn, phải bằng đúng số hook) hoặc số rút gọn `4.4k`/`1.2M` (không phân biệt hoa thường k/M, phải bằng đúng chuỗi [`compact-number.mjs`](./scripts/compact-number.mjs) tạo từ số hook); `tổng` là tuỳ chọn, có thì phải khớp `total` theo cùng quy tắc; cảnh báo hiển thị số hook dạng rút gọn; lệch hoặc chưa có số hook thì cảnh báo một lần cho mỗi kiểu lệch (`<session_id>.checked`), qua `additionalContext`, không chặn.
+- **Cách so**: tách 4 số sau `input`, `output`, `cache đọc`, `cache tạo`; chấp nhận số thô hoặc số rút gọn `4.4k`/`1.2M` bằng đúng chuỗi [`compact-number.mjs`](./scripts/compact-number.mjs) tạo từ số hook; `tổng` tuỳ chọn, có thì phải khớp `total`. Lệch hoặc chưa có số hook thì cảnh báo một lần mỗi kiểu lệch (`<session_id>.checked`) qua `additionalContext`, không chặn.
 - **Im lặng khi**: không có dòng Token, số khớp, `stop_hook_active` là true, thiếu `node`/`jq` hoặc không parse được.
 - **Giới hạn**: giả định lời văn của template (`input … output … cache đọc … cache tạo …`); viết khác thì hook im lặng, không báo sai.
 
@@ -209,12 +209,12 @@ Khi Claude Code kết thúc một lượt, hook đọc `transcript_path` và ghi
 
 - **Script**: [`scripts/turn-log.sh`](./scripts/turn-log.sh) (logic ở [`turn-log.mjs`](./scripts/turn-log.mjs); đo token bằng `measure` của [`task-usage.mjs`](../skills/report/scripts/task-usage.mjs))
 - **Loại hook**: `Stop`; không in gì ra stdout, không chặn.
-- **Lượt hiện tại**: các dòng sau prompt thật cuối cùng của người dùng — dòng `type: "user"` của phiên chính, không `isMeta`/`isCompactSummary`, `origin.kind` là `human` (hoặc không có `origin`), không chứa `tool_result`, không bắt đầu bằng `<task-notification>`, `<local-command-`, `<command-name>` (lệnh local như `/clear`), `<bash-input>`/`<bash-stdout>`/`<bash-stderr>` hoặc `[Request interrupted by user`.
-- **Field**: `request` — prompt gộp khoảng trắng, che secret rõ ràng (`Bearer …`, `password=`/`token=`/`secret=`/`api_key=`…, `sk_live_`, `sk-…`, `ghp_`/`github_pat_`, `AKIA…`, `xox…-`, JWT, private key) rồi cắt 200 ký tự; slash command ghi `/<lệnh> <đối số>`. `tools` — số lần gọi theo tên tool (khử trùng theo id `tool_use`). `files` — `file_path`/`notebook_path` của `Edit`/`Write`/`NotebookEdit`, duy nhất, theo thứ tự. `tokens` — tổng `message.usage` của phiên chính trong lượt (giữ usage mới nhất mỗi `message.id`), số thô, `total` = input + output + cacheRead + cacheCreate. Không ghi nội dung file hay output tool.
-- **Subagent**: `subagentTokens` (cùng dạng `tokens`) cộng từ transcript riêng `<transcript không đuôi .jsonl>/subagents/agent-<agentId>.jsonl` của các subagent được gọi trong lượt và đã xong (tool result `status: "completed"` hoặc `agent-<id>.meta.json` có `finished: true`); không dùng `totalTokens` trên tool result vì đó chỉ là context của request cuối. Subagent nền còn chạy lúc Stop được đếm vào `subagentsPending`, không cộng token. Thiếu dữ liệu thì bỏ field.
+- **Lượt hiện tại**: các dòng sau prompt thật cuối cùng của người dùng — `type: "user"` của phiên chính, không `isMeta`/`isCompactSummary`, `origin.kind` là `human` (hoặc không có), không chứa `tool_result`, không bắt đầu bằng `<task-notification>`, `<local-command-`, `<command-name>`, `<bash-input>`/`<bash-stdout>`/`<bash-stderr>` hoặc `[Request interrupted by user`.
+- **Field**: `request` (prompt gộp khoảng trắng, che secret rõ ràng, cắt 200 ký tự; slash command ghi `/<lệnh> <đối số>`), `tools` (số lần gọi theo tên tool, khử trùng theo `tool_use` id), `files` (`file_path`/`notebook_path` của `Edit`/`Write`/`NotebookEdit`, duy nhất), `tokens` (tổng `message.usage` của phiên chính trong lượt, `total` = input + output + cacheRead + cacheCreate). Không ghi nội dung file hay output tool.
+- **Subagent**: `subagentTokens` (cùng dạng `tokens`) cộng từ transcript riêng `<transcript>/subagents/agent-<agentId>.jsonl` của các subagent đã xong trong lượt (không dùng `totalTokens` trên tool result vì đó chỉ là context của request cuối). Subagent nền còn chạy lúc Stop đếm vào `subagentsPending`, không cộng token. Thiếu dữ liệu thì bỏ field.
 - **Chống trùng**: lưu dòng/uuid prompt đầu lượt đã ghi ở `.agents/storage/state/<session_id>.turn.json`; Stop chạy lại cho cùng lượt (kể cả `stop_hook_active`) thì bỏ qua.
 - **An toàn**: luôn `exit 0`; thiếu `node`, `task-usage.mjs`, transcript, prompt hoặc payload hỏng thì im lặng, không ghi gì. Thư mục log lấy từ `CLAUDE_PROJECT_DIR`, fallback `cwd` trong payload rồi thư mục hiện tại.
-- **Giới hạn**: lượt được tiếp tục sau Stop mà không có prompt mới (ví dụ phản hồi `<task-notification>` của subagent nền) không ghi thêm dòng; Edit/Write và tool của subagent không tính vào `tools`/`files`; subagent nền xong ở lượt sau không được cộng vào lượt nào; subagent lồng (subagent gọi subagent) không cộng. Nhận diện prompt dựa trên hình dạng transcript hiện tại của Claude Code.
+- **Giới hạn**: lượt tiếp tục sau Stop mà không có prompt mới (ví dụ phản hồi `<task-notification>`) không ghi thêm dòng; Edit/Write và tool của subagent không tính vào `tools`/`files`; subagent nền xong ở lượt sau và subagent lồng không được cộng. Nhận diện prompt dựa trên hình dạng transcript hiện tại của Claude Code.
 - **Lọc log**: `jq -c 'select(.type == "turn")' .agents/storage/logs/logs.jsonl`
 
 ## notify-done — phát âm thanh khi làm xong task
@@ -228,7 +228,7 @@ Khi Claude Code kết thúc một turn (trả lời xong, không còn việc gì
 
 ## condense-planner-input — lưới an toàn chặn prompt quá dài khi gọi planner
 
-Trước mỗi lần gọi Agent tool với `subagent_type: planner`, hook này kiểm tra độ dài `prompt` — nếu vượt ngưỡng rất lớn (ví dụ dán nhầm nguyên văn cả tài liệu `architect` dài), tự cắt gọn (giữ phần đầu + phần cuối, cắt phần giữa) trước khi `planner` nhận. **Đây chỉ là lưới an toàn cuối, không phải cơ chế rút gọn context chính** — bash không hiểu ngữ nghĩa nên không biết phần nào thật sự cần giữ; việc chọn lọc đúng phần liên quan là trách nhiệm của bước gọi `planner` (xem [`workflow-plan`](../skills/workflow-plan/SKILL.md)).
+Trước mỗi lần gọi Agent tool với `subagent_type: planner`, hook cắt gọn `prompt` nếu quá dài (vd dán nguyên tài liệu `architect`): giữ phần đầu + cuối, cắt phần giữa. **Chỉ là lưới an toàn cuối**; việc chọn đúng phần liên quan là trách nhiệm của bước gọi `planner` (xem [`workflow-plan`](../skills/workflow-plan/SKILL.md)).
 
 - **Script**: [`scripts/condense-planner-input.sh`](./scripts/condense-planner-input.sh)
 - **Loại hook**: `PreToolUse`, matcher `Agent`
@@ -258,12 +258,14 @@ Mỗi lần gọi Agent tool, hook này luôn báo rõ tên `subagent_type` đan
 
 ## copy-browser-screenshot — đưa ảnh chụp trình duyệt từ thư mục tạm vào project
 
-Tool Claude in Chrome lưu ảnh chụp ở thư mục tạm hệ thống (vd `/var/folders/.../T/claude-chrome-screenshots-<id>/screenshot-<số>-<n>.jpg`), OS có thể dọn mất. Hook copy ảnh vào `.agents/storage/evidence/browser/<yyyyMMdd>/` của project và báo đường dẫn mới qua `additionalContext` để agent dẫn đường dẫn đó thay vì đường dẫn tạm — liên hệ [`rules/frontend.md`](../rules/frontend.md).
+Tool Claude in Chrome lưu ảnh chụp ở thư mục tạm hệ thống mà OS có thể dọn. Hook lấy project từ `cwd` của payload (Git root nếu có) rồi copy ảnh vào project. `LUMINA_TASK_SLUG` hợp lệ → `.agents/storage/evidence/<task-slug>/`; không thì `.agents/storage/evidence/browser/<yyyyMMdd>/` (staging inbox), phải chuyển vào thư mục task trước khi dẫn trong báo cáo — liên hệ [`rules/frontend.md`](../rules/frontend.md).
 
 - **Script**: [`scripts/copy-browser-screenshot.sh`](./scripts/copy-browser-screenshot.sh)
 - **Loại hook**: `PostToolUse`, matcher `mcp__claude-in-chrome__.*`
 - **Nhận diện ảnh**: quét mọi chuỗi trong `tool_response` theo regex file `.png`/`.jpg`/`.jpeg`/`.webp` (không phụ thuộc tên field); chỉ nhận file thường (bỏ symlink) có thư mục thật nằm dưới `$TMPDIR`, `/tmp`, `/private/tmp`, `/var/folders`, `/private/var/folders` và không nằm sẵn trong project.
 - **Copy, không move**: giữ tên file; trùng tên thì thêm hậu tố `-1`, `-2`..., không ghi đè.
+- **Project đang hoạt động**: ưu tiên `cwd` hợp lệ trong payload và resolve Git root; chỉ fallback `CLAUDE_PROJECT_DIR`, rồi thư mục chạy hook, khi payload không có `cwd` hợp lệ. Vì vậy session mở từ repo khác không kéo ảnh ra khỏi repo của thao tác hiện tại.
+- **Task slug tùy chọn**: đặt `LUMINA_TASK_SLUG` theo mẫu `^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$` để copy thẳng vào thư mục task. Giá trị thiếu hoặc không hợp lệ không được dùng làm path; ảnh giữ ở staging inbox và `additionalContext` nhắc chuyển ảnh trước khi báo cáo.
 - **An toàn**: luôn `exit 0`, không chặn tool; thiếu `jq`, không có ảnh hợp lệ hoặc copy lỗi thì im lặng.
 - **Phụ thuộc**: cần `jq`. Chỉ Claude Code (Codex không có tool này).
 - **Giới hạn**: chưa kiểm với `tool_response` thật của Chrome; ảnh chỉ trả về dạng base64 (không có đường dẫn file) thì không copy được.
@@ -289,4 +291,4 @@ Khi cài global, hook được đăng ký ở cả `~/.claude/settings.json` (đ
 
 ## Đã bật sẵn trong chính repo này
 
-`hook/` nằm trong `.claude/hooks/` của repo này, và `.claude/settings.json` đã trỏ cả 21 hook tự viết (`audit-log`, `commit-msg-guard`, `bugfix-test-reminder`, `secret-scan`, `protected-branch-guard`, `format-before-push`, `condense-planner-input`, `agent-role-reminder`, `format-on-edit`, `ensure-final-newline`, `lint-on-edit`, `test-reminder`, `dependency-audit-reminder`, `ci-workflow-lint`, `copy-browser-screenshot`, `remind-cleanup`, `report-reminder`, `report-usage`, `report-usage-check`, `turn-log`, `notify-done`) tới đúng path `.claude/hooks/scripts/...` — không cần cài thêm gì để dùng ngay trong repo này. Riêng hook `rtk hook claude` gọi tool ngoài, chỉ chạy được nếu máy đã cài [`rtk`](https://github.com/rtk-ai/rtk) (xem mục riêng ở trên). Khi copy sang project khác, dùng installer `lumina-agent` hoặc merge key `hooks` của `.claude/settings.json` theo hướng dẫn ở trên.
+Thư mục thật là `.claude/hooks/`; `.agents/hooks` là symlink tới `../.claude/hooks`. `.claude/settings.json` và `.codex/hooks.json` gọi script qua `.agents/hooks/scripts/...`. `settings.json` trỏ cả 21 hook tự viết (danh sách ở các mục trên); `.codex/hooks.json` trỏ 17, thiếu 4 hook chỉ dành cho Claude Code (`copy-browser-screenshot`, `report-usage`, `report-usage-check`, `turn-log`). Dùng ngay trong repo này. `rtk hook claude` gọi tool ngoài, chỉ chạy khi máy có [`rtk`](https://github.com/rtk-ai/rtk). Sang project khác: dùng installer `lumina-agent` hoặc merge key `hooks` của `.claude/settings.json`.
