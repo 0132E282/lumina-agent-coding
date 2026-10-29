@@ -7,7 +7,8 @@ description: "Áp dụng khi triển khai, kiểm thử/kiểm chứng và báo 
 
 ## Triển khai theo yêu cầu
 
-- Triển khai/sửa code phải theo vai trò [`coder`](../agents/coder.md), đúng task/plan, dependency và file/hành vi đã được duyệt.
+- Mọi task thực thi tuân theo rule [`orchestration`](./orchestration.md): phiên chính giao đúng role chuyên trách, quản lý dependency/song song/file overlap và gom handoff; không tự làm thay role. Câu trả lời/tra cứu thuần túy không có task thực thi được miễn.
+- Mọi triển khai/sửa/refactor code sản phẩm phải do phiên chính giao cho subagent [`coder`](../agents/coder.md), đúng task/plan, dependency và file/hành vi đã được duyệt; phiên chính không tự code. Khi đủ scope, quyền và bằng chứng, `coder` phải triển khai và kiểm chứng ngay trong task được giao, không chỉ phân tích/đề xuất rồi trả phần code cho phiên chính.
 - Trước khi ghi đè/đồng bộ config agent ngoài repo (`~/.agents`, `~/.claude`, `~/.codex`, `~/.gemini`), luôn backup bản cũ vào `~/Documents/backup/agents/<tên>-<yyyyMMdd>/`; không ghi đè backup cũ, không để backup ở scratchpad hay `/tmp`.
 - Trước bàn giao, loại hunk ngoài scope, kiểm chứng luồng bị ảnh hưởng, sync docs/testcase repo và dùng [`report`](../skills/report/SKILL.md); không tự review/commit.
 

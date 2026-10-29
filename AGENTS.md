@@ -21,9 +21,10 @@ This is an agent configuration repo. `.agents/rules/` is the single shared sourc
 
 Follow [implementation](./.agents/rules/delivery.md#triển-khai-theo-yêu-cầu) directly. `/cleanup` trims context only. `/test`/`$workflow-test` saves to `testcase.json` at repo root.
 
+- Every task that performs work follows the mandatory [`orchestration`](./.agents/rules/orchestration.md) rule: the main session delegates directly to the matching specialist subagent. Pure answers/lookups without an execution task stay in the main session.
 - Implement immediately when evidence is sufficient; no extra probing.
 - Gates: scope/authorization → [`coding`](./.agents/rules/coding.md#kiss-yagni-và-phạm-vi); UI → [`frontend`](./.agents/rules/frontend.md); before handoff → [`delivery`](./.agents/rules/delivery.md#chất-lượng-và-bằng-chứng); full plan completion → [`docs`](./.agents/rules/docs.md#đồng-bộ-tài-liệu).
-- Small, clear task → `coder` directly. Plan/subagent/review only when truly warranted.
+- Small, clear coding task → the main session immediately assigns one dedicated `coder`; do not add planner/review steps unless truly warranted. Once scope and authorization are sufficient, that `coder` implements and verifies the code in the same assignment instead of returning analysis or an implementation proposal.
 
 ## Hooks and format
 
@@ -54,14 +55,15 @@ Docs default to `AI-readable` (minimal context, link instead of repeat). `human-
 
 ## Agent coordination
 
+- The main session directly owns dispatch, dependency/order, file-overlap safety, new-input routing and handoff aggregation for every execution task; it delegates each task to the matching specialist and independently reruns required checks before reporting. Pure answers/lookups without an execution task are exempt.
 - Next agent reads the handoff from `docs/` — do not make the user re-explain it.
 - Each agent stays in its role; valid previous handoff → reuse.
 - Delegate with exact file/diff/scope in the prompt. Subagents hand back with the [handoff template](./.agents/skills/report/assets/subagent-handoff-template.md); only the orchestrator reports to the user.
 - One agent per task: `coder` named `coding - <task>`, `planner` named `plan - <task>` (e.g. `coding - login form`); when the work spans several repos, include the repo: `coding - <repo> - <task>` (e.g. `coding - web-app - login form`). In Claude Code set the name as the `Agent` call's `description` and keep the returned agent ID for `SendMessage`. Never reuse an agent for an unrelated task.
-- Every plan task and every bug fix is implemented by a `coder` agent, never by the main session. Plan: one `coder` per `content.codingGroups` entry (`coding - <group name>`) with that group's tasks/files, run in `dependsOnGroups` order. Bug fix: one `coder` (`coding - fix <bug>`) after diagnosis via `/debug`.
-- New user input (text, image, feedback) while agents run: the orchestrator decides itself, without asking, whether it relates to or affects a running agent's task/files.
-  - Yes → `SendMessage` to each affected agent (images by file path; a finished agent is resumed the same way, keeping its context).
-  - No (e.g. a separate bug) → spawn a new `coder` immediately (bugs: diagnose via `/debug` first), without waiting for the others.
+- Every request that writes, changes, or refactors product code is dispatched by the main session to a `coder` agent, never implemented by the main session; this includes small changes, features, plan tasks, and bug fixes. When the approved scope and evidence are sufficient, the assigned `coder` must implement and verify the change, not stop at analysis, suggestions, or a handoff that asks the orchestrator to code. Plan: one `coder` per `content.codingGroups` entry (`coding - <group name>`) with that group's tasks/files, run in `dependsOnGroups` order. Bug fix: one `coder` (`coding - fix <bug>`) after diagnosis via `/debug`.
+- New user input (text, image, feedback) while agents run: the main session decides, without asking, whether it relates to or affects a running agent's task/files.
+  - Yes → use `SendMessage` for each affected agent (images by file path; a finished agent is resumed the same way, keeping its context).
+  - No → spawn a new agent with the matching role immediately (bugs: diagnose via `/debug`, then assign a `coder`), without waiting for unrelated agents.
 - Run agents in parallel only when they have no dependency and their file sets do not overlap; otherwise run sequentially or isolate with a worktree (`isolation: worktree`).
 - After a hand-back, the orchestrator re-runs the required checks itself before reporting; a subagent's self-reported result is not evidence.
 
