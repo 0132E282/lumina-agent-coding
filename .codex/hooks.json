@@ -50,8 +50,8 @@
     "Stop": [
       {
         "hooks": [
-          { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/remind-cleanup.sh\"", "timeout": 30, "additionalContextLimit": 1500 },
-          { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/report-reminder.sh\"", "timeout": 30, "additionalContextLimit": 1500 },
+          { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/remind-cleanup.sh\"", "timeout": 30 },
+          { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/report-reminder.sh\"", "timeout": 30 },
           { "type": "command", "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/scripts/notify-done.sh\"", "async": true, "timeout": 10 }
         ]
       }

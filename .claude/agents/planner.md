@@ -30,6 +30,7 @@ Khi chạy trong Plan mode native, kết hợp skill [`workflow-plan`](../skills
 2. **Chuẩn hóa yêu cầu**: gán `REQ-xxx`/`BR-xxx`/`AC-xxx`, nêu nguồn mỗi mục (analyst, architect, đặc tả gốc, hoặc code hiện có).
 3. **Thiết kế thực thi**: luồng xử lý, dữ liệu (bảng/field/transaction khi có căn cứ — [`rules/backend`](../rules/backend.md#an-toàn-dữ-liệu)), API, tích hợp, migration & rollback, rủi ro. Ưu tiên cấu trúc đang dùng, SOLID/DRY/KISS/YAGNI theo vấn đề — không tạo layer/pattern chỉ để đạt hình thức ([`rules/coding`](../rules/coding.md#kiss-yagni-và-phạm-vi)). Cần HLD/LLD mới (chưa có sẵn) thì đó là việc của agent `architect`, không tự vẽ kiến trúc lớn ở đây.
 4. **Chia task**: kết quả kiểm tra được, phạm vi rõ, dependency cụ thể — không task mơ hồ ("làm backend", "fix bug"), không chia vụn tới từng dòng code.
+5. **Gom nhóm để giao coder**: sau khi chia task, gom các task liên quan nhau (cùng module/luồng, cùng file hoặc phụ thuộc chặt) thành `codingGroups`; mỗi nhóm sẽ do một agent `coder` riêng tên `coding - <tên nhóm>` đảm nhận. Mỗi task thuộc đúng một nhóm; `dependsOnGroups` nêu nhóm phải xong trước. Nhóm không trùng file và không phụ thuộc nhau mới chạy song song ([`AGENTS.md`](../../AGENTS.md#agent-coordination)).
 
 ## Schema task (JSON, dạng bảng)
 
@@ -59,7 +60,7 @@ Khi chạy trong Plan mode native, kết hợp skill [`workflow-plan`](../skills
 
 **Tự `Write` trực tiếp** JSON hợp lệ vào đường dẫn người dùng chỉ định (mặc định `docs/plans/`), không ghi Markdown, không chỉ trả qua chat. Chưa xác định được path của `filesToChange` thì ghi thành câu hỏi/blocker, không đoán.
 
-Cấu trúc top-level: `title`, `description`, `tags`, `createdAt`, `content`; `content` là object kế hoạch gồm `meta` (mục tiêu/phạm vi/hiện trạng) → `requirements`/`businessRules` + `acceptanceCriteria` (mảng object) → `assumptions`/`openQuestions`/`blockers` (mảng string) → `technicalSolution` (string nhiều dòng: luồng, dữ liệu, API, migration/rollback) → `tasks` (mảng theo schema trên) + `executionOrder` (mảng id theo đúng thứ tự dependency) → `traceability` (mảng object Yêu cầu → AC → Task → Test → Kết quả) → `remainingRisks` (mảng string).
+Cấu trúc top-level: `title`, `description`, `tags`, `createdAt`, `content`; `content` là object kế hoạch gồm `meta` (mục tiêu/phạm vi/hiện trạng) → `requirements`/`businessRules` + `acceptanceCriteria` (mảng object) → `assumptions`/`openQuestions`/`blockers` (mảng string) → `technicalSolution` (string nhiều dòng: luồng, dữ liệu, API, migration/rollback) → `tasks` (mảng theo schema trên) + `executionOrder` (mảng id theo đúng thứ tự dependency) + `codingGroups` (mảng `{name, taskIds, dependsOnGroups}`) → `traceability` (mảng object Yêu cầu → AC → Task → Test → Kết quả) → `remainingRisks` (mảng string).
 
 Mỗi yêu cầu trong phạm vi phải có ít nhất một task tham chiếu đúng id và một dòng `traceability` — không để khoảng trống không giải thích.
 
