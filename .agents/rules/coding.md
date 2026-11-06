@@ -12,7 +12,34 @@ description: "Áp dụng khi viết hoặc sửa code: nguyên tắc code, phạ
 - Validate/fail fast tại boundary trước side effect; business logic tách khỏi HTTP/framework; lỗi phải cụ thể.
 - Tên và cấu trúc phải tự giải thích; file text mới/sửa phải có final newline, giữ line ending hiện có.
 
-Quy trình, checklist và ví dụ: [`coding-standards`](../skills/coding-standards/SKILL.md). Comment: [`comments`](#comment-có-kỷ-luật). Phạm vi/KISS: [`simplicity`](#kiss-yagni-và-phạm-vi).
+Quy trình, checklist và ví dụ: [`coding-standards`](../skills/coding-standards/SKILL.md). Đặt tên: [`naming`](#đặt-tên). Comment: [`comments`](#comment-có-kỷ-luật). Phạm vi/KISS: [`simplicity`](#kiss-yagni-và-phạm-vi).
+
+## Đặt tên
+
+- Bảng dưới là mặc định; chỗ có ghi ngoại lệ theo ngôn ngữ thì theo convention chuẩn của ngôn ngữ/framework đó. Không đổi convention giữa các module; convention có sẵn trong repo thắng bảng.
+- Bảng mặc định:
+
+| Thành phần | Convention |
+|---|---|
+| Variable, parameter | camelCase ở mọi ngôn ngữ (C# private field `_camelCase`) |
+| Function | camelCase (Rust/Python: snake_case; C# method/public property: PascalCase) |
+| Class, interface, trait, struct, enum và enum variant, type alias, React component | PascalCase (C# interface: `IPascalCase`) |
+| Module / namespace | Rust snake_case; JS/TS camelCase; C# namespace PascalCase |
+| Constant, static, environment variable | SCREAMING_SNAKE_CASE (C#: PascalCase); JS/TS chỉ cho hằng toàn cục hoặc cấu hình, không bắt buộc mọi `const` |
+| Database table / column / index | snake_case; table số nhiều (`order_items`), khóa ngoại `<bảng_số_ít>_id`, index `<bảng>_<cột>_<unique\|index>` |
+| API endpoint | danh từ số nhiều, kebab-case (`/api/user-profiles`); biến API (query param, field JSON request/response) snake_case |
+| CSS class, file CSS | kebab-case |
+| File | Component/class PascalCase, hook `useXxx.ts`, utility camelCase, Rust module snake_case; còn lại theo framework |
+
+- Boolean bắt đầu bằng `is`/`has`/`can`/`should`/`was`; collection là danh từ số nhiều; function bắt đầu bằng động từ (`get`, `find`, `create`, `update`, `delete`, `validate`, `calculate`, `send`, `sync`).
+- Tránh tên chung chung (`data`, `item`, `value`) khi đặt được tên cụ thể, tên viết tắt khó hiểu, tên chỉ khác nhau chữ hoa/thường, tiếng Việt không dấu, ký tự đặc biệt hoặc khoảng trắng; tên phản ánh đúng trách nhiệm.
+- Nguồn chính thức khi cần đối chiếu (ưu tiên hơn trí nhớ):
+  - PHP/Laravel: [PSR-1](https://www.php-fig.org/psr/psr-1/), [PSR-4](https://www.php-fig.org/psr/psr-4/), [PSR-12](https://www.php-fig.org/psr/psr-12/), [Laravel](https://laravel.com/docs).
+  - Rust: [Style Guide](https://doc.rust-lang.org/style-guide/), [API Guidelines](https://rust-lang.github.io/api-guidelines/).
+  - JavaScript/TypeScript: [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript), [TypeScript Docs](https://www.typescriptlang.org/docs/), [Google JS](https://google.github.io/styleguide/jsguide.html), [Google TS](https://google.github.io/styleguide/tsguide.html).
+  - C#: [Coding Conventions](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions), [Identifier names](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/identifier-names).
+- Chạy formatter/linter của ngôn ngữ (Pint/PHP CS Fixer, rustfmt/Clippy, ESLint/Prettier, `dotnet format`) khi dự án đã có; không cài thêm chỉ để kiểm tra.
+- Đổi tên code có sẵn chỉ khi nằm trong scope ([`simplicity`](#kiss-yagni-và-phạm-vi)).
 
 ## KISS, YAGNI và phạm vi
 
