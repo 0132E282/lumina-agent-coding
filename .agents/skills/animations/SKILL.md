@@ -8,7 +8,7 @@ metadata:
 
 # Animations
 
-Khi hoạt ảnh lấy từ link/nguồn tham chiếu (clone hoặc thiết kế theo mẫu): phân tích (trigger, thuộc tính đổi, thời lượng, easing, trạng thái, reduced-motion) rồi ghi vào `docs/design/animations.md` trước khi code; phần không đo được ghi chưa xác minh, không đoán số.
+Khi hoạt ảnh lấy từ link/nguồn tham chiếu (clone hoặc thiết kế theo mẫu): phân tích (trigger, thuộc tính đổi, thời lượng, easing, trạng thái, reduced-motion) rồi ghi vào `design/animations.md` trước khi code; phần không đo được ghi chưa xác minh, không đoán số.
 
 Chỉ thêm hiệu ứng khi người dùng yêu cầu hoặc task UI cần; không thêm hiệu ứng ngoài scope ([`rules/frontend`](../../rules/frontend.md), [`rules/coding`](../../rules/coding.md#kiss-yagni-và-phạm-vi)). Giữ design system, thư viện và quy ước motion sẵn có của project; mặc định chỉ dùng công nghệ platform, không thêm dependency khi chưa được duyệt.
 

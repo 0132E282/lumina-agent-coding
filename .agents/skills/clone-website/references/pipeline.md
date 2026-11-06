@@ -74,4 +74,4 @@ python3 .agents/skills/clone-website/scripts/compare-html.py \
 └── processed/
 ```
 
-`temp/` và `mapping.json` là tài nguyên tạm (đã trong `.gitignore` của `.agents/storage/`), không commit. Asset dùng thật trong clone đặt ở `public/`/thư mục asset của project, không ở `.agents/storage/`. Cần tài liệu thiết kế: copy [`assets/pixel-perfect-spec.md`](../assets/pixel-perfect-spec.md) vào `docs/design/`, thay `TBD` bằng giá trị đo được, cập nhật registry docs theo rule repo.
+`temp/` và `mapping.json` là tài nguyên tạm (đã trong `.gitignore` của `.agents/storage/`), không commit. Asset dùng thật trong clone đặt ở `public/`/thư mục asset của project, không ở `.agents/storage/`. Cần tài liệu thiết kế: copy [`assets/pixel-perfect-spec.md`](../assets/pixel-perfect-spec.md) vào `design/` (ngoài `docs/`, không đưa vào registry), thay `TBD` bằng giá trị đo được.

@@ -21,7 +21,7 @@ Agent kiến trúc hệ thống. Nhiệm vụ: phân tích yêu cầu, thiết k
 
 ## Quy trình & mẫu đầu ra
 
-**Tự `Write` trực tiếp** vào đường dẫn người dùng chỉ định (mặc định `docs/system-design.md`) theo đúng các mục dưới đây, co giãn độ chi tiết theo dự án, bỏ phần không áp dụng kèm lý do. Viết theo từng mục nhỏ, tuần tự — không dồn cả tài liệu vào một lần xuất. Ghi ra file để agent `planner` đọc trực tiếp sau này, không cần dán lại nguyên văn vào prompt.
+**Tự `Write` trực tiếp** vào đường dẫn người dùng chỉ định (mặc định `ARCHITECTURE.md` ở gốc repo cho tài liệu chính, chi tiết theo loại trong `system/`: `database.md`, `api.md`, `frontend.md`, `backend.md`, `infrastructure.md`, `security.md`, `devops.md`, chỉ tạo loại áp dụng; chọn bộ theo [design-sets](../skills/system-understanding/references/design-sets.md)) theo đúng các mục dưới đây, co giãn độ chi tiết theo dự án, bỏ phần không áp dụng kèm lý do. Viết theo từng mục nhỏ, tuần tự — không dồn cả tài liệu vào một lần xuất. Ghi ra file để agent `planner` đọc trực tiếp sau này, không cần dán lại nguyên văn vào prompt.
 
 ### 1. Bài toán & phạm vi
 
@@ -40,7 +40,7 @@ Với quyết định quan trọng, so sánh 2–3 phương án: điều kiện 
 
 Entity, PK/FK, cardinality, constraint, ownership, vòng đời dữ liệu. Index/pagination/caching xuất phát từ truy vấn thực tế — ghi chi phí ghi và giới hạn, không kết luận nhanh khi chưa đo. API trọng yếu: method/path, auth, input/validation/output/error, pagination. Transaction boundary, mức nhất quán, idempotency. State machine cho nghiệp vụ quan trọng.
 
-> Schema/index/query theo đúng engine (MySQL/PostgreSQL/MongoDB/Redis...): dùng skill [`database`](../skills/database/SKILL.md); system-design chỉ định entity/quan hệ ở mức khái niệm. Tổ chức code bên trong một module: tham khảo [`design-patterns`](../skills/design-patterns/SKILL.md); system-design chỉ định ranh giới/contract.
+> Schema/index/query theo đúng engine (MySQL/PostgreSQL/MongoDB/Redis...): dùng skill [`database`](../skills/database/SKILL.md); system-design chỉ định entity/quan hệ ở mức khái niệm. Design pattern: khi một vấn đề cụ thể cần (tách biến thể, tích hợp bên ngoài, trạng thái, xử lý bất đồng bộ...), chọn pattern bằng skill [`design-patterns`](../skills/design-patterns/SKILL.md) và ghi trong tài liệu: pattern, vấn đề giải quyết, lý do chọn, phương án thay thế; không nhồi pattern khi chưa cần ([`rules/coding`](../rules/coding.md#kiss-yagni-và-phạm-vi)). Thiết kế chỉ định ranh giới/contract và pattern, coder triển khai bên trong module.
 
 ### 4. Độ tin cậy, bảo mật, hiệu năng
 
@@ -52,13 +52,22 @@ Timeout, retry có giới hạn/backoff/jitter, duplicate delivery, dead-letter 
 
 ### 6. Bàn giao
 
-**Không tự chia task triển khai.** Tài liệu đã ghi ra `docs/system-design.md` (mục 1–5) làm input cho agent `planner` — agent đó tự đọc file này, chia task có dependency/acceptance criteria/truy vết; tránh hai agent cùng làm một việc ([`rules/coding`](../rules/coding.md#nguyên-tắc-code)).
+**Không tự chia task triển khai.** Tài liệu đã ghi ra `ARCHITECTURE.md` (mục 1–5) làm input cho agent `planner` — agent đó tự đọc file này, chia task có dependency/acceptance criteria/truy vết; tránh hai agent cùng làm một việc ([`rules/coding`](../rules/coding.md#nguyên-tắc-code)).
+
+## Thiết kế frontend
+
+Áp dụng khi phạm vi có frontend; chọn tài liệu theo [`rules/system-design`](../rules/system-design.md), không viết đủ bộ.
+
+- **Kiến trúc frontend**: layout/page/component, Server/Client, routing, state (local trước), API client, auth/session, form/validation, trạng thái loading/error/empty.
+- **Sơ đồ** (≥3 thành phần): sitemap/route, user flow, cây component, API sequence.
+- **Hiệu năng, SEO và giao hàng**: cache/revalidate, lazy load, responsive, metadata/sitemap; môi trường tách secret, CI lint/test/build, health check, rollback.
+- **Giao diện** (wireframe, UI/UX, design system) thuộc [`designer`](./designer.md); chỉ tham chiếu.
 
 ## Review trước khi bàn giao
 
 Đối chiếu từng yêu cầu với thành phần/luồng/acceptance criteria. Kiểm tra tên entity/API nhất quán, nguồn dữ liệu chuẩn rõ, constraint khớp luồng nghiệp vụ, lỗi có cách khôi phục. Không báo đạt performance/security khi chưa có bằng chứng; nêu rõ phần nào là giả thuyết.
 
-Khi nhiệm vụ là **review** một thiết kế có sẵn (không phải viết thiết kế mới), đọc `docs/reviews/index.json` trước, tìm bằng title/description/tags và mở report phù hợp qua path. Lưu kết quả JSON chi tiết tại `docs/reviews/<title-slug>-<yyyyMMdd>.json` với `title`, `description`, `tags`, `content`, `createdAt` (`YYYY-MM-DD`), `reviewType: "system-design"`, artifact/path được review, findings có mức độ + căn cứ + khuyến nghị, câu hỏi mở và trạng thái. Cập nhật index cùng lượt bằng đúng `title`, `description`, `tags`, `path`; description hướng dẫn AI khi nào nên tham khảo report. Không sửa tài liệu thiết kế đang review. Khi viết thiết kế mới, tiếp tục dùng Markdown `docs/system-design.md` có frontmatter `title`, `description`, `tags`, nội dung ở phần thân, rồi cập nhật `docs/index.json`.
+Khi nhiệm vụ là **review** một thiết kế có sẵn (không phải viết thiết kế mới), đọc `docs/reviews/index.json` trước, tìm bằng title/description/tags và mở report phù hợp qua path. Lưu kết quả JSON chi tiết tại `docs/reviews/<title-slug>-<yyyyMMdd>.json` với `title`, `description`, `tags`, `content`, `createdAt` (`YYYY-MM-DD`), `reviewType: "system-design"`, artifact/path được review, findings có mức độ + căn cứ + khuyến nghị, câu hỏi mở và trạng thái. Cập nhật index cùng lượt bằng đúng `title`, `description`, `tags`, `path`; description hướng dẫn AI khi nào nên tham khảo report. Không sửa tài liệu thiết kế đang review. Thiết kế mới ghi vào `ARCHITECTURE.md` và `system/` (ngoài `docs/`, không đưa vào `docs/index.json`).
 
 ## Theo đúng stack thật của repo
 

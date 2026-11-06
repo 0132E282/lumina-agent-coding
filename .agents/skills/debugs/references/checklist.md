@@ -43,6 +43,18 @@ Không chắc giữa hai mức thì chọn mức cao hơn và ghi lý do.
 | Bảo mật | Theo [`review-web-security`](../../review-web-security/SKILL.md); không ghi payload khai thác/dữ liệu nhạy cảm vào báo cáo |
 | Chỉ lỗi trên production | Khác biệt cấu hình, phiên bản, quyền truy cập, dữ liệu, môi trường |
 
+## Che secret trong bằng chứng
+
+Trước khi dẫn log, HAR hoặc output vào báo cáo, quét thư mục evidence và che mọi dòng khớp:
+
+```bash
+grep -rEnIi -e 'AKIA[0-9A-Z]{16}' -e 'BEGIN [A-Z ]*PRIVATE KEY' -e '(api[_-]?key|secret|token|password)[^[:alnum:]]{0,3}[:=]' .agents/storage/evidence/<task-slug>/
+```
+
+## Đo hiệu năng
+
+Lỗi hiệu năng đo trước/sau cùng điều kiện và ghi tối thiểu: latency p50/p95, số query/request, CPU/RAM khi đo được, kèm lệnh/công cụ đo. Không đo được thì ghi rõ chỉ rà tĩnh.
+
 ## Chất lượng một lần debug
 
 - [ ] Tái hiện được lỗi hoặc xác định rõ điều kiện xảy ra

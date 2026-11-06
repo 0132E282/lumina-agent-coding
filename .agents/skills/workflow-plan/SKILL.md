@@ -19,7 +19,7 @@ Khi yêu cầu plan là một tính năng, luồng hoặc khu vực của dự �
 
 ## Quy trình theo phạm vi
 
-1. Đọc yêu cầu và hướng dẫn project; đọc `docs/plans/index.json` nếu có, tìm bằng title/description/tags rồi mở file liên quan qua path. Tái sử dụng `docs/requirement-analysis.md`/`docs/system-design.md` nếu còn đúng. Khảo sát stack, file và hành vi bị ảnh hưởng; không dump toàn repo.
+1. Đọc yêu cầu và hướng dẫn project; đọc `docs/plans/index.json` nếu có, tìm bằng title/description/tags rồi mở file liên quan qua path. Luôn đọc thiết kế đã có theo [`system-design`](../../rules/system-design.md) và tái sử dụng `docs/requirement-analysis.md` nếu còn đúng; mỗi task dẫn phần thiết kế nó thực hiện. Khảo sát stack, file và hành vi bị ảnh hưởng; không dump toàn repo.
 2. Research chỉ khi thiếu bằng chứng. System design chỉ khi cần HLD/LLD/mô hình dữ liệu mới; dùng vai trò tương ứng và file handoff khi runtime cho phép. Không mặc định full pipeline cho thay đổi nhỏ.
 3. Dùng vai trò [`planner`](../../agents/planner.md) để lập yêu cầu → task → AC → test, phạm vi, dependency, file/hành vi cụ thể, thứ tự thực hiện, rollback/rủi ro và câu hỏi còn thiếu. Chỉ giao subagent khi workflow/phạm vi cần và runtime hỗ trợ; nếu không, thực hiện planning tuần tự theo vai trò, không giả lập delegation.
 4. Review plan khi độ phức tạp/rủi ro cần hoặc người dùng yêu cầu. `reviewer` chỉ nêu findings; planner xử lý findings trong phạm vi kế hoạch. Báo ngắn phần đã chốt/còn thiếu, không tự chuyển sang implement.

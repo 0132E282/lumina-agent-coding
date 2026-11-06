@@ -1,6 +1,6 @@
 ---
 name: system-understanding
-description: "Khảo sát và giải thích hệ thống hiện có trước khi coding, review hoặc tối ưu; lập bản đồ module, request flow, data flow, dependency, boundary, database và tác động liên module mà không tự redesign hay triển khai. Vẽ sơ đồ Mermaid (cấu trúc thư mục, ERD, user/system flow): references/diagrams.md."
+description: "Khảo sát và giải thích hệ thống hiện có trước khi coding, review hoặc tối ưu; lập bản đồ module, request flow, data flow, dependency, boundary, database và tác động liên module mà không tự redesign hay triển khai. Vẽ sơ đồ Mermaid (cấu trúc thư mục, ERD, user/system flow): references/diagrams.md. Chọn bộ tài liệu thiết kế theo loại dự án (Web/Mobile/AI/Desktop/SaaS/E-commerce/API): references/design-sets.md."
 license: MIT
 metadata:
   version: "1.0"
@@ -12,7 +12,7 @@ Xây dựng hiểu biết có căn cứ về hệ thống hiện có trước kh
 
 ## Quy trình
 
-1. Đọc `AGENTS.md`, `CLAUDE.md`, README, manifest/lockfile và menu tài liệu phù hợp (`docs/index.json`, `docs/plans/index.json`, `docs/testcases/index.json`, `docs/reviews/index.json` nếu có). Mở đúng tài liệu bàn giao (`docs/requirement-analysis.md`, `docs/system-design.md`) hoặc plan JSON trong `docs/plans/` khi điều kiện menu cho task khớp.
+1. Đọc `AGENTS.md`, `CLAUDE.md`, README, manifest/lockfile và menu tài liệu phù hợp (`docs/index.json`, `docs/plans/index.json`, `docs/testcases/index.json`, `docs/reviews/index.json` nếu có). Mở đúng tài liệu bàn giao (`docs/requirement-analysis.md`, `ARCHITECTURE.md`, `system/`) hoặc plan JSON trong `docs/plans/` khi điều kiện menu cho task khớp.
 2. Xác định stack, entry point, module, service, job, CLI, route và dependency chính bằng file thật; không suy đoán theo tên thư mục.
 3. Truy vết một luồng đại diện từ input → validation/auth → business logic → database/external service → output/side effect.
 4. Ghi boundary và ownership: module nào chịu trách nhiệm, contract nào được dùng, dữ liệu chuẩn nằm ở đâu, tenant/authz và transaction boundary nào áp dụng.
@@ -40,3 +40,7 @@ Xây dựng hiểu biết có căn cứ về hệ thống hiện có trước kh
 ## Sơ đồ
 
 Vẽ sơ đồ có căn cứ (cấu trúc thư mục, ERD database, user/system flow bằng Mermaid), không tự đoán thành phần hay quan hệ: [references/diagrams.md](./references/diagrams.md).
+
+## Bộ tài liệu thiết kế
+
+Chọn Core + bộ riêng theo loại dự án (mặc định Web khi chưa rõ), kèm checklist bàn giao: [references/design-sets.md](./references/design-sets.md).
