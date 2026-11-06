@@ -6,4 +6,4 @@
 - Lập plan, điều phối và coding luôn đọc các thiết kế này; mỗi task dẫn phần thiết kế nó thực hiện. Chưa có thiết kế thì ghi rõ, không bịa; code lệch thiết kế thì dừng và hỏi.
 - Bám design system và UI hiện có; không tự redesign hay đổi UI library. Phần thiếu căn cứ ghi là giả định hoặc câu hỏi mở.
 
-Vai trò: [`architect`](../../.claude/agents/architect.md) viết kiến trúc, [`designer`](../../.claude/agents/designer.md) viết giao diện. Sơ đồ: [`diagrams`](../skills/system-understanding/references/diagrams.md); bộ theo loại dự án và checklist: [`design-sets`](../skills/system-understanding/references/design-sets.md).
+Vai trò: [`architect`](../agents/architect.md) viết kiến trúc, [`designer`](../agents/designer.md) viết giao diện. Sơ đồ: [`diagrams`](../skills/system-understanding/references/diagrams.md); bộ theo loại dự án và checklist: [`design-sets`](../skills/system-understanding/references/design-sets.md).
