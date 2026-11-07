@@ -7,20 +7,19 @@ description: "Áp dụng khi triển khai, kiểm thử/kiểm chứng và báo 
 
 ## Triển khai theo yêu cầu
 
-- Mọi task thực thi tuân theo rule [`orchestration`](./orchestration.md): phiên chính giao đúng role chuyên trách, quản lý dependency/song song/file overlap và gom handoff; không tự làm thay role. Câu trả lời/tra cứu thuần túy không có task thực thi được miễn.
-- Mọi triển khai/sửa/refactor code sản phẩm phải do phiên chính giao cho subagent [`coder`](../agents/coder.md), đúng task/plan, dependency và file/hành vi đã được duyệt; phiên chính không tự code. Khi đủ scope, quyền và bằng chứng, `coder` phải triển khai và kiểm chứng ngay trong task được giao, không chỉ phân tích/đề xuất rồi trả phần code cho phiên chính.
+- Điều phối, giao role, dependency/song song/file overlap và handoff theo [`orchestration`](./orchestration.md); phiên chính không tự làm thay role. Câu trả lời/tra cứu thuần túy được miễn.
+- Mọi triển khai/sửa/refactor code sản phẩm do phiên chính giao [`coder`](../agents/coder.md), đúng task/plan, dependency và file/hành vi đã được duyệt; phiên chính không tự code. Khi đủ scope, quyền và bằng chứng, `coder` triển khai và kiểm chứng ngay trong task, không chỉ đề xuất rồi trả code cho phiên chính.
 - Trước khi ghi đè/đồng bộ config agent ngoài repo (`~/.agents`, `~/.claude`, `~/.codex`, `~/.gemini`), luôn backup bản cũ vào `~/Documents/backup/agents/<tên>-<yyyyMMdd>/`; không ghi đè backup cũ, không để backup ở scratchpad hay `/tmp`.
-- Trước bàn giao, loại hunk ngoài scope, kiểm chứng luồng bị ảnh hưởng, sync docs/testcase repo và dùng [`report`](../skills/report/SKILL.md); không tự review/commit.
+- Trước bàn giao, loại hunk ngoài scope, kiểm chứng luồng bị ảnh hưởng, sync docs/testcase repo và dùng [`report`](../skills/report/SKILL.md); không tự review/commit (kiểm tra bắt buộc xem mục dưới).
 
 Trình tự đọc plan, triển khai, kiểm chứng và bàn giao: [`workflow-implement`](../skills/workflow-implement/SKILL.md).
 
 ## Chất lượng và bằng chứng
 
-- Kiểm tra tương xứng rủi ro/phạm vi; static analysis bắt buộc trước khi báo hoàn thành trừ khi người dùng từ chối rõ.
+- Kiểm tra tương xứng rủi ro/phạm vi; static analysis bắt buộc trước khi báo hoàn thành trừ khi người dùng từ chối rõ (tôn trọng cả yêu cầu không chạy test/check).
 - Không ghi Pass/Fail hoặc tuyên bố tool/check đã chạy nếu không có thực thi và bằng chứng; testcase đã chạy phải có ảnh hoặc request/response API thật, API ghi rõ từng endpoint/tham số `Đúng | Sai` theo [`testcase` mục 7.2](../skills/testing/references/testcase.md#72-bằng-chứng-và-kết-quả-api).
 - Trước bàn giao, kiểm tra final newline trên file text đổi, `git diff --check`, diff/out-of-scope, regression, render/state/effect loop và N+1 trên luồng bị ảnh hưởng; không đo được phải ghi rõ rà tĩnh.
-- Lỗi do diff hoặc thuộc scope phải sửa và kiểm lại; lỗi có sẵn ngoài scope chỉ báo vị trí/tác động và xin phép.
-- Bug fix theo [`rules/bug-fix`](./bug-fix.md); tôn trọng yêu cầu không chạy test/check.
+- Lỗi do diff hoặc thuộc scope phải sửa và kiểm lại; lỗi có sẵn ngoài scope chỉ báo vị trí/tác động và xin phép. Bug fix theo [`bug-fix`](./bug-fix.md).
 
 Lệnh, checklist và artifact: [`testing`](../skills/testing/references/unit-testing.md), [`workflow-test`](../skills/workflow-test/SKILL.md), [`workflow-review`](../skills/workflow-review/SKILL.md). Kiểm thử hộp đen theo module: [`testcase`](../skills/testing/references/testcase.md#71-hộp-đen-và-lập-lịch-khi-thực-thi).
 

@@ -24,13 +24,12 @@ Quy trình/checklist: [`coding-backend`](../skills/coding-backend/SKILL.md), [`d
 - Nhóm thao tác ghi phải cùng thành công hoặc thất bại phải dùng transaction.
 - Không đặt side effect không thể rollback bên trong transaction.
 
-Quy trình/checklist theo engine và security boundary: [`database`](../skills/database/SKILL.md), [`coding-backend`](../skills/coding-backend/SKILL.md), [`review-web-security`](../skills/review-web-security/SKILL.md).
+Checklist theo engine và security boundary: cùng ba skill trên.
 
 ## Database read-only mặc định
 
 - Mọi database thật mặc định chỉ được đọc: không tự chạy write, DDL, migration, seed, đổi index/schema/collection hoặc flush production cache.
-- Được soạn migration/script ghi khi được yêu cầu, nhưng viết xong không cấp quyền chạy.
-- Chỉ chạy đúng mutation khi người dùng yêu cầu rõ cả thiết kế và thực thi; không suy rộng từ yêu cầu đọc/phân tích.
+- Được soạn migration/script ghi khi được yêu cầu, nhưng viết xong không cấp quyền chạy; chỉ chạy đúng mutation khi người dùng yêu cầu rõ cả thiết kế và thực thi, không suy rộng từ yêu cầu đọc/phân tích.
 - Chỉ coi test/sandbox là ngoại lệ khi người dùng xác nhận rõ.
 
 Phạm vi lệnh và quy trình theo engine: [`database`](../skills/database/SKILL.md). Transaction/authorization: [`data-safety`](#an-toàn-dữ-liệu). Explicit authorization tương tự Git: [`git`](./git.md).
