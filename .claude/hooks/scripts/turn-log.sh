@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Stop hook: ghi MỘT dòng tóm tắt mỗi lượt (prompt, số lần gọi tool, file đã sửa, token)
-# vào .agents/storage/logs/logs.jsonl — cùng file audit-log.sh ghi từng tool call.
+# vào .agents/storage/logs/logs-YYYYMMDD.jsonl — cùng file audit-log.sh ghi từng tool call.
 #
 # Nhận JSON input từ stdin theo schema Stop:
 #   { "session_id": "...", "transcript_path": "...", "cwd": "...", "stop_hook_active": false }
 #
-# Mỗi lượt chỉ ghi một lần (marker .agents/storage/state/<session_id>.turn.json).
+# Mỗi lượt chỉ ghi một lần (marker khoá `turn` của session trong .agents/storage/state/state-YYYYMMDD.json).
 # Best-effort: thiếu node/script/transcript thì im lặng. Luôn exit 0, không in gì ra stdout.
 
 # ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).

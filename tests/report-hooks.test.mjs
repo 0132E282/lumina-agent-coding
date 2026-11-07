@@ -5,6 +5,12 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import { getSessionValue } from '../.claude/hooks/scripts/_hook-storage.mjs';
+
+const logFileName = (() => {
+  const now = new Date();
+  return `logs-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}.jsonl`;
+})();
 
 const usageHook = fileURLToPath(new URL('../.claude/hooks/scripts/report-usage.sh', import.meta.url));
 const reminderHook = fileURLToPath(new URL('../.claude/hooks/scripts/report-reminder.sh', import.meta.url));
@@ -75,15 +81,14 @@ test('report-usage emits the token and waste lines and windows by marker', conte
   assert.equal(firstLines[0], '📈 Token: input 20 | output 10 | cache đọc 200 | cache tạo 14 | tổng 244 (cả phiên).');
   assert.doesNotMatch(firstOutput.additionalContext, /Không phát hiện/);
   assert.match(firstLines[1], /dòng Token: theo template change \(và dòng Issue lãng phí: chỉ khi hook liệt kê vi phạm\)/);
-  const marker = path.join(root, '.agents/storage/state/session-1.json');
-  assert.deepEqual(JSON.parse(fs.readFileSync(marker, 'utf8')), { lastLine: 2 });
+  assert.deepEqual(getSessionValue(root, 'session-1', 'usageMarker'), { lastLine: 2 });
 
   fs.appendFileSync(transcript, `${JSON.stringify({ type: 'assistant', message: { id: 'm9', usage: { input_tokens: 1, output_tokens: 2 }, content: [] } })}\n`);
   const second = runHook(usageHook, root, skillPayload('plugin:report', transcript));
   assert.equal(second.status, 0);
   const secondLines = JSON.parse(second.stdout).hookSpecificOutput.additionalContext.split('\n');
   assert.equal(secondLines[0], '📈 Token: input 1 | output 2 | cache đọc 0 | cache tạo 0 | tổng 3 (từ mốc trước).');
-  assert.deepEqual(JSON.parse(fs.readFileSync(marker, 'utf8')), { lastLine: 3 });
+  assert.deepEqual(getSessionValue(root, 'session-1', 'usageMarker'), { lastLine: 3 });
 
   const third = runHook(usageHook, root, skillPayload('report', transcript));
   assert.equal(third.status, 0);
@@ -96,7 +101,7 @@ test('report-reminder no longer prints token lines or touches the usage marker',
   const logDirectory = path.join(root, '.agents/storage/logs');
   fs.mkdirSync(logDirectory, { recursive: true });
   const entry = { ts: '2026-01-01T00:00:00Z', session_id: 'session-1', tool: 'Edit', cwd: root, input: { file_path: 'a.txt' } };
-  fs.writeFileSync(path.join(logDirectory, 'logs.jsonl'), `${JSON.stringify(entry)}\n`);
+  fs.writeFileSync(path.join(logDirectory, logFileName), `${JSON.stringify(entry)}\n`);
 
   const payload = { session_id: 'session-1', transcript_path: transcript };
   const first = runHook(reminderHook, root, payload);
@@ -105,7 +110,7 @@ test('report-reminder no longer prints token lines or touches the usage marker',
   assert.equal(message.hookEventName, 'Stop');
   assert.match(message.additionalContext, /skill `report`/);
   assert.doesNotMatch(message.additionalContext, /📈|Issue lãng phí:/);
-  assert.equal(fs.existsSync(path.join(root, '.agents/storage/state/session-1.json')), false);
+  assert.equal(getSessionValue(root, 'session-1', 'usageMarker'), undefined);
 
   const again = runHook(reminderHook, root, payload);
   assert.equal(again.status, 0);
@@ -122,7 +127,7 @@ test('report-usage prints compact numbers but stores raw numbers', context => {
   const lines = JSON.parse(result.stdout).hookSpecificOutput.additionalContext.split('\n');
   assert.equal(lines[0], '📈 Token: input 18 | output 4.4k | cache đọc 912k | cache tạo 13.4k | tổng 930k (cả phiên).');
   assert.doesNotMatch(lines.join('\n'), /nguồn transcript/);
-  const emitted = JSON.parse(fs.readFileSync(path.join(root, '.agents/storage/state/session-1.emitted.json'), 'utf8'));
+  const emitted = getSessionValue(root, 'session-1', 'emitted');
   assert.deepEqual([emitted.input, emitted.output, emitted.cacheRead, emitted.cacheCreate, emitted.total], [18, 4448, 912046, 13421, 929933]);
 });
 
@@ -135,7 +140,7 @@ test('report-reminder ignores Edit/Write made by subagents (audit-log records ag
 
   const subagentAudit = runHook(auditHook, root, editPayload('subagent.txt', { agent_id: 'agent-abc', agent_type: 'coder' }));
   assert.equal(subagentAudit.status, 0);
-  const logFile = path.join(root, '.agents/storage/logs/logs.jsonl');
+  const logFile = path.join(root, `.agents/storage/logs/${logFileName}`);
   const [subagentEntry] = fs.readFileSync(logFile, 'utf8').trim().split('\n').map(line => JSON.parse(line));
   assert.equal(subagentEntry.agent_id, 'agent-abc');
 

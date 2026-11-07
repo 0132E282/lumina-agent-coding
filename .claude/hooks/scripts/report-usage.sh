@@ -31,11 +31,8 @@ transcript_path="$(printf '%s' "$input" | jq -r '.transcript_path // ""' 2>/dev/
 [ -z "$session_id" ] && exit 0
 [ -f "$transcript_path" ] || exit 0
 
-if [ -n "$CLAUDE_PROJECT_DIR" ] && [ -d "$CLAUDE_PROJECT_DIR" ]; then
-  log_root="$CLAUDE_PROJECT_DIR"
-else
-  log_root="$(pwd)"
-fi
+. "$(dirname "$0")/_hook-storage.sh"
+log_root="$(lumina_project_root)"
 
 usage_script="$log_root/.agents/skills/report/scripts/task-usage.mjs"
 if [ ! -f "$usage_script" ]; then
@@ -43,8 +40,7 @@ if [ ! -f "$usage_script" ]; then
 fi
 [ -f "$usage_script" ] || exit 0
 
-marker_file="$log_root/.agents/storage/state/$session_id.json"
-since_line="$(jq -r '.lastLine // 0' "$marker_file" 2>/dev/null || true)"
+since_line="$(lumina_state_get "$log_root" "$session_id" usageMarker | jq -r '.lastLine // 0' 2>/dev/null || true)"
 window_label="từ mốc trước"
 if [ -z "$since_line" ] || [ "$since_line" = "0" ]; then
   since_line=0
@@ -79,10 +75,11 @@ jq -n --arg msg "$usage_text" '{
 }' || exit 0
 
 # * Lưu số đã phát ra để hook Stop report-usage-check.sh đối chiếu dòng Token trong báo cáo.
-emitted_file="$log_root/.agents/storage/state/$session_id.emitted.json"
-mkdir -p "$(dirname "$emitted_file")" && printf '%s' "$usage_json" | jq -c --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-  '{input: .usage.input, output: .usage.output, cacheRead: .usage.cacheRead, cacheCreate: .usage.cacheCreate, total: (.usage.input + .usage.output + .usage.cacheRead + .usage.cacheCreate), ts: $ts}' > "$emitted_file" || true
+emitted_json="$(printf '%s' "$usage_json" | jq -c --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  '{input: .usage.input, output: .usage.output, cacheRead: .usage.cacheRead, cacheCreate: .usage.cacheCreate, total: (.usage.input + .usage.output + .usage.cacheRead + .usage.cacheCreate), ts: $ts}' 2>/dev/null || true)"
+[ -n "$emitted_json" ] && lumina_state_set "$log_root" "$session_id" emitted "$emitted_json"
 
 # * Chỉ dời mốc sau khi đã phát ra số liệu, để lần báo cáo kế tiếp đo từ đây.
-mkdir -p "$(dirname "$marker_file")" && printf '%s' "$usage_json" | jq -c '{lastLine}' > "$marker_file" || true
+marker_json="$(printf '%s' "$usage_json" | jq -c '{lastLine}' 2>/dev/null || true)"
+[ -n "$marker_json" ] && lumina_state_set "$log_root" "$session_id" usageMarker "$marker_json"
 exit 0

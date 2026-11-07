@@ -15,9 +15,9 @@
 set -o pipefail
 trap 'exit 0' ERR
 
-# Thiếu helper (bản cài cũ chỉ copy một phần) thì vẫn ghi log, chỉ bỏ xoay vòng.
-log_rotate_helper="$(dirname "$0")/_log-rotate.sh"
-[ -f "$log_rotate_helper" ] && . "$log_rotate_helper"
+# Mỗi ngày một file logs-YYYYMMDD.jsonl; thiếu helper (bản cài cũ chỉ copy một phần) thì vẫn ghi vào file cùng tên.
+storage_helper="$(dirname "$0")/_hook-storage.sh"
+[ -f "$storage_helper" ] && . "$storage_helper"
 
 command -v jq >/dev/null 2>&1 || exit 0
 
@@ -34,12 +34,16 @@ else
 fi
 
 log_dir="$project_dir/.agents/storage/logs"
-log_file="$log_dir/logs.jsonl"
 mkdir -p "$log_dir" 2>/dev/null || exit 0
+if command -v lumina_log_file >/dev/null 2>&1; then
+  log_file="$(lumina_log_file "$log_dir")"
+else
+  log_file="$log_dir/logs-$(date +%Y%m%d).jsonl"
+fi
+[ -n "$log_file" ] || exit 0
 
 timestamp="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 session_id="$(printf '%s' "$input" | jq -r '.session_id // "unknown"' 2>/dev/null)"
-tool_name="$tool_name_check"
 cwd="$(printf '%s' "$input" | jq -r '.cwd // ""' 2>/dev/null)"
 # Claude Code chỉ gửi agent_id khi tool chạy trong subagent; phiên chính không có field này.
 agent_id="$(printf '%s' "$input" | jq -r '.agent_id // ""' 2>/dev/null)"
@@ -77,7 +81,7 @@ summary="$(printf '%s' "$input" | jq -c "$redact_secrets_filter"'
 entry="$(jq -nc \
   --arg ts "$timestamp" \
   --arg session "$session_id" \
-  --arg tool "$tool_name" \
+  --arg tool "$tool_name_check" \
   --arg cwd "$cwd" \
   --arg agent_id "$agent_id" \
   --argjson input "$summary" \
@@ -85,7 +89,6 @@ entry="$(jq -nc \
    + (if $agent_id != "" then {agent_id: $agent_id} else {} end)' 2>/dev/null)"
 
 if [ -n "$entry" ]; then
-  command -v lumina_log_rotate >/dev/null 2>&1 && lumina_log_rotate "$log_dir"
   printf '%s\n' "$entry" >> "$log_file" 2>/dev/null
 fi
 

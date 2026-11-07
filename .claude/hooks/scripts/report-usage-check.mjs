@@ -2,8 +2,8 @@
 // Helper của report-usage-check.sh: so dòng `Token:` của báo cáo với số hook đã chèn.
 // Usage: node report-usage-check.mjs <logRoot>  (Stop payload qua stdin). Luôn exit 0.
 import * as fs from 'node:fs';
-import path from 'node:path';
 import { formatCompactNumber } from './compact-number.mjs';
+import { getSessionValue, pushSessionValues } from './_hook-storage.mjs';
 
 const NUMBER = String.raw`(\d+(?:\.\d+)?[kKmM](?![\p{L}\d])|\d{1,3}(?:[.,  ]\d{3})+|\d+)`;
 const FIELDS = [
@@ -65,14 +65,6 @@ const matchesEmitted = (reportedValue, emittedValue) => (typeof reportedValue ==
 const describe = (numbers, format = String) => `input ${format(numbers.input)} | output ${format(numbers.output)} | cache đọc ${format(numbers.cacheRead)} | cache tạo ${format(numbers.cacheCreate)}${numbers.total === undefined ? '' : ` | tổng ${format(numbers.total)}`}`;
 const describeCompact = numbers => describe(numbers, formatCompactNumber);
 
-function readJson(file) {
-  try {
-    return JSON.parse(fs.readFileSync(file, 'utf8'));
-  } catch {
-    return null;
-  }
-}
-
 function main() {
   const logRoot = process.argv[2] || process.cwd();
   const payload = JSON.parse(fs.readFileSync(0, 'utf8'));
@@ -83,8 +75,7 @@ function main() {
   const reported = parseReportedNumbers(readFinalMessage(payload));
   if (!reported) return;
 
-  const stateDirectory = path.join(logRoot, '.agents/storage/state');
-  const emitted = readJson(path.join(stateDirectory, `${sessionId}.emitted.json`));
+  const emitted = getSessionValue(logRoot, sessionId, 'emitted');
   const hasEmitted = emitted && FIELDS.every(([name]) => Number.isFinite(emitted[name]));
   // Tổng là tuỳ chọn trong báo cáo; emitted cũ chưa có total thì cộng từ 4 trường.
   if (hasEmitted && !Number.isFinite(emitted.total)) {
@@ -94,11 +85,8 @@ function main() {
   if (hasEmitted && totalMatches && FIELDS.every(([name]) => matchesEmitted(reported[name], emitted[name]))) return;
 
   const signature = `${describe(reported)} => ${hasEmitted ? describe(emitted) : 'no-emitted'}`;
-  const checkedFile = path.join(stateDirectory, `${sessionId}.checked`);
-  const seen = fs.existsSync(checkedFile) ? fs.readFileSync(checkedFile, 'utf8').split('\n') : [];
-  if (seen.includes(signature)) return;
-  fs.mkdirSync(stateDirectory, { recursive: true });
-  fs.appendFileSync(checkedFile, `${signature}\n`);
+  // Mỗi kiểu lệch chỉ nhắc một lần: push trả 0 khi chữ ký đã có.
+  if (pushSessionValues(logRoot, sessionId, 'usageChecked', [signature]) === 0) return;
 
   const message = hasEmitted
     ? `⚠️ Dòng Token trong báo cáo không khớp số hook đã chèn (báo cáo: ${describe(reported)}; hook: ${describeCompact(emitted)}). Sửa lại bằng đúng số hook: ${describeCompact(emitted)}.`

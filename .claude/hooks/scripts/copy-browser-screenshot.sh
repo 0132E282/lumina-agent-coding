@@ -6,8 +6,11 @@
 # Nhận JSON input từ stdin theo schema PostToolUse:
 #   { "tool_name": "...", "tool_response": ..., "cwd": "..." }
 #
-# ! Cấu trúc tool_response của Chrome chưa được xác minh nên quét mọi chuỗi trong đó
-# theo regex file ảnh, rồi chỉ nhận file thường (không symlink) nằm dưới thư mục tạm.
+
+# ! Transcript thật của Chrome chỉ có text "Successfully captured screenshot (...) - ID: ss_xxx" và khối image
+# base64 (kèm file .../tool-results/mcp-claude-in-chrome-blob-*.jpg do Claude Code lưu dưới ~/.claude/projects).
+# Hook nhận: (1) khối image base64 trong tool_response, (2) đường dẫn ảnh dưới thư mục tạm,
+# (3) đường dẫn ảnh trong tool-results của Claude Code; chỉ nhận file thường (không symlink) dưới thư mục tin cậy.
 #
 # Copy, không move; trùng tên thì thêm hậu tố, không ghi đè. Luôn exit 0, không chặn tool.
 
@@ -37,8 +40,15 @@ project_dir="$project_dir_real"
 candidates="$(printf '%s' "$input" \
   | jq -r '[.tool_response | .. | strings] | join("\n")' 2>/dev/null \
   | grep -oiE "/[^\"'[:space:]<>|\\\\]*\\.(png|jpe?g|webp)" \
-  | sort -u)"
-[ -z "$candidates" ] && exit 0
+  | sort -u || true)"
+
+# Khối image base64 (MCP): {type:"image", source:{type:"base64", media_type, data}} hoặc {type:"image", data, mimeType}.
+inline_images="$(printf '%s' "$input" | jq -r '
+  [.tool_response | .. | objects | select(.type? == "image") | (.source // .) | select((.data? | type) == "string")]
+  | .[] | "\((.media_type // .mimeType // "image/png"))\t\(.data)"' 2>/dev/null || true)"
+screenshot_id="$(printf '%s' "$input" | jq -r '[.tool_response | .. | strings] | join("\n")' 2>/dev/null \
+  | grep -oE 'ss_[A-Za-z0-9]+' | head -n 1 || true)"
+[ -z "$candidates" ] && [ -z "$inline_images" ] && exit 0
 
 temp_roots=()
 for root in "$TMPDIR" /tmp /private/tmp /var/folders /private/var/folders; do
@@ -46,7 +56,10 @@ for root in "$TMPDIR" /tmp /private/tmp /var/folders /private/var/folders; do
   root_real="$(cd "$root" 2>/dev/null && pwd -P)" || continue
   temp_roots+=("${root_real%/}")
 done
-[ "${#temp_roots[@]}" -eq 0 ] && exit 0
+
+# Thư mục tool-results của Claude Code cho project này (ảnh MCP được lưu ở đây, không phải thư mục tạm).
+claude_home_real="$(cd "${CLAUDE_CONFIG_DIR:-$HOME/.claude}" 2>/dev/null && pwd -P)" || claude_home_real=""
+[ -n "$claude_home_real" ] && temp_roots+=("$claude_home_real/projects")
 
 is_under_temp_root() {
   local directory="$1" root
@@ -82,6 +95,9 @@ while IFS= read -r source_path; do
   [ -f "$source_path" ] && [ ! -L "$source_path" ] || continue
   source_dir_real="$(cd "$(dirname "$source_path")" 2>/dev/null && pwd -P)" || continue
   is_under_temp_root "$source_dir_real" || continue
+  case "$source_dir_real/" in
+    "$claude_home_real"/projects/*) case "$source_dir_real" in */tool-results|*/tool-results/*) ;; *) continue ;; esac ;;
+  esac
   # Project nằm dưới thư mục tạm thì không copy ảnh đã ở trong project.
   case "$source_dir_real/" in
     "$project_dir_real"/*) continue ;;
@@ -102,6 +118,33 @@ while IFS= read -r source_path; do
   copied_lines="${copied_lines}- ${source_path} -> ${destination_path}
 "
 done <<< "$candidates"
+
+inline_index=0
+while IFS=$'\t' read -r media_type image_data; do
+  [ -n "$image_data" ] || continue
+  case "$media_type" in
+    image/jpeg|image/jpg) extension="jpg" ;;
+    image/webp) extension="webp" ;;
+    image/png) extension="png" ;;
+    *) continue ;;
+  esac
+  inline_index=$((inline_index + 1))
+  mkdir -p "$destination_dir" 2>/dev/null || exit 0
+  stem="chrome-${screenshot_id:-$(date +%H%M%S)}"
+  [ "$inline_index" -gt 1 ] && stem="$stem-$inline_index"
+  destination_path="$destination_dir/$stem.$extension"
+  suffix=1
+  while [ -e "$destination_path" ] || [ -L "$destination_path" ]; do
+    destination_path="$destination_dir/$stem-$suffix.$extension"
+    suffix=$((suffix + 1))
+  done
+  if printf '%s' "$image_data" | { base64 -d 2>/dev/null || base64 -D 2>/dev/null; } > "$destination_path" && [ -s "$destination_path" ]; then
+    copied_lines="${copied_lines}- (ảnh base64 trong tool_response) -> ${destination_path}
+"
+  else
+    rm -f "$destination_path"
+  fi
+done <<< "$inline_images"
 
 [ -z "$copied_lines" ] && exit 0
 

@@ -11,4 +11,5 @@ metadata:
 Chọn đúng tài liệu chi tiết, chỉ mở phần cần dùng:
 
 - Viết test case theo yêu cầu (ID, Requirement ID, Steps, Expected result...), xử lý khi thiếu thông tin: [references/testcase.md](./references/testcase.md)
+- Test UI/E2E và API bằng Playwright (ảnh trước/sau, evidence, liệt kê API): [testing-playwright](../testing-playwright/SKILL.md)
 - Viết unit test kỹ thuật: test double, Arrange-Act-Assert, cách ly dependency, độ phủ theo rủi ro: [references/unit-testing.md](./references/unit-testing.md)

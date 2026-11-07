@@ -44,7 +44,7 @@ Discovers skills/rules from `.agents/`. TOML files in `.codex/agents/` are not A
 | Plan | Plan mode + `workflow-plan` / `planner` |
 | Implementation | `coder` |
 | Debug / bug fix — also any request with `sửa`/`fix` aimed at a bug or wrong behavior | `/debug` / `$workflow-debug` → `debugs` (fix via `coder`) |
-| Test / QA | `workflow-test` / `qa-tester`; unit test: `testing` |
+| Test / QA | `workflow-test` / `qa-tester`; unit test: `testing`; UI/E2E/API bằng Playwright: `testing-playwright` |
 | Code review | `workflow-review` / `reviewer`; security: `review-web-security` |
 | New UI / redesign | `designer` |
 | SEO (technical, content, AI search) | `seo` |

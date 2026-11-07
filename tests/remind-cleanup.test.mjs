@@ -5,6 +5,12 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import { setSessionValue } from '../.claude/hooks/scripts/_hook-storage.mjs';
+
+const logFileName = (() => {
+  const now = new Date();
+  return `logs-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}.jsonl`;
+})();
 
 const hook = fileURLToPath(new URL('../.claude/hooks/scripts/remind-cleanup.sh', import.meta.url));
 
@@ -16,7 +22,7 @@ function project(context, { withScratchFile = true } = {}) {
   const filePath = path.join(root, withScratchFile ? 'scratch-notes.txt' : 'feature.txt');
   fs.writeFileSync(filePath, 'x');
   const logEntry = { session_id: 'session-1', tool: 'Write', cwd: root, input: { file_path: filePath } };
-  fs.writeFileSync(path.join(logDirectory, 'logs.jsonl'), `${JSON.stringify(logEntry)}\n`);
+  fs.writeFileSync(path.join(logDirectory, logFileName), `${JSON.stringify(logEntry)}\n`);
   return root;
 }
 
@@ -131,7 +137,7 @@ function addWrittenFiles(root, relativePaths) {
     fs.writeFileSync(filePath, 'x');
     return JSON.stringify({ session_id: 'session-1', tool: 'Write', cwd: root, input: { file_path: filePath } });
   });
-  fs.appendFileSync(path.join(root, '.agents/storage/logs/logs.jsonl'), `${lines.join('\n')}\n`);
+  fs.appendFileSync(path.join(root, `.agents/storage/logs/${logFileName}`), `${lines.join('\n')}\n`);
 }
 
 const finder = fileURLToPath(new URL('../.agents/skills/cleanup-temp-files/scripts/find-session-scratch-files.sh', import.meta.url));
@@ -211,13 +217,11 @@ exec "${realGrep}" "$@"
   return directory;
 }
 
-test('an empty reminded-state file does not suppress the reminder', context => {
+test('an empty reminded list does not suppress the reminder', context => {
   const root = project(context);
   const transcriptPath = path.join(root, 'transcript.jsonl');
   fs.writeFileSync(transcriptPath, `${JSON.stringify({ type: 'assistant', message: { usage: usageOf(4000, 150000, 10000) } })}\n`);
-  const stateDirectory = path.join(root, '.agents/storage/state');
-  fs.mkdirSync(stateDirectory, { recursive: true });
-  fs.writeFileSync(path.join(stateDirectory, 'session-1.cleanup-reminded'), '');
+  setSessionValue(root, 'session-1', 'cleanupReminded', []);
   const result = runHook(
     root,
     { session_id: 'session-1', transcript_path: transcriptPath },

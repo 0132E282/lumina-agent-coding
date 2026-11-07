@@ -5,6 +5,11 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
+const logFileName = (() => {
+  const now = new Date();
+  return `logs-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}.jsonl`;
+})();
+
 const repoRoot = path.resolve(import.meta.dirname, '..');
 const sourceScripts = path.join(repoRoot, '.claude/hooks/scripts');
 const payload = JSON.stringify({ tool_name: 'Read', tool_input: { file_path: 'x' }, session_id: 's1' });
@@ -23,7 +28,7 @@ function createFixture({ projectHasHook }) {
   installScripts(projectScripts, projectHasHook ? ['_dedupe-guard.sh', 'audit-log.sh'] : ['_dedupe-guard.sh']);
   fs.mkdirSync(path.join(project, '.agents'), { recursive: true });
   fs.symlinkSync('../.claude/hooks', path.join(project, '.agents/hooks'), 'dir');
-  const logFile = path.join(project, '.agents/storage/logs/logs.jsonl');
+  const logFile = path.join(project, `.agents/storage/logs/${logFileName}`);
   return { root, homeScripts, project, projectScripts, logFile };
 }
 
