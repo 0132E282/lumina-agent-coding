@@ -1,6 +1,6 @@
 {
-  "title": "Tối ưu rules và đánh giá cấu trúc repo",
-  "description": "Tham khảo khi rút gọn .agents/rules, AGENTS.md, CLAUDE.md theo nguyên tắc một ràng buộc một chủ sở hữu, hoặc khi cân nhắc tái cấu trúc thư mục .agents/.claude/.codex.",
+  "title": "Optimize rules and review repo structure",
+  "description": "Reference when compacting .agents/rules, AGENTS.md, CLAUDE.md under the one-constraint-one-owner principle, or when considering restructuring the .agents/.claude/.codex directories.",
   "tags": [
     "agent-rules",
     "configuration",
@@ -10,21 +10,21 @@
   "createdAt": "2026-10-22",
   "content": {
     "meta": {
-      "objective": "Rules ngắn hơn, ít token hơn, không mất ràng buộc; đề xuất cấu trúc repo giữ nguyên symlink và path của installer/hook.",
-      "inScope": ".agents/rules/*.md, AGENTS.md, CLAUDE.md; đánh giá cấu trúc .agents/.claude/.codex/docs/bin/scripts/tests.",
-      "outOfScope": "CONTRACT.md, script/hook/bin/test, di chuyển/đổi tên file.",
-      "currentState": "Rules + AGENTS + CLAUDE + CONTRACT = 33366 byte (wc -c); cùng ràng buộc lặp 3-5 nơi; check-agent-config pass."
+      "objective": "Shorter rules, fewer tokens, no lost constraints; propose a repo structure that keeps symlinks and installer/hook paths unchanged.",
+      "inScope": ".agents/rules/*.md, AGENTS.md, CLAUDE.md; review of the .agents/.claude/.codex/docs/bin/scripts/tests structure.",
+      "outOfScope": "CONTRACT.md, script/hook/bin/test, moving/renaming files.",
+      "currentState": "Rules + AGENTS + CLAUDE + CONTRACT = 33366 bytes (wc -c); the same constraints repeated in 3-5 places; check-agent-config passes."
     },
     "requirements": [
       {
         "id": "REQ-001",
-        "description": "Bỏ trùng lặp/dài dòng trong rules, chuyển thủ tục sang skill, không mất ràng buộc",
-        "source": "Yêu cầu người dùng qua phiên điều phối, plan đã duyệt 2026-10-22"
+        "description": "Remove duplication/verbosity in rules, move procedures to skills, lose no constraint",
+        "source": "User request via the dispatcher session, plan approved 2026-10-22"
       },
       {
         "id": "REQ-002",
-        "description": "Đánh giá và đề xuất cấu trúc repo, giữ symlink tương đối và path installer/hook",
-        "source": "Yêu cầu người dùng qua phiên điều phối, plan đã duyệt 2026-10-22"
+        "description": "Review and propose the repo structure, keeping relative symlinks and installer/hook paths",
+        "source": "User request via the dispatcher session, plan approved 2026-10-22"
       }
     ],
     "businessRules": [],
@@ -34,39 +34,39 @@
         "requirements": [
           "REQ-001"
         ],
-        "description": "Mỗi ràng buộc bị xoá vẫn còn ở chủ sở hữu (CONTRACT, rule owner hoặc skill); mọi heading/anchor giữ nguyên",
-        "source": "Plan đã duyệt"
+        "description": "Every removed constraint still exists at its owner (CONTRACT, rule owner or skill); all headings/anchors unchanged",
+        "source": "Approved plan"
       },
       {
         "id": "AC-002",
         "requirements": [
           "REQ-001"
         ],
-        "description": "Tổng byte giảm so với 33366; check-agent-config pass; git diff --check sạch; npm test pass",
-        "source": "Plan đã duyệt"
+        "description": "Total bytes lower than 33366; check-agent-config passes; git diff --check clean; npm test passes",
+        "source": "Approved plan"
       },
       {
         "id": "AC-003",
         "requirements": [
           "REQ-002"
         ],
-        "description": "Không symlink/path nào trong bin/lumina-agent.mjs, .claude/settings.json, .codex/hooks.json thay đổi",
-        "source": "Plan đã duyệt"
+        "description": "No symlink/path in bin/lumina-agent.mjs, .claude/settings.json, .codex/hooks.json changes",
+        "source": "Approved plan"
       }
     ],
     "assumptions": [
-      "Người dùng chốt 2026-10-22: làm M1 theo nghĩa của .claude/commands/git.md (commit all = toàn bộ thay đổi hợp lệ trừ file cấm; commit change khi người dùng chọn rõ) và O1 (xoá settings.snippet.json, README hooks trỏ tới settings.json/installer)."
+      "User decided 2026-10-22: do M1 per the meaning in .claude/commands/git.md (commit all = all valid changes except forbidden files; commit change when the user chooses it explicitly) and O1 (delete settings.snippet.json, hooks README points to settings.json/installer)."
     ],
     "openQuestions": [],
     "blockers": [],
-    "technicalSolution": "Gán chủ sở hữu: phạm vi/quyền thay đổi → coding.md#kiss-yagni-và-phạm-vi; UI gate → frontend.md; kiểm trước bàn giao → delivery.md#chất-lượng-và-bằng-chứng; testcase khi xong plan → docs.md; thủ tục bug/git/report → skill debugs, git-workflow, report. Nơi khác chỉ link. Cấu trúc giữ nguyên vì đảo chiều symlink agents/commands/hooks đòi sửa installer, checker và test.",
+    "technicalSolution": "Assign owners: scope/change authorization → coding.md#kiss-yagni-và-phạm-vi; UI gate → frontend.md; pre-handoff checks → delivery.md#chất-lượng-và-bằng-chứng; testcase when plan done → docs.md; bug/git/report procedures → skills debugs, git-workflow, report. Elsewhere only link. Structure kept as-is because reversing the agents/commands/hooks symlinks would require editing the installer, checker and tests.",
     "tasks": [
       {
         "id": "TASK-001",
-        "title": "Rút gọn rules R6-R15",
+        "title": "Compact rules R6-R15",
         "status": "DONE",
         "priority": "P1",
-        "priorityReason": "Giảm token rules nạp mỗi phiên mà không mất ràng buộc",
+        "priorityReason": "Reduce rule tokens loaded each session without losing constraints",
         "requirements": [
           "REQ-001"
         ],
@@ -74,10 +74,10 @@
           "AC-001",
           "AC-002"
         ],
-        "inScope": "Rút gọn rules R6-R15",
-        "outOfScope": "Đổi tên file/heading rule, script/hook/bin/test, symlink",
+        "inScope": "Compact rules R6-R15",
+        "outOfScope": "Renaming rule files/headings, script/hook/bin/test, symlinks",
         "dependencies": [],
-        "approach": "Gộp câu trùng, bổ sung liệt kê còn thiếu vào owner, bỏ thủ tục đã có trong skill",
+        "approach": "Merge duplicate sentences, add missing listings to the owner, drop procedures already in skills",
         "filesToChange": [
           ".agents/rules/coding.md",
           ".agents/rules/delivery.md",
@@ -89,15 +89,15 @@
           ".agents/rules/docs.md",
           ".agents/rules/response-style.md"
         ],
-        "test": "grep từng ràng buộc bị xoá ở owner; check-agent-config",
-        "doneWhen": "AC đạt và check-agent-config, npm test, git diff --check có kết quả thật"
+        "test": "grep each removed constraint at its owner; check-agent-config",
+        "doneWhen": "AC met and check-agent-config, npm test, git diff --check have real results"
       },
       {
         "id": "TASK-002",
-        "title": "Rút gọn AGENTS.md và CLAUDE.md R1-R5, M2",
+        "title": "Compact AGENTS.md and CLAUDE.md R1-R5, M2",
         "status": "DONE",
         "priority": "P1",
-        "priorityReason": "Giảm token rules nạp mỗi phiên mà không mất ràng buộc",
+        "priorityReason": "Reduce rule tokens loaded each session without losing constraints",
         "requirements": [
           "REQ-001"
         ],
@@ -105,43 +105,43 @@
           "AC-001",
           "AC-002"
         ],
-        "inScope": "Rút gọn AGENTS.md và CLAUDE.md R1-R5, M2",
-        "outOfScope": "Đổi tên file/heading rule, script/hook/bin/test, symlink",
+        "inScope": "Compact AGENTS.md and CLAUDE.md R1-R5, M2",
+        "outOfScope": "Renaming rule files/headings, script/hook/bin/test, symlinks",
         "dependencies": [],
-        "approach": "Xoá bullet trùng CONTRACT/rules, thay gate bằng link owner, gọn đoạn hooks",
+        "approach": "Delete bullets duplicating CONTRACT/rules, replace gates with owner links, tighten the hooks paragraph",
         "filesToChange": [
           "AGENTS.md",
           "CLAUDE.md"
         ],
         "test": "check-agent-config, npm test",
-        "doneWhen": "AC đạt và check-agent-config, npm test, git diff --check có kết quả thật"
+        "doneWhen": "AC met and check-agent-config, npm test, git diff --check have real results"
       },
       {
         "id": "TASK-003",
-        "title": "Đánh giá cấu trúc repo",
+        "title": "Review repo structure",
         "status": "DONE",
         "priority": "P1",
-        "priorityReason": "Giảm token rules nạp mỗi phiên mà không mất ràng buộc",
+        "priorityReason": "Reduce rule tokens loaded each session without losing constraints",
         "requirements": [
           "REQ-002"
         ],
         "acceptanceCriteria": [
           "AC-003"
         ],
-        "inScope": "Đánh giá cấu trúc repo",
-        "outOfScope": "Đổi tên file/heading rule, script/hook/bin/test, symlink",
+        "inScope": "Review repo structure",
+        "outOfScope": "Renaming rule files/headings, script/hook/bin/test, symlinks",
         "dependencies": [],
-        "approach": "Không di chuyển file; ghi lý do giữ chiều symlink hiện tại và mục tuỳ chọn O1",
+        "approach": "Move no files; record the reason for keeping the current symlink direction and the optional item O1",
         "filesToChange": [],
-        "test": "git diff không chạm bin/, .claude/settings.json, .codex/hooks.json, symlink",
-        "doneWhen": "AC đạt và check-agent-config, npm test, git diff --check có kết quả thật"
+        "test": "git diff does not touch bin/, .claude/settings.json, .codex/hooks.json, symlinks",
+        "doneWhen": "AC met and check-agent-config, npm test, git diff --check have real results"
       },
       {
         "id": "TASK-004",
-        "title": "M1 làm rõ commit all, O1 xoá settings.snippet.json",
+        "title": "M1 clarify commit all, O1 delete settings.snippet.json",
         "status": "DONE",
         "priority": "P2",
-        "priorityReason": "Bỏ mâu thuẫn trong rule git và file cấu hình trùng",
+        "priorityReason": "Remove the contradiction in the git rule and a duplicate config file",
         "requirements": [
           "REQ-001",
           "REQ-002"
@@ -150,19 +150,19 @@
           "AC-001",
           "AC-003"
         ],
-        "inScope": "rules/git.md, .claude/hooks/README.md, xoá .claude/hooks/settings.snippet.json",
-        "outOfScope": "bin/, settings.json, test",
+        "inScope": "rules/git.md, .claude/hooks/README.md, delete .claude/hooks/settings.snippet.json",
+        "outOfScope": "bin/, settings.json, tests",
         "dependencies": [
           "TASK-001"
         ],
-        "approach": "Dùng nghĩa commit all đã có ở .claude/commands/git.md; README trỏ tới settings.json và installer (mergeSettings trong bin/lumina-agent.mjs)",
+        "approach": "Use the commit all meaning already in .claude/commands/git.md; README points to settings.json and the installer (mergeSettings in bin/lumina-agent.mjs)",
         "filesToChange": [
           ".agents/rules/git.md",
           ".claude/hooks/README.md",
           ".claude/hooks/settings.snippet.json"
         ],
-        "test": "grep settings.snippet không còn ngoài log; check-agent-config; npm test",
-        "doneWhen": "AC đạt và check thật pass"
+        "test": "grep settings.snippet no longer found outside logs; check-agent-config; npm test",
+        "doneWhen": "AC met and real checks pass"
       }
     ],
     "executionOrder": [
@@ -201,8 +201,8 @@
     ],
     "remainingRisks": [
       {
-        "description": "Agent chỉ đọc AGENTS.md (không nạp rules) mất chi tiết gate vì nay chỉ còn link",
-        "mitigation": "AGENTS.md yêu cầu đọc toàn bộ .agents/rules trước khi code; Claude nạp rules qua symlink .claude/rules"
+        "description": "An agent reading only AGENTS.md (not loading rules) loses gate details since only links remain",
+        "mitigation": "AGENTS.md requires reading all of .agents/rules before coding; Claude loads rules via the .claude/rules symlink"
       }
     ]
   }

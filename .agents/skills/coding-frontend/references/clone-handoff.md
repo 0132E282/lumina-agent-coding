@@ -1,8 +1,8 @@
-# Nhận handoff từ ui-cloner
+# Receiving a handoff from ui-cloner
 
-Áp dụng khi nhận bàn giao từ `ui-cloner` (clone-website) để chỉnh UI.
+Applies when receiving a handoff from `ui-cloner` (clone-website) to adjust UI.
 
-- Đọc source of truth, inventory, mapping JSON và pixel spec trước khi sửa UI; áp dụng [ràng buộc fidelity](../../clone-website/SKILL.md#ràng-buộc-fidelity) của `clone-website`.
-- Dùng asset có `status: downloaded`; giữ nguyên asset `failed`/`skipped` và báo phần cần xử lý thủ công. Không thay bằng placeholder nếu clone đã cam kết fidelity.
-- Giữ cấu trúc section, thứ tự, CSS gốc/processed và đường dẫn media theo mapping. Nếu width, container, breakpoint hoặc interaction thực tế lệch source, ghi sai khác cụ thể và sửa trong phạm vi được giao; không tự redesign.
-- Đối chiếu cùng route, viewport và trạng thái: macro layout trước, sau đó computed style/bounding box, typography, spacing, màu, asset và interaction. Chỉ gọi pixel-perfect khi có bằng chứng tương ứng.
+- Read the source of truth, inventory, mapping JSON and pixel spec before editing UI; apply `clone-website`'s [fidelity constraints](../../clone-website/SKILL.md#fidelity-constraints).
+- Use assets with `status: downloaded`; keep `failed`/`skipped` assets as-is and report what needs manual handling. Never replace with placeholders if the clone committed to fidelity.
+- Keep section structure, order, original/processed CSS and media paths per the mapping. If the real width, container, breakpoint or interaction deviates from the source, record the specific difference and fix it within the assigned scope; never redesign.
+- Compare at the same route, viewport and state: macro layout first, then computed style/bounding box, typography, spacing, colors, assets and interactions. Say pixel-perfect only when there is corresponding evidence.

@@ -1,20 +1,20 @@
 {
-  "title": "<Tiêu đề plan>",
-  "description": "<Mục tiêu và khi nào nên tham khảo plan>",
+  "title": "<Plan title>",
+  "description": "<Objective and when to consult the plan>",
   "tags": ["<tag-kebab-case>"],
   "createdAt": "<YYYY-MM-DD>",
   "content": {
     "meta": {
-      "objective": "<Mục tiêu đã xác nhận>",
-      "inScope": "<Phạm vi được giao>",
-      "outOfScope": "<Ngoài phạm vi>",
-      "currentState": "<Hiện trạng và nguồn đã kiểm tra>"
+      "objective": "<Confirmed objective>",
+      "inScope": "<Assigned scope>",
+      "outOfScope": "<Out of scope>",
+      "currentState": "<Current state and sources checked>"
     },
     "requirements": [
       {
         "id": "REQ-001",
-        "description": "<Yêu cầu được xác nhận>",
-        "source": "<Nguồn yêu cầu thật>"
+        "description": "<Confirmed requirement>",
+        "source": "<Real requirement source>"
       }
     ],
     "businessRules": [],
@@ -22,30 +22,30 @@
       {
         "id": "AC-001",
         "requirements": ["REQ-001"],
-        "description": "<Tiêu chí đo/quan sát được>",
-        "source": "<Nguồn AC thật>"
+        "description": "<Measurable/observable criterion>",
+        "source": "<Real AC source>"
       }
     ],
     "assumptions": [],
     "openQuestions": [],
-    "blockers": ["<Chưa xác minh filesToChange; giải quyết trước khi triển khai>"],
-    "technicalSolution": "<Luồng, dữ liệu, API, migration/rollback từ thiết kế được giao; không tự tạo HLD/LLD>",
+    "blockers": ["<filesToChange unverified; resolve before implementation>"],
+    "technicalSolution": "<Flow, data, API, migration/rollback from the assigned design; never create HLD/LLD yourself>",
     "tasks": [
       {
         "id": "TASK-001",
-        "title": "<Kết quả cụ thể>",
+        "title": "<Concrete outcome>",
         "status": "TODO",
         "priority": "P1",
-        "priorityReason": "<Lý do ưu tiên>",
+        "priorityReason": "<Priority reason>",
         "requirements": ["REQ-001"],
         "acceptanceCriteria": ["AC-001"],
-        "inScope": "<Trong phạm vi task>",
-        "outOfScope": "<Ngoài phạm vi task>",
+        "inScope": "<In task scope>",
+        "outOfScope": "<Out of task scope>",
         "dependencies": [],
-        "approach": "<Các bước triển khai theo thiết kế/convention thật>",
+        "approach": "<Implementation steps per the real design/convention>",
         "filesToChange": [],
-        "test": "<Dữ liệu, thao tác, kết quả mong đợi>",
-        "doneWhen": "<AC đáp ứng và có bằng chứng check thật>"
+        "test": "<Data, actions, expected result>",
+        "doneWhen": "<AC met with real check evidence>"
       }
     ],
     "executionOrder": ["TASK-001"],
@@ -54,14 +54,14 @@
         "requirementId": "REQ-001",
         "acceptanceCriteria": ["AC-001"],
         "tasks": ["TASK-001"],
-        "test": "<Test kiểm tra AC-001>",
+        "test": "<Test verifying AC-001>",
         "result": "Not Run"
       }
     ],
     "remainingRisks": [
       {
-        "description": "<Rủi ro còn lại>",
-        "mitigation": "<Cách xử lý hoặc phần chưa xác nhận>"
+        "description": "<Remaining risk>",
+        "mitigation": "<Mitigation or unconfirmed part>"
       }
     ]
   }

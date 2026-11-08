@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
-# PostToolUse hook: sau khi Edit/Write một file nguồn, tìm file test tương ứng
-# theo convention đặt tên rồi báo cho Claude qua additionalContext:
-#   - Có test   -> tự chạy test đó và báo kết quả (regression test ngay sau
-#                  khi sửa — liên hệ rules/delivery.md).
-#   - Chưa có   -> nhắc cân nhắc viết test bằng skill testing.
-# Gộp hai nhánh vào một script để mỗi Edit/Write chỉ sinh một process bash.
+# PostToolUse hook: after Edit/Write on a source file, find the matching test file
+# by naming convention and report to Claude via additionalContext:
+#   - Test exists -> run that test automatically and report the result (regression test right
+#                  after the edit -- see rules/delivery.md).
+#   - No test     -> remind to consider writing a test with skill testing.
+# Merge both branches into one script so each Edit/Write spawns only one bash process.
 #
-# Nhận JSON input từ stdin theo schema PostToolUse:
+# Reads JSON input from stdin per the PostToolUse schema:
 #   { "tool_name": "Edit", "tool_input": { "file_path": "..." }, ... }
 #
-# Chỉ hỗ trợ JS/TS (jest/vitest) và Python (pytest) — hai stack phổ biến
-# nhất. Thiếu test runner -> bỏ qua êm. Nhánh nhắc chỉ advisory, im lặng nếu
-# file nằm trong thư mục build/vendor/migration/tests hoặc là config/entry
-# point. Không chặn gì, luôn exit 0.
+# Only supports JS/TS (jest/vitest) and Python (pytest) -- the two most
+# common stacks. Missing test runner -> skip quietly. The reminder branch is advisory only, silent if
+# the file is in a build/vendor/migration/tests directory or is a config/entry
+# point. Blocks nothing, always exit 0.
 
-# ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+# ! Skip if the project already has the same hook (avoid running twice with the user-level copy).
 . "$(dirname "$0")/_dedupe-guard.sh"
 
 set -o pipefail
@@ -33,7 +33,7 @@ base="$(basename "$file_path")"
 ext="${base##*.}"
 name="${base%.*}"
 
-# File vừa sửa đã là test file -> không cần chạy lại test khác hay nhắc viết test.
+# The just-edited file is already a test file -> no need to rerun other tests or remind to write tests.
 case "$base" in
   *.test.*|*.spec.*|test_*.py|*_test.py) exit 0 ;;
 esac
@@ -69,19 +69,19 @@ emit_context() {
 }
 
 if [ -z "$test_file" ]; then
-  # Thư mục/loại file không cần test kỹ thuật riêng -> bỏ qua êm.
+  # Directory/file type that needs no dedicated technical test -> skip quietly.
   case "$file_path" in
     */node_modules/*|*/vendor/*|*/dist/*|*/build/*|*/migrations/*|*/__tests__/*|*/tests/*|*.d.ts)
       exit 0
       ;;
   esac
 
-  # File config/entry point không mang logic cần test riêng -> bỏ qua êm.
+  # Config/entry point files carry no logic needing their own test -> skip quietly.
   case "$base" in
     index.*|main.*|config.*|settings.*) exit 0 ;;
   esac
 
-  emit_context "Chưa thấy test tương ứng cho ${file_path}. Nếu file này chứa business logic cần test kỹ thuật, dùng skill testing để viết (chọn test double đúng loại, cấu trúc Arrange-Act-Assert)."
+  emit_context "No matching test found for ${file_path}. If this file contains business logic needing a technical test, use skill testing to write one (pick the right test double type, Arrange-Act-Assert structure)."
   exit 0
 fi
 
@@ -103,6 +103,6 @@ esac
 
 [ -z "$result" ] && exit 0
 
-emit_context "Đã tự chạy test tương ứng (${test_file}) sau khi sửa ${file_path}:
+emit_context "Ran the matching test automatically (${test_file}) after editing ${file_path}:
 ${result}"
 exit 0

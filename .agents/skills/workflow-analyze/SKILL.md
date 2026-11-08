@@ -1,12 +1,12 @@
 ---
 name: workflow-analyze
-description: "Phân tích yêu cầu thô (text/ảnh/PDF/DOCX...) ở mức PM — mục đích, cần làm gì, tác động ở đâu — rồi đề xuất bước tiếp theo (plan hay giao thẳng coder)"
+description: "Analyze raw requirements (text/image/PDF/DOCX...) at PM level — purpose, what to do, where it impacts — then propose the next step (plan or assign directly to coder)"
 ---
 
 # workflow-analyze
 
-Không cần command analyze riêng. Khi người dùng yêu cầu phân tích yêu cầu, đọc vai trò [`analyst`](../../agents/analyst.md) và áp dụng đúng scope: làm rõ why/what/where và phân loại task mới hoặc thay đổi nhỏ. Không tự thiết kế hệ thống, chia task triển khai hay sửa code.
+No separate analyze command needed. When the user asks to analyze requirements, read the [`analyst`](../../agents/analyst.md) role and apply its scope: clarify why/what/where and classify as new task or small change. Never design the system, split implementation tasks or edit code.
 
-Tái dùng handoff còn hợp lệ; nếu được phép ghi, lưu `docs/requirement-analysis.md` theo vai trò và xuất report. Plan mode native có giới hạn ghi thì dùng output được phép và báo handoff chưa lưu. Đề xuất tiếp Plan mode + `workflow-plan` hoặc triển khai trực tiếp theo yêu cầu/quyền đã có; không tự chạy full pipeline hoặc hỏi lại phê duyệt đã có.
+Reuse still-valid handoffs; if writing is allowed, save `docs/requirement-analysis.md` per the role and output a report. Native Plan mode with write limits uses the permitted output and reports the handoff as unsaved. Propose Plan mode + `workflow-plan` next, or direct implementation per existing request/permissions; never run the full pipeline or re-ask approvals already given.
 
-Chỉ delegation khi yêu cầu/workflow cần và runtime hỗ trợ; thiếu thì thực hiện tuần tự theo cùng vai trò, không giả lập agent/tool. Skill này là lựa chọn khi cần phân tích riêng, không phải bước bắt buộc trước mọi task.
+Delegate only when the request/workflow needs it and the runtime supports it; otherwise proceed sequentially in the same role, never simulating agents/tools. This skill is an option when separate analysis is needed, not a mandatory step before every task.

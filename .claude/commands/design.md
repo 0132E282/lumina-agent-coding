@@ -1,23 +1,23 @@
 ---
-description: Setup DESIGN.md tooling trong project, xem spec và lint tài liệu thiết kế
-argument-hint: "[đường dẫn DESIGN.md; mặc định DESIGN.md tại project hiện tại]"
+description: Set up DESIGN.md tooling in the project, view the spec and lint design docs
+argument-hint: "[path to DESIGN.md; default DESIGN.md in the current project]"
 ---
 
-Giao vai trò `setup` thiết lập DESIGN.md tooling cho **project đang mở**: $ARGUMENTS
+Assign the `setup` role to set up DESIGN.md tooling for the **currently open project**: $ARGUMENTS
 
-Agent đọc vai trò [`setup`](../agents/setup.md), hướng dẫn project và rule liên quan trước khi thực hiện. Nếu runtime không hỗ trợ delegation, thực hiện tuần tự theo cùng vai trò và nêu rõ giới hạn.
+The agent reads the [`setup`](../agents/setup.md) role, project guidance and relevant rules before acting. If the runtime does not support delegation, execute sequentially in the same role and state the limit clearly.
 
-## Phạm vi
+## Scope
 
-- Lệnh này cho phép cài devDependency `@google/design.md` và thêm hai npm scripts bên dưới vào package của project đang mở. Giữ package manager, phiên bản đã có, lockfile, scripts và dependency khác; không cài global vào `~/` dù command được cài tại home.
-- Nếu project chưa có `package.json`, tạo manifest tối thiểu `private: true` để phục vụ tooling; không đổi manifest của workspace cha. Với monorepo, dùng package đang làm việc; nếu chưa xác định được package đích, hỏi đường dẫn trước khi cài.
-- Không tạo lại UI, theme hoặc tự sinh/ghi đè `DESIGN.md`. Chỉ đọc file được chỉ định; không có file thì setup + spec, báo lint chưa chạy vì thiếu file.
+- This command permits installing the devDependency `@google/design.md` and adding the two npm scripts below to the open project's package. Keep the existing package manager, versions, lockfile, scripts and other dependencies; never install globally into `~/` even though the command is installed at home.
+- If the project has no `package.json`, create a minimal manifest with `private: true` for tooling; do not change the parent workspace manifest. In a monorepo, use the package being worked on; if the target package cannot be determined, ask for the path before installing.
+- Do not recreate UI, theme or generate/overwrite `DESIGN.md` on your own. Only read the specified file; if no file, do setup + spec and report that lint did not run for lack of a file.
 
-## Thực hiện
+## Steps
 
-1. Đọc `package.json`, lockfile và hướng dẫn project. Xác định package manager, runtime tương thích và dependency đã cài. Tái sử dụng tooling hiện có; không tự nâng phiên bản nếu package đã khai báo.
-2. Nếu thiếu dependency, dùng package manager hiện có thêm `@google/design.md` làm devDependency. Với npm: `npm install --save-dev @google/design.md@^0.4.0`. Nếu đã khai báo nhưng binary chưa có, cài theo lockfile/hướng dẫn project thay vì tải qua `npx`. Giữ peer dependency và kiểm tra TLS mặc định; không dùng `--force`.
-3. Bổ sung các key còn thiếu vào `scripts`:
+1. Read `package.json`, lockfile and project guidance. Identify the package manager, compatible runtime and installed dependencies. Reuse existing tooling; do not bump versions if the package already declares it.
+2. If the dependency is missing, use the existing package manager to add `@google/design.md` as a devDependency. With npm: `npm install --save-dev @google/design.md@^0.4.0`. If declared but the binary is missing, install per the lockfile/project guidance instead of downloading via `npx`. Keep peer dependencies and default TLS checks; do not use `--force`.
+3. Add missing keys to `scripts`:
 
    ```json
    {
@@ -26,8 +26,7 @@ Agent đọc vai trò [`setup`](../agents/setup.md), hướng dẫn project và 
    }
    ```
 
-   Nếu key đã có nội dung khác, giữ nguyên và báo xung đột; không chạy script xung đột như thể đó là tooling này. Không thay toàn bộ `scripts`.
-4. Chạy spec bằng script của package manager hiện có (npm: `npm run design:spec`). Dùng kết quả làm căn cứ cho format, không suy đoán schema.
-5. Với file `$ARGUMENTS` hoặc `DESIGN.md` tại package đích nếu không truyền đường dẫn, kiểm tra file tồn tại rồi lint (npm: `npm run design:lint -- "path/to/DESIGN.md"`). Truyền đường dẫn như một argument, không nội suy input thành shell code. Giữ exit code/findings thật; không tự sửa tài liệu để lint đạt.
-6. Kiểm tra diff manifest/lockfile đúng phạm vi. Báo dependency/phiên bản, package đích, script đã thêm, kết quả spec/lint và lỗi còn lại bằng skill `report`. Không commit/push.
-
+   If a key already has different content, keep it and report the conflict; do not run a conflicting script as if it were this tooling. Do not replace the whole `scripts`.
+4. Run spec via the existing package manager's script (npm: `npm run design:spec`). Use the output as the basis for format, do not guess the schema.
+5. For the `$ARGUMENTS` file or `DESIGN.md` in the target package if no path is passed, check the file exists then lint (npm: `npm run design:lint -- "path/to/DESIGN.md"`). Pass the path as one argument, never interpolate input into shell code. Keep real exit code/findings; do not edit the doc to make lint pass.
+6. Check the manifest/lockfile diff stays in scope. Report dependency/version, target package, scripts added, spec/lint results and remaining errors via the `report` skill. No commit/push.

@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# Liệt kê file đã Write trong một session cụ thể, dựa vào .agents/storage/logs/logs.jsonl
-# và file đã xoay mới nhất (ghi bởi hook audit-log) — CHỈ trong phạm vi dự án hiện tại (cwd ghi trong
-# log phải khớp cwd lúc chạy script này), còn tồn trên đĩa, và khớp pattern
-# "có vẻ là file tạm/scratch". Không quét gì ngoài project, không xóa gì.
+# Lists files Written in a given session, based on .agents/storage/logs/logs.jsonl
+# and the latest rotated file (written by the audit-log hook) — ONLY within the current project (cwd in the
+# log must match cwd when running this script), still on disk, and matching the
+# "looks like temp/scratch" pattern. Scans nothing outside the project, deletes nothing.
 #
-# Dùng bởi skill cleanup-temp-files (gợi ý ứng viên) và hook remind-cleanup
-# (nhắc nhở cuối session). Chỉ liệt kê — việc xác nhận là rác hay deliverable
-# vẫn do Claude/người dùng quyết định.
+# Used by skill cleanup-temp-files (suggests candidates) and hook remind-cleanup
+# (end-of-session reminder). Lists only — Claude/the user still decides
+# whether it is junk or a deliverable.
 #
 # Usage: bash find-session-scratch-files.sh <session_id>
-# Output: mỗi dòng một đường dẫn (có thể rỗng nếu không tìm thấy).
+# Output: one path per line (may be empty if nothing is found).
 
 set -o pipefail
 trap 'exit 0' ERR
@@ -25,17 +25,17 @@ fi
 log_dir="$log_root/.agents/storage/logs"
 command -v jq >/dev/null 2>&1 || exit 0
 
-# Đọc file đang ghi + file đã xoay mới nhất để lần xoay giữa session không che ứng viên.
-# Helper nằm ở hooks/scripts (skills/ và hooks/ cùng cấp) và lọc trước theo session bằng grep;
-# thiếu helper thì chỉ đọc file đang ghi. jq bên dưới vẫn lọc chính xác.
+# Read the active file + the latest rotated file so a rotation mid-session does not hide candidates.
+# The helper lives in hooks/scripts (skills/ and hooks/ are siblings) and pre-filters by session with grep;
+# without the helper only the active file is read. jq below still filters exactly.
 log_rotate_helper="$(dirname "$0")/../../../hooks/scripts/_log-rotate.sh"
 if [ -f "$log_rotate_helper" ]; then
   . "$log_rotate_helper"
-  # Kiểm file đang ghi trước (thường có) để không phải liệt kê thư mục.
+  # Check the active file first (usually present) to avoid listing the directory.
   [ -f "$log_dir/logs.jsonl" ] || [ -n "$(lumina_rotated_logs "$log_dir")" ] || exit 0
   read_session_lines() { lumina_session_log_lines "$log_dir" "$session_id"; }
 elif [ -f "$log_dir/logs.jsonl" ]; then
-  # Vẫn lọc trước theo session như helper để dòng JSON hỏng của session khác không làm jq thất bại.
+  # Pre-filter by session like the helper so a broken JSON line from another session does not make jq fail.
   session_needle="$(jq -cn --arg sid "$session_id" '{session_id: $sid}')"
   session_needle="${session_needle#\{}"
   session_needle="${session_needle%\}}"
@@ -46,12 +46,12 @@ fi
 
 project_dir="$(pwd)"
 
-# Pattern "có vẻ là tạm": tên file bắt đầu bằng tmp/scratch/debug/draft/sandbox/
-# test-output, hoặc đuôi .tmp/.bak/.orig. Chỉ dựa vào tên nên vẫn có thể trùng
-# file thật — vì vậy loại trừ thêm thư mục cấu hình/tài liệu bên dưới.
+# "Looks temporary" pattern: file name starts with tmp/scratch/debug/draft/sandbox/
+# test-output, or extension .tmp/.bak/.orig. Name-based only, so it can still match
+# real files — hence the config/docs dirs are excluded below.
 scratch_pattern='(^|/)(tmp|scratch|debug|draft|sandbox|test[_-]?output)[^/]*\.[A-Za-z0-9]+$|\.(tmp|bak|orig)$'
-# Thư mục cấu hình/tài liệu của project (tính từ project_dir), ví dụ
-# .agents/rules/debug.md là rule chính thức, không phải file tạm.
+# Project config/docs dirs (relative to project_dir), e.g.
+# .agents/rules/debug.md is an official rule, not a temp file.
 excluded_pattern='^(\.agents/(rules|skills|agents)|\.claude|\.codex|docs)/'
 
 candidates="$(read_session_lines \

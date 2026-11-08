@@ -1,4 +1,4 @@
-// Định dạng số token gọn (18, 4.4k, 912k, 1.2M) dùng chung cho report-usage.sh và report-usage-check.mjs.
+// Compact token-number format (18, 4.4k, 912k, 1.2M) shared by report-usage.sh and report-usage-check.mjs.
 import { readFileSync, realpathSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
@@ -25,7 +25,7 @@ export function formatUsageTotals(usage) {
   return Object.fromEntries(Object.entries(values).map(([name, value]) => [name, formatCompactNumber(value)]));
 }
 
-// CLI cho report-usage.sh: đọc `{ usage }` JSON từ stdin, in bản rút gọn các số token.
+// CLI for report-usage.sh: read `{ usage }` JSON from stdin, print the shortened token numbers.
 if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   const { usage } = JSON.parse(readFileSync(0, 'utf8'));
   process.stdout.write(JSON.stringify(formatUsageTotals(usage)));

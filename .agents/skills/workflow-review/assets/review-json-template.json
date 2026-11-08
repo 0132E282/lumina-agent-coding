@@ -1,13 +1,13 @@
 {
-  "title": "<tiêu đề review>",
-  "description": "<scope và mục đích review>",
+  "title": "<review title>",
+  "description": "<review scope and purpose>",
   "tags": ["review"],
   "createdAt": "<YYYY-MM-DD>",
   "reviewType": "<code|plan|testcase|system-design|security>",
   "content": {
     "artifact": {
       "kind": "<changes|repo|pr|plan|testcase|system-design|security>",
-      "repository": "<path hoặc repository identifier>",
+      "repository": "<path or repository identifier>",
       "pathOrUrl": null,
       "branch": null,
       "baseSha": null,
@@ -21,7 +21,7 @@
     "findings": [],
     "verification": [],
     "summary": {
-      "conclusion": "<kết luận dựa trên bằng chứng>",
+      "conclusion": "<evidence-based conclusion>",
       "remainingRisks": []
     }
   }

@@ -1,27 +1,27 @@
 {
   "suites": [
     {
-      "id": "<SUITE-ID-duy-nhất>",
-      "title": "<Tên tính năng/luồng>",
+      "id": "<unique-SUITE-ID>",
+      "title": "<Feature/flow name>",
       "createdAt": "<YYYY-MM-DD>",
       "cases": [
         {
-          "id": "<TC-ID-duy-nhất>",
+          "id": "<unique-TC-ID>",
           "requirementIds": [
-            "<REQ/BR/AC-từ-nguồn>"
+            "<REQ/BR/AC-from-source>"
           ],
-          "title": "<Hành vi quan sát được>",
+          "title": "<Observable behavior>",
           "createdAt": "<YYYY-MM-DD>",
           "priority": "High",
           "preconditions": [
-            "<Trạng thái trước test>"
+            "<State before the test>"
           ],
-          "testData": "<Dữ liệu giả>",
+          "testData": "<Fake data>",
           "steps": [
-            "<Thao tác cụ thể>"
+            "<Specific action>"
           ],
-          "expectedResult": "<Output/checkpoint gắn với bước>",
-          "postconditionsCleanup": "<Trạng thái sau test/cách dọn>",
+          "expectedResult": "<Output/checkpoint tied to the step>",
+          "postconditionsCleanup": "<State after the test/how to clean up>",
           "result": {
             "status": "Not Run",
             "actualResult": null,
@@ -31,7 +31,7 @@
                 {
                   "id": "<API-01>",
                   "method": "<GET|POST|...>",
-                  "url": "<URL thật đầy đủ>",
+                  "url": "<Full real URL>",
                   "params": {
                     "path": {},
                     "query": {},
@@ -47,7 +47,7 @@
                     "status": null,
                     "body": null
                   },
-                  "result": "<Đúng|Sai>",
+                  "result": "<Correct|Incorrect>",
                   "mismatch": null
                 }
               ]
@@ -59,9 +59,9 @@
       ],
       "traceability": [
         {
-          "requirementId": "<REQ/BR/AC-từ-nguồn>",
+          "requirementId": "<REQ/BR/AC-from-source>",
           "caseIds": [
-            "<TC-ID-duy-nhất>"
+            "<unique-TC-ID>"
           ]
         }
       ]

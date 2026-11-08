@@ -1,23 +1,23 @@
 #!/usr/bin/env bash
-# PreToolUse hook: trước khi `git push`, chạy Prettier MỘT LẦN trên các file đã thay đổi so với remote tracking
-# branch — liên hệ skill git-workflow (mục "Trước khi git push") và
-# rules/delivery.md (format thống nhất trước khi đẩy lên,
-# không tranh cãi khoảng trắng khi review PR).
+# PreToolUse hook: before `git push`, run Prettier ONCE on files changed versus the remote tracking
+# branch -- see skill git-workflow (section "Before git push") and
+# rules/delivery.md (uniform formatting before pushing,
+# no whitespace arguments when reviewing the PR).
 #
-# Nhận JSON input từ stdin theo schema PreToolUse:
+# Reads JSON input from stdin per the PreToolUse schema:
 #   { "tool_name": "Bash", "tool_input": { "command": "..." }, ... }
 #
-# CHỈ chạy `prettier --write` trên đúng các file nằm trong diff so với
-# upstream — không tự commit thay đổi đó. Nếu format sinh ra thay đổi,
-# dùng permissionDecision "ask" để cảnh báo trước khi push: push hiện tại
-# vẫn đẩy đúng commit cũ (chưa gồm phần vừa format), người dùng tự quyết
-# commit thêm rồi push lại hay bỏ qua.
+# ONLY runs `prettier --write` on exactly the files in the diff against
+# upstream -- never commits that change. If formatting produces changes,
+# use permissionDecision "ask" to warn before pushing: the current push
+# still pushes the old commit (without the just-formatted part); the user decides whether to
+# commit more and push again or ignore.
 #
-# Best-effort: thiếu jq/git, không phải lệnh git push, không có remote
-# tracking branch, thiếu `prettier`, hoặc không có file nào trong diff cần
-# format -> không chặn, không cảnh báo gì.
+# Best-effort: missing jq/git, not a git push command, no remote
+# tracking branch, missing `prettier`, or no file in the diff needing
+# format -> do not block, do not warn.
 
-# ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+# ! Skip if the project already has the same hook (avoid running twice with the user-level copy).
 . "$(dirname "$0")/_dedupe-guard.sh"
 
 set -o pipefail
@@ -63,7 +63,7 @@ done < <(git diff --name-only -z --diff-filter=ACMR "$upstream" -- 2>/dev/null)
 
 [ "${#formatted[@]}" -eq 0 ] && exit 0
 
-reason="Đã chạy Prettier format lại ${#formatted[@]} file (so với remote): $(printf '%s, ' "${formatted[@]}")Các file này CHƯA được commit — push hiện tại vẫn đẩy bản chưa format. Commit lại trước khi push nếu muốn đẩy bản đã format, hoặc bỏ qua nếu chấp nhận push bản hiện tại."
+reason="Ran Prettier and reformatted ${#formatted[@]} file(s) (vs remote): $(printf '%s, ' "${formatted[@]}")These files are NOT committed yet -- the current push still pushes the unformatted version. Commit again before pushing to push the formatted version, or ignore if you accept pushing the current version."
 jq -n --arg reason "$reason" '{
   hookSpecificOutput: {
     hookEventName: "PreToolUse",

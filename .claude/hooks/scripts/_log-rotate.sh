@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# Xoay vòng .agents/storage/logs/logs.jsonl, dùng chung cho writer (audit-log, turn-log) và reader.
-# Không đăng ký trong settings.json. Hai cách dùng:
-#   . _log-rotate.sh                  # source, rồi gọi lumina_log_rotate <log_dir>
-#   bash _log-rotate.sh <log_dir>     # chạy trực tiếp (turn-log.mjs gọi trước khi append)
+# Rotate .agents/storage/logs/logs.jsonl, shared by the writers (audit-log, turn-log) and the reader.
+# Not registered in settings.json. Two ways to use it:
+#   . _log-rotate.sh                  # source, then call lumina_log_rotate <log_dir>
+#   bash _log-rotate.sh <log_dir>     # run directly (turn-log.mjs calls it before appending)
 #
-# Env: LUMINA_LOG_MAX_BYTES (mặc định 1 MiB), LUMINA_LOG_KEEP (giữ N file đã xoay, mặc định 5).
-# Best-effort: không bao giờ làm writer thất bại, chạy trực tiếp luôn exit 0.
+# Env: LUMINA_LOG_MAX_BYTES (default 1 MiB), LUMINA_LOG_KEEP (keep N rotated files, default 5).
+# Best-effort: never makes the writer fail; always exits 0 when run directly.
 
 lumina_rotated_log_pattern='^logs-[0-9]{8}-[0-9]{6}(-[0-9]+)?\.jsonl$'
 
-# In tên file đã xoay trong <log_dir>, cũ → mới. Bỏ đuôi trước khi sort để bản không hậu tố đứng trước `-1`;
-# hậu tố trùng giây so theo số để `-10` đứng sau `-2`.
+# Print rotated file names in <log_dir>, old -> new. Strip the suffix before sorting so the unsuffixed copy comes before `-1`;
+# same-second suffixes compare numerically so `-10` comes after `-2`.
 lumina_rotated_logs() {
   local log_dir="$1"
   [ -d "$log_dir" ] || return 0
@@ -22,7 +22,7 @@ lumina_rotated_logs() {
   return 0
 }
 
-# In đường dẫn file cần đọc cho một session: file đã xoay mới nhất (nếu có) rồi file đang ghi (nếu có).
+# Print the file paths to read for a session: the newest rotated file (if any), then the active file (if any).
 lumina_session_log_files() {
   local log_dir="$1" newest
   newest="$(lumina_rotated_logs "$log_dir" | tail -n 1)"
@@ -31,9 +31,9 @@ lumina_session_log_files() {
   return 0
 }
 
-# In các dòng log có thể thuộc <session_id> từ file đã xoay mới nhất + file đang ghi; không có file thì in rỗng.
-# Chỉ lọc thô bằng grep (rẻ) để reader không phải đưa cả log vào jq; reader vẫn tự lọc chính xác bằng jq.
-# Writer ghi JSON compact (jq -c / JSON.stringify) nên chuỗi "session_id":"<id>" khớp nguyên văn. Cần jq.
+# Print log lines that may belong to <session_id> from the newest rotated file + the active file; print nothing if no file exists.
+# Only a cheap grep prefilter so the reader need not feed the whole log to jq; the reader still filters exactly with jq.
+# Writers emit compact JSON (jq -c / JSON.stringify), so the string "session_id":"<id>" matches verbatim. Needs jq.
 lumina_session_log_lines() {
   local log_dir="$1" session_id="$2" needle file
   local files=()
@@ -44,7 +44,7 @@ lumina_session_log_lines() {
   needle="$(jq -cn --arg sid "$session_id" '{session_id: $sid}')" || return 0
   needle="${needle#\{}"
   needle="${needle%\}}"
-  # Một lần grep cho mọi file; -h bỏ tên file khỏi output. Không khớp (exit 1) không phải lỗi.
+  # One grep for all files; -h drops file names from the output. No match (exit 1) is not an error.
   grep -hF -- "$needle" "${files[@]}" 2>/dev/null
   return 0
 }
@@ -71,8 +71,8 @@ lumina_log_rotate() {
     target="$log_dir/logs-$stamp-$suffix.jsonl"
   done
 
-  # mv cùng thư mục là rename nguyên tử; writer đã mở file trước đó vẫn ghi vào inode cũ (file đã xoay), không mất dòng.
-  # -n: không ghi đè file xoay của tiến trình khác chọn trùng tên. Thất bại (tiến trình khác đã xoay) thì bỏ qua.
+  # mv within the same directory is an atomic rename; a writer that already opened the file keeps writing to the old inode (the rotated file), so no lines are lost.
+  # -n: do not overwrite a rotated file another process picked with the same name. On failure (another process already rotated) skip.
   mv -n "$log_file" "$target" 2>/dev/null || return 0
 
   rotated="$(lumina_rotated_logs "$log_dir")"

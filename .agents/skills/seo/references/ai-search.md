@@ -1,30 +1,30 @@
-# SEO cho tìm kiếm AI (AI Overviews, ChatGPT, Claude, Perplexity)
+# SEO for AI search (AI Overviews, ChatGPT, Claude, Perplexity)
 
-Phần riêng cho AI search (GEO/AEO); nền tảng crawl/index, render, structured data, uy tín vẫn theo [website.md](./website.md) và nội dung theo [content.md](./content.md). Hành vi bot thay đổi nhanh: kiểm tra lại mục Nguồn trước khi chốt cấu hình; không bịa user-agent, IP hay cam kết nhà cung cấp.
+Dedicated section for AI search (GEO/AEO); crawl/index foundations, rendering, structured data, credibility still follow [website.md](./website.md) and content follows [content.md](./content.md). Bot behavior changes fast: recheck the Sources section before finalizing config; never invent user-agents, IPs or vendor commitments.
 
-## Nguyên tắc
+## Principles
 
-- Không có mẹo riêng thay SEO: Google nêu trang chỉ cần được index và đủ điều kiện hiển thị snippet để làm link hỗ trợ trong AI Overviews/AI Mode, không có yêu cầu kỹ thuật bổ sung.
-- Tách **training** với **search/trích dẫn**: chặn bot training không làm mất hiển thị AI search nếu vẫn cho bot search.
-- Chặn/mở từng bot là quyết định kinh doanh/pháp lý của chủ site — đề xuất và hỏi, không tự đổi.
-- Không cam kết thứ hạng hay việc được trích dẫn.
+- No special trick replaces SEO: Google states a page only needs to be indexed and snippet-eligible to be a supporting link in AI Overviews/AI Mode, with no extra technical requirement.
+- Separate **training** from **search/citation**: blocking training bots does not remove AI search visibility if search bots stay allowed.
+- Blocking/allowing each bot is the site owner's business/legal decision — propose and ask, never change on your own.
+- Never promise ranking or citation.
 
-## Crawler AI (robots.txt)
+## AI crawlers (robots.txt)
 
-| User-agent | Vai trò | Chặn thì |
+| User-agent | Role | If blocked |
 |---|---|---|
-| `GPTBot` (OpenAI) | Training | Không dùng để train; không ảnh hưởng ChatGPT search |
-| `OAI-SearchBot` (OpenAI) | Index ChatGPT search | Không xuất hiện trong câu trả lời ChatGPT search |
-| `ChatGPT-User` (OpenAI) | Truy cập theo yêu cầu người dùng | robots.txt có thể không áp dụng |
-| `ClaudeBot` (Anthropic) | Có thể dùng cho training | Loại nội dung tương lai khỏi training |
-| `Claude-SearchBot` (Anthropic) | Index Claude search | Có thể giảm hiển thị trong Claude search |
-| `Claude-User` (Anthropic) | Truy cập theo yêu cầu người dùng | Chặn truy cập theo yêu cầu người dùng |
-| `PerplexityBot` | Index Perplexity, không train foundation model | Không xuất hiện trong kết quả Perplexity |
-| `Perplexity-User` | Truy cập theo yêu cầu người dùng | Có thể bỏ qua robots.txt — **xác minh** |
-| `Google-Extended` (token, không phải bot riêng) | Dùng nội dung cho Gemini/training | Không ảnh hưởng Search; AI Overviews theo Googlebot — **xác minh** |
+| `GPTBot` (OpenAI) | Training | Not used for training; does not affect ChatGPT search |
+| `OAI-SearchBot` (OpenAI) | ChatGPT search index | Does not appear in ChatGPT search answers |
+| `ChatGPT-User` (OpenAI) | User-requested access | robots.txt may not apply |
+| `ClaudeBot` (Anthropic) | May be used for training | Excludes future content from training |
+| `Claude-SearchBot` (Anthropic) | Claude search index | May reduce visibility in Claude search |
+| `Claude-User` (Anthropic) | User-requested access | Blocks user-requested access |
+| `PerplexityBot` | Perplexity index, does not train foundation models | Does not appear in Perplexity results |
+| `Perplexity-User` | User-requested access | May ignore robots.txt — **verify** |
+| `Google-Extended` (token, not a separate bot) | Uses content for Gemini/training | Does not affect Search; AI Overviews follow Googlebot — **verify** |
 
-- Rule đặt ở `robots.txt` gốc **từng subdomain**; không chặn bằng IP với bot tuân thủ robots.txt. Xác minh bot thật bằng dải IP nhà cung cấp công bố. Thay đổi có độ trễ (OpenAI nêu ~24 giờ cho search).
-- Mẫu "cho AI search, chặn training" (chỉ khi chủ site đồng ý):
+- Rules go in the root `robots.txt` of **each subdomain**; do not block by IP for bots that obey robots.txt. Verify real bots with the vendor's published IP ranges. Changes are delayed (OpenAI states ~24 hours for search).
+- "Allow AI search, block training" sample (only with owner consent):
 
 ```txt
 User-agent: GPTBot
@@ -38,28 +38,28 @@ User-agent: PerplexityBot
 Allow: /
 ```
 
-## Kiểm soát trích dẫn trên Google AI
+## Citation control on Google AI
 
-`nosnippet`, `data-nosnippet`, `max-snippet` áp dụng cả AI Overviews/AI Mode; `noindex` loại khỏi Search lẫn AI features. Chỉ dùng cho đoạn không muốn bị trích, không diện rộng vì giảm cả snippet thường.
+`nosnippet`, `data-nosnippet`, `max-snippet` apply to AI Overviews/AI Mode too; `noindex` removes from both Search and AI features. Use only for passages you do not want quoted, not site-wide since it also cuts normal snippets.
 
-## Nội dung dễ được trích dẫn
+## Quotable content
 
-- Mỗi heading một câu hỏi thật của người dùng; trả lời trực tiếp 1–2 câu đầu section rồi mới chi tiết.
-- Dữ kiện cụ thể kèm đơn vị, thời điểm, nguồn; bảng/danh sách cho so sánh và các bước.
-- Entity nhất quán (tên thương hiệu, sản phẩm, địa chỉ) giữa nội dung, `Organization` schema và hồ sơ bên ngoài. Structured data giúp hiểu trang, không phải điều kiện vào AI Overviews.
+- One real user question per heading; answer directly in the first 1–2 sentences of the section, then detail.
+- Concrete facts with units, dates, sources; tables/lists for comparisons and steps.
+- Consistent entities (brand name, product, address) across content, `Organization` schema and external profiles. Structured data helps understand the page, not a condition for AI Overviews.
 
-## llms.txt (tuỳ chọn)
+## llms.txt (optional)
 
-- **Đề xuất cộng đồng**, không phải chuẩn của Google/OpenAI/Anthropic; chỉ thêm khi chủ site muốn (thường cho docs/dev tool).
-- Đặt ở `/llms.txt` hoặc subpath (`/docs/llms.txt`; file cụ thể nhất được ưu tiên). Markdown theo thứ tự: H1 tên site (**phần bắt buộc duy nhất**) → blockquote tóm tắt → đoạn chi tiết không heading → các H2 chứa `[tên](url): ghi chú`; H2 `Optional` là link có thể bỏ khi thiếu context.
-- Có thể cung cấp bản Markdown của trang tại cùng URL thêm `.md` (`page.html.md`/`page.md`; thư mục dùng `index.html.md`).
+- A **community proposal**, not a Google/OpenAI/Anthropic standard; add only if the owner wants it (usually for docs/dev tools).
+- Place at `/llms.txt` or a subpath (`/docs/llms.txt`; the most specific file wins). Markdown in order: H1 site name (**the only required part**) → summary blockquote → detail paragraphs without headings → H2s containing `[name](url): note`; the `Optional` H2 holds links that may be dropped when context is short.
+- Can provide a Markdown version of a page at the same URL plus `.md` (`page.html.md`/`page.md`; directories use `index.html.md`).
 
-## Kiểm chứng
+## Verification
 
-- `curl -A "<user-agent>" <url>`: bot được phép nhận 200 và nội dung chính trong HTML; robots.txt parse đúng (Search Console robots.txt report).
-- Log server theo user-agent AI: request, lỗi 4xx/5xx, IP khớp dải công bố.
+- `curl -A "<user-agent>" <url>`: allowed bots get 200 and main content in HTML; robots.txt parses correctly (Search Console robots.txt report).
+- Server logs by AI user-agent: requests, 4xx/5xx errors, IPs matching published ranges.
 
-## Nguồn
+## Sources
 
 - Google — AI features and your website: https://developers.google.com/search/docs/appearance/ai-features
 - Google — common crawlers (Google-Extended): https://developers.google.com/search/docs/crawling-indexing/google-common-crawlers

@@ -1,30 +1,30 @@
 ---
-title: "<Tiêu đề tài liệu>"
-description: "<Khi nào AI nên đọc tài liệu này>"
+title: "<Document title>"
+description: "<When the AI should read this document>"
 tags:
   - "<tag-kebab-case>"
 ---
 
-# <Tiêu đề tài liệu>
+# <Document title>
 
-<Mục đích và phạm vi; chỉ ghi dữ kiện đã xác minh. Thân Markdown này là content.>
+<Purpose and scope; record only verified facts. This Markdown body is the content.>
 
-## Mục lục
+## Contents
 
-- [Ngữ cảnh và nguồn](#ngữ-cảnh-và-nguồn)
-- [Nội dung](#nội-dung)
-- [Kiểm chứng và giới hạn](#kiểm-chứng-và-giới-hạn)
+- [Context and sources](#context-and-sources)
+- [Content](#content)
+- [Verification and limits](#verification-and-limits)
 
-## Ngữ cảnh và nguồn
+## Context and sources
 
-- Nguồn: <path/contract đã đọc; thay bằng link thật>.
-- Phạm vi: <phần liên quan>; giả định: <nếu có>.
+- Source: <paths/contracts read; replace with real links>.
+- Scope: <relevant parts>; assumptions: <if any>.
 
-## Nội dung
+## Content
 
-<Facts, path, contract hoặc hướng dẫn từ nguồn thật; link nguồn chuẩn thay vì lặp lại. Khi flow/dependency phức tạp, dùng sơ đồ có căn cứ.>
+<Facts, paths, contracts or guidance from real sources; link the canonical source instead of repeating. When flows/dependencies are complex, use a grounded diagram.>
 
-## Kiểm chứng và giới hạn
+## Verification and limits
 
-- Đã kiểm tra: <lệnh/thao tác và kết quả thực tế>.
-- Chưa xác minh: <phần còn thiếu hoặc Không có>.
+- Checked: <commands/actions and actual results>.
+- Unverified: <remaining parts or None>.

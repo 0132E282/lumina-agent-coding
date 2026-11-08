@@ -1,34 +1,34 @@
 #!/usr/bin/env bash
-# Chỉ được `source` từ hook, không đăng ký trong settings.json.
-# ! Tách lệnh Bash thành từng lệnh đơn đã bỏ nháy để hook chỉ xét lệnh thực thi
-# thật (git, package manager...) — không bắt nhầm chữ trong thân heredoc/chuỗi.
+# Only `source`d from hooks; not registered in settings.json.
+# ! Split a Bash command into single commands with quotes removed so hooks only inspect commands that really
+# run (git, package managers...) -- never words inside heredoc bodies/strings.
 #
-# Mã hoá đầu ra: token cách nhau bởi \037; xuống dòng trong token là \036;
-# token bắt đầu bằng \035 là thân heredoc gắn với lệnh đó.
+# Output encoding: tokens separated by \037; a newline inside a token is \036;
+# a token starting with \035 is the heredoc body attached to that command.
 
-# In mỗi lệnh git thực thi có subcommand = $2 (hoặc subcommand động như
-# `git "$x"`/`git $(...)` — fail-safe, coi như có thể là $2) một dòng:
-#   <known|unknown>\037<thư mục chạy git>\037<đối số sau subcommand...>
+# Print one line for every executed git command whose subcommand = $2 (or a dynamic subcommand such as
+# `git "$x"`/`git $(...)` -- fail-safe, treated as possibly $2):
+#   <known|unknown>\037<directory git runs in>\037<arguments after the subcommand...>
 #
-# Tách lệnh Bash thành lệnh đơn (sau `;`, `&&`, `||`, `|`, `&`, `(`, `)`,
-# xuống dòng), bỏ nháy; nội dung `$(...)` có heredoc được thay bằng thân
-# heredoc (dạng `-m "$(cat <<'EOF' ... EOF)"`), `$(...)` khác giữ nguyên chữ.
-# `<<` trong `((...))`, `$((...))` và `let` không phải heredoc; heredoc thiếu
-# dòng kết thúc thì phần sau vẫn là lệnh.
-# Thư mục chạy git gộp `cd <dir>` tĩnh trước đó và `-C <dir>`; rỗng = cwd.
-# Bỏ qua tiền tố gán biến, từ khoá (!, if/then/do/else/elif/while/until/{),
+# Split a Bash command into single commands (after `;`, `&&`, `||`, `|`, `&`, `(`, `)`,
+# newline), strip quotes; the content of `$(...)` containing a heredoc is replaced by the
+# heredoc body (form `-m "$(cat <<'EOF' ... EOF)"`), other `$(...)` keeps its text.
+# `<<` inside `((...))`, `$((...))` and `let` is not a heredoc; a heredoc missing its
+# terminator line leaves the rest as commands.
+# The git directory merges earlier static `cd <dir>` and `-C <dir>`; empty = cwd.
+# Skip variable-assignment prefixes, keywords (!, if/then/do/else/elif/while/until/{),
 # wrapper (sudo/env/command/time/nohup/exec/nice/timeout/xargs/stdbuf/ionice/
-# flock) và global option của git. Script con (`$(...)`, backtick,
-# `bash|sh|zsh|dash|ksh -c`, `eval`) được phân tích tối đa 4 tầng trong cùng
-# một tiến trình awk.
+# flock) and git global options. Sub-scripts (`$(...)`, backtick,
+# `bash|sh|zsh|dash|ksh -c`, `eval`) are analysed up to 4 levels deep within the same
+# awk process.
 git_invocations() {
   printf '%s\n' "$1" | awk -v wanted="$2" "$_shell_command_parser"
 }
 
-# In mỗi lệnh thực thi (mọi chương trình, sau khi bỏ tiền tố gán biến/từ khoá/
-# wrapper) một dòng: <tên chương trình>\037<đối số...>. Cùng bộ tách lệnh với
-# git_invocations nên bỏ qua chữ trong thân heredoc/chuỗi; `cd`, shell `-c` và
-# `eval` không được in mà được phân tích tiếp như script con.
+# Print one line per executed command (any program, after stripping assignment prefixes/keywords/
+# wrappers): <program name>\037<arguments...>. Same splitter as
+# git_invocations, so words in heredoc bodies/strings are ignored; `cd`, shell `-c` and
+# `eval` are not printed but analysed further as sub-scripts.
 command_invocations() {
   printf '%s\n' "$1" | awk -v mode="commands" "$_shell_command_parser"
 }
@@ -50,8 +50,8 @@ _shell_command_parser='
       directories[script_count] = directories[parent]
       return script_count
     }
-    # Xét một lệnh đơn của script `identifier`: theo dõi `cd`, đưa `bash -c`/
-    # `eval` vào hàng đợi, in lệnh git khớp `wanted`.
+    # Examine one single command of script `identifier`: track `cd`, queue `bash -c`/
+    # `eval`, print the git command matching `wanted`.
     function analyze(identifier, record,    words, count, i, k, word, option, program, target, script, git_directory, subcommand, status, line) {
       count = split(record, words, "\037")
       for (k = 1; k <= count; k++) gsub(/\036/, "\n", words[k])
@@ -147,7 +147,7 @@ _shell_command_parser='
       return offset ? start + offset - 1 : length_of_text + 1
     }
     function trim(value) { sub(/^[ \t]+/, "", value); sub(/[ \t]+$/, "", value); return value }
-    # Đọc toán tử heredoc tại vị trí `<<`; đặt heredoc_delimiter.
+    # Read the heredoc operator at the `<<` position; set heredoc_delimiter.
     function parse_heredoc_operator(position,    quote, start) {
       position += 2
       if (substr(text, position, 1) == "-") position++
@@ -166,9 +166,9 @@ _shell_command_parser='
       heredoc_delimiter = substr(text, start, position - start)
       return position
     }
-    # Đọc thân heredoc sau ký tự xuống dòng tại `position`. Tìm thấy dòng kết
-    # thúc: heredoc_closed=1, trả về vị trí xuống dòng của dòng đó. Không thấy:
-    # heredoc_closed=0, giữ nguyên vị trí để phần sau được phân tích như lệnh.
+    # Read the heredoc body after the newline at `position`. Terminator line found:
+    # heredoc_closed=1, return the newline position of that line. Not found:
+    # heredoc_closed=0, keep the position so the rest is analysed as commands.
     function read_heredoc_body(position, delimiter,    start, finish, line, cursor) {
       heredoc_body = ""
       heredoc_closed = 0
@@ -184,7 +184,7 @@ _shell_command_parser='
       heredoc_body = ""
       return position
     }
-    # Bỏ qua cặp ngoặc tròn lồng nhau bắt đầu tại `position` (dùng cho số học).
+    # Skip a nested parenthesis pair starting at `position` (used for arithmetic).
     function skip_parentheses(position,    depth, character) {
       depth = 0
       while (position <= length_of_text) {
@@ -195,13 +195,13 @@ _shell_command_parser='
       }
       return position
     }
-    # Ghi script con (nội dung `$(...)`/backtick) của lệnh sở hữu; được đưa
-    # vào hàng đợi khi tới lượt lệnh đó để kế thừa đúng thư mục `cd`.
+    # Record a sub-script (content of `$(...)`/backtick) for the owning command; it is queued
+    # when the turn of that command comes so it inherits the right `cd` directory.
     function add_nested(owner, content) {
       nested_counts[owner]++
       nested_texts[owner, nested_counts[owner]] = content
     }
-    # Đọc `$(...)` bắt đầu tại `$`; đặt substitution_value, trả về vị trí sau `)`.
+    # Read `$(...)` starting at `$`; set substitution_value, return the position after `)`.
     function parse_substitution(position,    start, depth, character, next_character, count, delimiters, k, body, found, finish) {
       start = position
       if (substr(text, position + 2, 1) == "(") {
@@ -252,7 +252,7 @@ _shell_command_parser='
       substitution_value = found ? body : substr(text, start, position - start)
       return position
     }
-    # Bỏ qua một từ (đích redirect/here-string), tôn trọng nháy.
+    # Skip one word (redirect target/here-string), respecting quotes.
     function skip_word(position,    character, quote) {
       while (substr(text, position, 1) ~ /[ \t]/) position++
       while (position <= length_of_text) {
@@ -282,7 +282,7 @@ _shell_command_parser='
       flush_token()
       if (token_counts[current] > 0) { current++; commands[current] = ""; token_counts[current] = 0 }
     }
-    # Tách rồi phân tích một script trong hàng đợi.
+    # Split then analyse one script from the queue.
     function tokenize(identifier) {
       script_id = identifier
       text = script_texts[identifier]
@@ -414,8 +414,8 @@ _shell_command_parser='
         if (token_counts[c] > 0) analyze(identifier, commands[c])
       }
     }
-    # Script con xử lý theo hàng đợi trong cùng tiến trình awk (không spawn
-    # thêm tiến trình cho mỗi script con), cha luôn xử lý trước con.
+    # Sub-scripts are processed via the queue in the same awk process (no extra
+    # process spawned per sub-script); the parent is always processed before its children.
     END {
       script_count = 1
       script_texts[1] = text
@@ -429,15 +429,15 @@ is_executed_git_command() {
   [ -n "$(git_invocations "$1" "$2")" ]
 }
 
-# Giải mã một token: \036 -> xuống dòng, bỏ dấu \035 của thân heredoc.
+# Decode a token: \036 -> newline, strip the \035 heredoc-body marker.
 decode_shell_token() {
   local value="${1//$'\036'/$'\n'}"
   printf '%s' "${value#$'\035'}"
 }
 
-# In commit message từ đối số đã tách của một lệnh `git commit` (-m/--message
-# lặp lại nối bằng dòng trống; -F -/--file=- lấy thân heredoc). Trả về 1 khi
-# không xác định được (editor, -F file, -C/-c/--fixup, `$(...)` không heredoc).
+# Print the commit message from the split arguments of a `git commit` command (repeated -m/--message
+# joined by blank lines; -F -/--file=- takes the heredoc body). Returns 1 when
+# it cannot be determined (editor, -F file, -C/-c/--fixup, `$(...)` without heredoc).
 git_commit_message() {
   local -a parts=()
   local heredoc_body="" read_stdin=0 index=0 argument value

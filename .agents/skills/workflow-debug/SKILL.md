@@ -1,8 +1,8 @@
 ---
 name: workflow-debug
-description: "Debug và sửa lỗi khi gọi $workflow-debug, /debug, hoặc khi người dùng nói sửa/fix một lỗi, bug, hành vi sai."
+description: "Debug and fix bugs when calling $workflow-debug, /debug, or when the user says fix a bug, defect or wrong behavior."
 ---
 
 # workflow-debug
 
-Đọc nguồn `.claude/commands/debug.md` và skill [`debugs`](../debugs/SKILL.md); Claude dùng `/debug`, Codex dùng `$workflow-debug` cùng argument. Từ khoá `sửa`/`fix` nhắm vào lỗi hoặc hành vi sai cũng gọi luồng này mà không cần command. Chẩn đoán theo `debugs`, sửa qua vai trò [`coder`](../../agents/coder.md), báo cáo mẫu Debug của skill `report`; không tự commit/push.
+Read the source `.claude/commands/debug.md` and skill [`debugs`](../debugs/SKILL.md); Claude uses `/debug`, Codex uses `$workflow-debug` with the same argument. The keywords `sửa`/`fix` aimed at a bug or wrong behavior also invoke this flow without a command. Diagnose per `debugs`, fix via the [`coder`](../../agents/coder.md) role, report with the Debug template of skill `report`; never commit/push on your own.

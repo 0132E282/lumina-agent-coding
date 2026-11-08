@@ -1,42 +1,42 @@
 # HTML to Component
 
-Khi tách component, giữ invariant frontend/type và checklist DRY/readability trong [`coding-standards`](../../coding-standards/SKILL.md); không tạo abstraction ngoài nhu cầu hiện tại.
+When splitting components, keep the frontend/type invariants and the DRY/readability checklist in [`coding-standards`](../../coding-standards/SKILL.md); do not create abstractions beyond current needs.
 
-Chuyển HTML/CSS tĩnh có sẵn trong project thành component của framework người dùng chỉ định, giữ đúng nội dung/layout/hành vi quan sát được trong file nguồn — không redesign, không đổi nội dung, không tự thêm tính năng.
+Convert static HTML/CSS already in the project into components of the framework the user specifies, keeping the content/layout/behavior observed in the source files exactly — no redesign, no content changes, no added features.
 
-## Phạm vi
+## Scope
 
-- Input: file `.html`/`.css` (và `.js` nếu có) **đã có sẵn trong repository**. Không áp dụng cho ảnh, URL hoặc design reference — các trường hợp đó dùng [clone-website](../../clone-website/SKILL.md)/`ui-cloner`.
-- Target framework do người dùng chỉ định mỗi lần (React, Vue, Angular, Svelte...); không tự chọn mặc định. Chưa rõ framework đích thì hỏi trước khi convert.
-- Giữ nguyên nội dung, layout, style, text và hành vi JS quan sát được trong file nguồn, cùng nguyên tắc với [frontend](../../../rules/frontend.md). Nếu file nguồn là kết quả của một lần clone trước đó, áp dụng thêm [ràng buộc fidelity của clone-website](../../clone-website/SKILL.md#ràng-buộc-fidelity) khi đối chiếu.
+- Input: `.html`/`.css` files (and `.js` if any) **already in the repository**. Not for images, URLs or design references — those use [clone-website](../../clone-website/SKILL.md)/`ui-cloner`.
+- The target framework is specified by the user each time (React, Vue, Angular, Svelte...); never pick a default. If the target framework is unclear, ask before converting.
+- Keep the content, layout, style, text and JS behavior observed in the source files intact, same principle as [frontend](../../../rules/frontend.md). If the source file is the result of an earlier clone, also apply [clone-website's fidelity constraints](../../clone-website/SKILL.md#fidelity-constraints) when comparing.
 
-## Quy trình
+## Process
 
-1. **Đọc convention project đích trước khi convert**: thư mục component (`components/`, `src/components`...), naming file/component, TS hay JS, cách style đang dùng (CSS Module, Tailwind, styled-components...). Convert theo đúng convention đã quan sát được, không áp đặt chuẩn riêng.
-2. **Đọc toàn bộ file nguồn**: HTML, CSS liên quan (inline `<style>` hoặc file `.css` được link) và JS liên quan (inline `<script>` hoặc file `.js` được link). Không convert khi chưa đọc hết nguồn.
-3. **Xác định khối lặp/UI pattern** (card, list item, table row, nav item...) để tách thành component riêng có props; phần không lặp giữ ở component cha. Áp dụng [rule DRY](../../../rules/coding.md#nguyên-tắc-code) — chỉ tách khi thật sự lặp ≥2 lần hoặc đã nhìn rõ pattern, không tách phòng xa.
-4. **Tách hàm/logic dùng chung**: đoạn xử lý lặp lại (format dữ liệu, tính class name, event handler tương tự) rút thành hàm/hook riêng theo idiom framework đích (hook cho React, composable cho Vue, service cho Angular...). Giữ đúng hành vi JS gốc, không tự thêm logic mới.
-5. **Chuyển đổi theo idiom framework đích**: attribute HTML → prop/binding tương ứng (`class` → `className`/`:class`, `onclick` → `onClick`/`@click`...). CSS giữ nguyên cơ chế style project đích đang dùng; không tự đổi sang CSS-in-JS nếu project đang dùng CSS Module và ngược lại.
-6. **Tối ưu render khi áp dụng được cho framework đích**: `key` ổn định cho list, memoization (`React.memo`/`useMemo`/`computed`...) cho phần tính toán lặp lại hoặc re-render thừa đã quan sát được. Không tối ưu khi chưa có dấu hiệu cần — tránh tối ưu sớm theo [simplicity](../../../rules/coding.md#kiss-yagni-và-phạm-vi).
-7. **Đối chiếu fidelity**: so sánh file gốc và component mới — cùng nội dung, cùng cấu trúc hiển thị, cùng hành vi tương tác. Có sai khác phải sửa hoặc báo rõ vị trí/lý do, không tự coi là "cải tiến".
+1. **Read the target project's conventions before converting**: component dir (`components/`, `src/components`...), file/component naming, TS or JS, styling approach in use (CSS Module, Tailwind, styled-components...). Convert per the observed convention; never impose your own standard.
+2. **Read the whole source**: HTML, related CSS (inline `<style>` or linked `.css` files) and related JS (inline `<script>` or linked `.js` files). Do not convert before reading all the source.
+3. **Identify repeated blocks/UI patterns** (card, list item, table row, nav item...) to split into separate components with props; keep non-repeated parts in the parent component. Apply the [DRY rule](../../../rules/coding.md#coding-principles) — split only when it truly repeats ≥2 times or the pattern is clear, never speculatively.
+4. **Extract shared functions/logic**: repeated handling (data formatting, class name computation, similar event handlers) becomes its own function/hook per the target framework's idiom (hook for React, composable for Vue, service for Angular...). Keep the original JS behavior exactly, never add new logic.
+5. **Convert per the target framework's idiom**: HTML attributes -> matching props/bindings (`class` -> `className`/`:class`, `onclick` -> `onClick`/`@click`...). CSS keeps the styling mechanism the target project uses; never switch to CSS-in-JS if the project uses CSS Modules and vice versa.
+6. **Optimize rendering where applicable to the target framework**: stable `key` for lists, memoization (`React.memo`/`useMemo`/`computed`...) for repeated computation or observed redundant re-renders. Do not optimize without evidence of need — avoid premature optimization per [simplicity](../../../rules/coding.md#kiss-yagni-and-scope).
+7. **Fidelity comparison**: compare the original file and the new component — same content, same displayed structure, same interactive behavior. Any difference must be fixed or reported with location/reason, never treated as an "improvement".
 
-## Kiểm tra trước khi hoàn thành
+## Pre-completion checks
 
-- Component mới hiển thị đúng nội dung/layout/style như file HTML/CSS gốc, đối chiếu trực tiếp (không suy đoán).
-- Hành vi JS gốc (click, toggle, submit...) hoạt động tương đương sau khi chuyển sang event handler của framework đích.
-- Tên file/component, vị trí thư mục và cách style khớp convention project đích đã quan sát ở bước 1.
-- Không có TODO/placeholder che phần chưa chuyển; phần chưa chuyển được phải báo rõ, không âm thầm bỏ qua.
-- Lint/type-check của project đích (nếu có) pass; áp dụng [type-safety](../../../rules/coding.md#an-toàn-type) khi target TypeScript.
+- The new component displays the same content/layout/style as the original HTML/CSS file, compared directly (no guessing).
+- Original JS behavior (click, toggle, submit...) works equivalently after moving to the target framework's event handlers.
+- File/component names, directory location and styling approach match the target project's convention observed in step 1.
+- No TODO/placeholder covering unconverted parts; unconverted parts must be reported clearly, never silently skipped.
+- The target project's lint/type-check (if any) passes; apply [type-safety](../../../rules/coding.md#type-safety) when targeting TypeScript.
 
-## Không áp dụng
+## Not applicable
 
-- Không tự thêm data fetching, state quản lý toàn cục, route hoặc backend call không có trong file gốc.
-- Không tự đổi UI library/CSS framework (Tailwind, MUI...) nếu project đích chưa dùng sẵn.
-- Nhiều file HTML cùng lúc có phần dùng chung rõ ràng (header/footer lặp ở mọi trang): hỏi người dùng có muốn tách layout chung trước khi convert từng trang, không tự quyết.
+- Never add data fetching, global state management, routes or backend calls not in the original file.
+- Never switch UI library/CSS framework (Tailwind, MUI...) if the target project does not already use it.
+- Multiple HTML files at once with clearly shared parts (header/footer repeated on every page): ask the user whether to extract a shared layout before converting each page; do not decide on your own.
 
-## Skill liên quan
+## Related skills
 
-- [clone-website](../../clone-website/SKILL.md) khi nguồn là ảnh/URL/sitemap chứ không phải file HTML có sẵn trong project.
-- [coding-frontend](../SKILL.md) cho phần triển khai còn lại (nối data thật, SEO, accessibility) sau khi đã có component.
-- [design-patterns](../../design-patterns/references/refactoring.md) khi cần kỹ thuật refactor cụ thể hơn cho bước tách hàm/component.
-- [testing](../../testing/references/unit-testing.md) khi cần viết test cho component/hàm vừa tách.
+- [clone-website](../../clone-website/SKILL.md) when the source is an image/URL/sitemap rather than an HTML file already in the project.
+- [coding-frontend](../SKILL.md) for the remaining implementation (wiring real data, SEO, accessibility) once components exist.
+- [design-patterns](../../design-patterns/references/refactoring.md) when more specific refactoring techniques are needed for the function/component extraction step.
+- [testing](../../testing/references/unit-testing.md) when tests are needed for the newly extracted components/functions.

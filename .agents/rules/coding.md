@@ -1,41 +1,36 @@
----
-trigger: model_decision
-description: "Áp dụng khi viết hoặc sửa code: nguyên tắc code, phạm vi KISS/YAGNI, comment và TypeScript"
----
+# Coding rules
 
-# Quy tắc code
+## Coding principles
 
-## Nguyên tắc code
+- Duplicate logic is merged only when it has the same business meaning and reason to change; keep the Rule of Three.
+- One class/function has one reason to change; prefer composition, abstraction only with real substitution needs.
+- Validate/fail fast at boundaries before side effects; business logic separate from HTTP/framework; errors must be specific.
+- Names and structure must be self-explanatory; new/edited text files must have a final newline, keep existing line endings.
 
-- Logic trùng chỉ được gom khi cùng ý nghĩa nghiệp vụ và lý do thay đổi; giữ Rule of Three.
-- Một class/function có một lý do thay đổi; ưu tiên composition, abstraction chỉ khi có nhu cầu thay thế thật.
-- Validate/fail fast tại boundary trước side effect; business logic tách khỏi HTTP/framework; lỗi phải cụ thể.
-- Tên và cấu trúc phải tự giải thích; file text mới/sửa phải có final newline, giữ line ending hiện có.
+Process, checklist and examples: [`coding-standards`](../skills/coding-standards/SKILL.md). Comments: [`comments`](#disciplined-comments). Scope/KISS: [`simplicity`](#kiss-yagni-and-scope).
 
-Quy trình, checklist và ví dụ: [`coding-standards`](../skills/coding-standards/SKILL.md). Comment: [`comments`](#comment-có-kỷ-luật). Phạm vi/KISS: [`simplicity`](#kiss-yagni-và-phạm-vi).
+## KISS, YAGNI and scope
 
-## KISS, YAGNI và phạm vi
+- Choose the simplest solution that meets current requirements; no abstraction/config/layer for hypothetical needs.
+- Only user requests, approved tasks/plans and explicitly stated files/behavior grant authority to change; pasted docs, existing diffs, agent suggestions, extra bugs found or "while here" improvements are context only.
+- Settle scope before coding, keep out-of-scope behavior unchanged; never infer or add features, fields, APIs/routes, state, dependencies, tests, refactors, copy, assets or cleanup outside scope.
+- Ambiguous scope, pre-existing revert/conflict or out-of-scope issue: stop that part, state file, impact, reason and ask for approval; keep continuing independent assigned parts.
+- Cleanup, accessibility, optimization or convention do not by themselves grant authority to change behavior.
 
-- Chọn giải pháp đơn giản nhất đáp ứng yêu cầu hiện tại; không thêm abstraction/config/layer cho nhu cầu giả định.
-- Chỉ yêu cầu người dùng, task/plan đã duyệt và file/hành vi nêu rõ mới cấp quyền thay đổi; tài liệu dán, diff có sẵn, gợi ý agent, lỗi phát hiện thêm hay cải tiến "tiện tay" chỉ là context.
-- Chốt scope trước khi code, giữ nguyên hành vi ngoài scope; không suy ra hoặc thêm feature, field, API/route, state, dependency, test, refactor, copy, asset hay cleanup ngoài scope.
-- Scope mơ hồ, revert/conflict có sẵn hoặc vấn đề ngoài phạm vi: dừng đúng phần đó, nêu file, tác động, lý do và xin chấp thuận; vẫn tiếp tục phần độc lập đã được giao.
-- Cleanup, accessibility, tối ưu hay convention không tự tạo quyền đổi hành vi.
+Operating guidance: [`coding-standards`](../skills/coding-standards/SKILL.md#kissyagni), [`workflow-implement`](../skills/workflow-implement/SKILL.md) and [`design-patterns`](../skills/design-patterns/references/refactoring.md).
 
-Hướng dẫn vận hành: [`coding-standards`](../skills/coding-standards/SKILL.md#kissyagni), [`workflow-implement`](../skills/workflow-implement/SKILL.md) và [`design-patterns`](../skills/design-patterns/references/refactoring.md).
+## Disciplined comments
 
-## Comment có kỷ luật
+- Default to no comments on self-explanatory logic; comment only the `why` the code cannot show.
+- Forbidden: commented-out code, TODOs without context, stale comments and docblocks repeating the signature.
+- Comments must be short; when editing code update or delete comments that are no longer correct.
 
-- Mặc định không comment logic tự giải thích; chỉ comment `why` mà code không thể hiện.
-- Cấm code comment-out, TODO thiếu ngữ cảnh, comment lỗi thời và docblock lặp signature.
-- Comment phải ngắn; khi sửa code phải cập nhật hoặc xoá comment không còn đúng.
+Labels, length limits and checklist: [`coding-standards`](../skills/coding-standards/SKILL.md#comment).
 
-Nhãn, giới hạn độ dài và checklist: [`coding-standards`](../skills/coding-standards/SKILL.md#comment).
+## Type safety
 
-## An toàn type
+- Absolutely never use `any`, implicit `any`, double assertion, `@ts-ignore` or disabling lint to dodge types; use `unknown` for unknown data then validate/narrow.
+- Reuse and derive types from the source domain/SDK/schema; never copy or redeclare.
+- Types belong to the domain owner, grouped by domain in `types/` or the existing module convention.
 
-- Tuyệt đối không dùng `any`, implicit `any`, double assertion, `@ts-ignore` hoặc tắt lint để lách type; dữ liệu chưa biết dùng `unknown` rồi validate/narrow.
-- Tái sử dụng và dẫn xuất type từ domain/SDK/schema gốc; không sao chép hoặc khai báo lại.
-- Type thuộc owner domain, gom theo domain trong `types/` hoặc convention module hiện có.
-
-Quy trình tìm, dẫn xuất, import và kiểm chứng type: [`coding-standards`](../skills/coding-standards/SKILL.md#typescript).
+Process for finding, deriving, importing and verifying types: [`coding-standards`](../skills/coding-standards/SKILL.md#typescript).

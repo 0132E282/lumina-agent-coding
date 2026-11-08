@@ -89,7 +89,7 @@ test('retention keeps the newest N rotated files and never touches unrelated fil
 
   const remaining = rotatedFiles(root);
   assert.equal(remaining.length, 3);
-  // Cùng giây: không hậu tố < -2 < -10 (so số, không so chuỗi); bản vừa xoay là mới nhất.
+  // Same second: no suffix < -2 < -10 (numeric, not string comparison); the just-rotated copy is newest.
   assert.deepEqual(remaining.filter(name => name.startsWith('logs-2020')).sort(), ['logs-20200101-000000-10.jsonl', 'logs-20200102-000000.jsonl']);
   assert.equal(remaining[2].startsWith('logs-2020'), false);
   for (const name of unrelated) assert.equal(fs.existsSync(path.join(directory, name)), true, name);
@@ -132,9 +132,9 @@ test('turn-log leaves the log in place below the threshold or with an invalid th
   fs.writeFileSync(activeLog(root), `${'x'.repeat(50)}\n`);
   const transcript = path.join(root, 'transcript.jsonl');
   for (const [index, threshold] of ['1000', 'abc', '0'].entries()) {
-    // Mỗi lượt một prompt mới để turn-log không bỏ qua lượt đã ghi.
+    // A new prompt each turn so turn-log does not skip an already-written turn.
     const events = [
-      { type: 'user', uuid: `p${index}`, origin: { kind: 'human' }, message: { role: 'user', content: `Không xoay ${index}` } },
+      { type: 'user', uuid: `p${index}`, origin: { kind: 'human' }, message: { role: 'user', content: `No rotation ${index}` } },
       { type: 'assistant', message: { id: `m${index}`, usage: { input_tokens: 1, output_tokens: 1 }, content: [] } },
     ];
     fs.writeFileSync(transcript, `${events.map(event => JSON.stringify(event)).join('\n')}\n`);
@@ -219,7 +219,7 @@ test('report-reminder output is unchanged for a fixture without rotation', conte
   assert.equal(result.status, 0);
   assert.equal(
     JSON.parse(result.stdout).hookSpecificOutput.additionalContext,
-    '📊 Đã Edit/Write 3 lần (a.txt, b.txt) mà chưa thấy gọi skill `report` để xuất báo cáo thay đổi — rules/delivery.md yêu cầu bắt buộc. Dùng Skill tool với `report` trước khi báo hoàn thành task; số token sẽ được cung cấp tự động khi gọi skill.',
+    '📊 Edit/Write 3 time(s) (a.txt, b.txt) with no skill `report` call seen to produce the change report -- required by rules/delivery.md. Use the Skill tool with `report` before declaring the task complete; token numbers are supplied automatically when the skill is called.',
   );
 });
 
@@ -240,7 +240,7 @@ test('report-reminder reads the newest rotated file when the session spans a rot
   const result = runReminder(root);
   assert.equal(result.status, 0);
   const message = JSON.parse(result.stdout).hookSpecificOutput.additionalContext;
-  assert.match(message, /Edit\/Write 1 lần \(pending-rotated\.txt\)/);
+  assert.match(message, /Edit\/Write 1 time\(s\) \(pending-rotated\.txt\)/);
   assert.doesNotMatch(message, /reported\.txt|other-session\.txt|oldest-rotation\.txt/);
 });
 
@@ -253,7 +253,7 @@ test('report-reminder respects a report call in the rotated file and works when 
   assert.equal(runReminder(root).stdout, '');
 
   writeLog(activeLog(root), [entry(root, '2026-01-01T00:00:03Z', 'Write', { file_path: 'new.txt' })]);
-  assert.match(JSON.parse(runReminder(root).stdout).hookSpecificOutput.additionalContext, /Edit\/Write 1 lần \(new\.txt\)/);
+  assert.match(JSON.parse(runReminder(root).stdout).hookSpecificOutput.additionalContext, /Edit\/Write 1 time\(s\) \(new\.txt\)/);
 });
 
 test('report-reminder stays correct on a large log dominated by other sessions', context => {
@@ -269,7 +269,7 @@ test('report-reminder stays correct on a large log dominated by other sessions',
     ...noise.slice(10000),
   ]);
   const message = JSON.parse(runReminder(root).stdout).hookSpecificOutput.additionalContext;
-  assert.match(message, /Edit\/Write 1 lần \(mine\.txt\)/);
+  assert.match(message, /Edit\/Write 1 time\(s\) \(mine\.txt\)/);
   assert.equal(runReminder(root, 'session-none').stdout, '');
 });
 
@@ -292,7 +292,7 @@ test('find-session-scratch-files still finds a candidate written before rotation
 
 test('without the rotation helper both readers still pre-filter by session and skip invalid lines of other sessions', context => {
   const root = workspace(context);
-  // Copy script ra thư mục không có _log-rotate.sh để đi vào nhánh fallback.
+  // Copy the script to a directory without _log-rotate.sh to take the fallback branch.
   const scripts = path.join(root, 'no-helper');
   fs.mkdirSync(scripts);
   for (const source of [reminderHook, finder, path.join(repoRoot, '.claude/hooks/scripts/_dedupe-guard.sh')]) {
@@ -309,7 +309,7 @@ test('without the rotation helper both readers still pre-filter by session and s
 
   const reminder = spawnSync('bash', [path.join(scripts, 'report-reminder.sh')], { cwd: root, input: JSON.stringify({ session_id: 'session-1' }), encoding: 'utf8', env: environment });
   assert.equal(reminder.status, 0, reminder.stderr);
-  assert.match(JSON.parse(reminder.stdout).hookSpecificOutput.additionalContext, /Edit\/Write 1 lần \(.*tmp-fallback\.md\)/);
+  assert.match(JSON.parse(reminder.stdout).hookSpecificOutput.additionalContext, /Edit\/Write 1 time\(s\) \(.*tmp-fallback\.md\)/);
 
   const found = spawnSync('bash', [path.join(scripts, 'find-session-scratch-files.sh'), 'session-1'], { cwd: root, encoding: 'utf8', env: environment });
   assert.equal(found.status, 0, found.stderr);

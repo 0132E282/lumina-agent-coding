@@ -1,13 +1,13 @@
 [
   {
-    "title": "Rút gọn toàn bộ rule và chuyển chi tiết sang skill",
-    "description": "Tham khảo khi triển khai việc rút gọn toàn bộ .agents/rules, chuyển quy trình/checklist/ví dụ sang skill và đồng bộ reference mà không đổi semantics.",
+    "title": "Compact all rules and move details into skills",
+    "description": "Reference when compacting all of .agents/rules, moving procedures/checklists/examples to skills and syncing references without changing semantics.",
     "tags": ["agent-rules", "skills", "configuration", "refactor"],
     "path": "docs/plans/compact-rules-into-skills-20261021.json"
   },
   {
-    "title": "Tối ưu rules và đánh giá cấu trúc repo",
-    "description": "Tham khảo khi rút gọn .agents/rules, AGENTS.md, CLAUDE.md theo nguyên tắc một ràng buộc một chủ sở hữu, hoặc khi cân nhắc tái cấu trúc thư mục .agents/.claude/.codex.",
+    "title": "Optimize rules and review repo structure",
+    "description": "Reference when compacting .agents/rules, AGENTS.md, CLAUDE.md under the one-constraint-one-owner principle, or when considering restructuring the .agents/.claude/.codex directories.",
     "tags": ["agent-rules", "configuration", "refactor", "token-optimization"],
     "path": "docs/plans/optimize-rules-structure-20261022.json"
   }

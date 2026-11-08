@@ -1,6 +1,6 @@
 ---
-title: Giao Codex - CLI thống kê token Claude dùng để code
-description: Bàn giao cho Codex xây lệnh `lumina-agent usage` đọc transcript Claude Code và logs.jsonl để thống kê token theo phiên, lượt, subagent và ngày; dùng khi triển khai hoặc review CLI token.
+title: Codex handoff - CLI for Claude coding token usage stats
+description: Handoff to Codex to build the `lumina-agent usage` command, reading Claude Code transcripts and logs.jsonl to report token usage by session, turn, subagent and day; use when implementing or reviewing the token CLI.
 tags:
   - handoff
   - codex
@@ -9,64 +9,64 @@ tags:
   - claude-code
 ---
 
-# Giao Codex: CLI thống kê token Claude dùng để code
+# Codex handoff: CLI for Claude coding token usage stats
 
-## Mục tiêu
+## Goal
 
-Thêm lệnh `lumina-agent usage` vào CLI có sẵn [`bin/lumina-agent.mjs`](../../bin/lumina-agent.mjs) để người dùng xem Claude Code đã tiêu bao nhiêu token khi code: theo phiên, theo lượt (yêu cầu của người dùng), theo subagent và theo ngày. Chỉ đọc dữ liệu local, không gọi mạng, không sửa transcript/log.
+Add a `lumina-agent usage` command to the existing CLI [`bin/lumina-agent.mjs`](../../bin/lumina-agent.mjs) so users can see how many tokens Claude Code spent coding: per session, per turn (user request), per subagent and per day. Read local data only; no network calls; never modify transcripts/logs.
 
-## Trước khi làm
+## Before starting
 
-- Đọc `AGENTS.md`, `CONTRACT.md`, toàn bộ `.agents/rules/`; làm theo vai trò `coder` ([`.claude/agents/coder.md`](../../.claude/agents/coder.md)) qua `$workflow-implement`.
-- Không commit/push. Không cài dependency mới (Node >= 20, chỉ dùng thư viện chuẩn).
-- Không đụng `~/.claude`, `~/.codex` ngoài việc **đọc** transcript.
+- Read `AGENTS.md`, `CONTRACT.md`, all of `.agents/rules/`; follow the `coder` role ([`.claude/agents/coder.md`](../../.claude/agents/coder.md)) via `$workflow-implement`.
+- No commit/push. No new dependencies (Node >= 20, standard library only).
+- Do not touch `~/.claude`, `~/.codex` except to **read** transcripts.
 
-## Nguồn dữ liệu (đã có, dùng lại)
+## Data sources (existing, reuse)
 
-| Nguồn | Vị trí | Ghi chú |
+| Source | Location | Notes |
 |---|---|---|
-| Transcript phiên chính | `~/.claude/projects/<project-slug>/<session-id>.jsonl` | `<project-slug>` = đường dẫn project, `/` thay bằng `-`. Mỗi assistant message có `message.usage` (`input_tokens`, `output_tokens`, `cache_read_input_tokens`, `cache_creation_input_tokens`) và `message.id`. |
-| Transcript subagent | `<transcript không đuôi .jsonl>/subagents/agent-<agentId>.jsonl` (+ `.meta.json`) | Mọi entry `isSidechain: true`. Đây là nguồn đúng cho token subagent; `totalTokens` trong tool result chỉ là context của lần gọi cuối, **không** phải tổng. |
-| Bản ghi theo lượt | `<project>/.agents/storage/logs/logs.jsonl` và file đã xoay vòng `logs-<UTC>.jsonl` | Dòng `"type":"turn"` do hook `turn-log` ghi: `request`, `tools`, `files`, `tokens`, `subagentTokens`, `subagentsPending`. Việc xoay vòng log đang được triển khai song song; CLI phải đọc cả file đã xoay vòng. |
-| Hàm đo có sẵn | [`.agents/skills/report/scripts/task-usage.mjs`](../../.agents/skills/report/scripts/task-usage.mjs) | `export function measure(lines, sinceLine, criteria, { includeSidechain })`: giữ usage mới nhất theo `message.id`, bỏ entry subagent. Dùng lại, không viết lại logic khử trùng. |
-| Định dạng số gọn | [`.claude/hooks/scripts/compact-number.mjs`](../../.claude/hooks/scripts/compact-number.mjs) | `formatCompactNumber`, `formatUsageTotals` (18, 4.4k, 1.2M). |
+| Main session transcript | `~/.claude/projects/<project-slug>/<session-id>.jsonl` | `<project-slug>` = project path with `/` replaced by `-`. Each assistant message has `message.usage` (`input_tokens`, `output_tokens`, `cache_read_input_tokens`, `cache_creation_input_tokens`) and `message.id`. |
+| Subagent transcript | `<transcript without .jsonl>/subagents/agent-<agentId>.jsonl` (+ `.meta.json`) | All entries `isSidechain: true`. This is the correct source for subagent tokens; `totalTokens` in the tool result is only the last call's context, **not** the total. |
+| Per-turn records | `<project>/.agents/storage/logs/logs.jsonl` and rotated `logs-<UTC>.jsonl` | `"type":"turn"` lines written by the `turn-log` hook: `request`, `tools`, `files`, `tokens`, `subagentTokens`, `subagentsPending`. Log rotation is being implemented in parallel; the CLI must read rotated files too. |
+| Existing measure function | [`.agents/skills/report/scripts/task-usage.mjs`](../../.agents/skills/report/scripts/task-usage.mjs) | `export function measure(lines, sinceLine, criteria, { includeSidechain })`: keeps latest usage per `message.id`, skips subagent entries. Reuse; do not rewrite the dedupe logic. |
+| Compact number format | [`.claude/hooks/scripts/compact-number.mjs`](../../.claude/hooks/scripts/compact-number.mjs) | `formatCompactNumber`, `formatUsageTotals` (18, 4.4k, 1.2M). |
 
-## Yêu cầu (REQ)
+## Requirements (REQ)
 
-- **REQ-1 Phạm vi chọn**: mặc định project hiện tại (`cwd`). Tùy chọn `--project <dir>`, `--session <id>`, `--since <YYYY-MM-DD>`, `--until <YYYY-MM-DD>`, `--all-projects`.
-- **REQ-2 Gom nhóm**: `--by session|turn|agent|day` (mặc định `session`). `agent` tách phiên chính và từng subagent theo `subagent_type` (tên vai trò như `coder`, `planner`), lấy từ tool_use `Agent` khớp `agentId` trong kết quả.
-- **REQ-3 Số liệu**: mỗi dòng có `input`, `output`, `cacheRead`, `cacheCreate`, `total`, số message; khử trùng theo `message.id` như `measure`. Phiên chính và subagent tính riêng rồi cộng ở dòng tổng.
-- **REQ-4 Đầu ra**: bảng chữ dễ đọc (số gọn k/M) mặc định; `--json` in JSON thô (số nguyên) để máy đọc. Sắp xếp theo `total` giảm dần, `--limit N`.
-- **REQ-5 An toàn**: không in nội dung prompt/tool output; cột `request` (khi `--by turn`) cắt 80 ký tự và che secret như `turn-log.mjs` đang làm. Chỉ đọc file.
-- **REQ-6 Lỗi**: không tìm thấy transcript → thông báo rõ, exit 1, không stack trace. Dòng JSONL hỏng → bỏ qua và đếm số dòng bỏ qua trong phần cuối báo cáo.
-- **REQ-7 Chi phí (tùy chọn)**: chỉ tính tiền khi người dùng truyền `--rates <file.json>` (giá mỗi triệu token theo model). Không hardcode giá vì giá thay đổi.
+- **REQ-1 Scope selection**: default is the current project (`cwd`). Options `--project <dir>`, `--session <id>`, `--since <YYYY-MM-DD>`, `--until <YYYY-MM-DD>`, `--all-projects`.
+- **REQ-2 Grouping**: `--by session|turn|agent|day` (default `session`). `agent` separates the main session and each subagent by `subagent_type` (role name such as `coder`, `planner`), taken from the `Agent` tool_use matching `agentId` in the result.
+- **REQ-3 Metrics**: each row has `input`, `output`, `cacheRead`, `cacheCreate`, `total`, message count; dedupe by `message.id` like `measure`. Main session and subagents are computed separately, then summed in the total row.
+- **REQ-4 Output**: readable text table (compact k/M numbers) by default; `--json` prints raw JSON (integers) for machines. Sort by `total` descending, `--limit N`.
+- **REQ-5 Safety**: never print prompt/tool output content; the `request` column (with `--by turn`) is cut to 80 characters and secrets masked as `turn-log.mjs` does. Read files only.
+- **REQ-6 Errors**: transcript not found -> clear message, exit 1, no stack trace. Corrupt JSONL line -> skip and count skipped lines at the end of the report.
+- **REQ-7 Cost (optional)**: compute cost only when the user passes `--rates <file.json>` (price per million tokens per model). Do not hardcode prices since they change.
 
-## Ràng buộc kỹ thuật
+## Technical constraints
 
-- Đặt logic ở module riêng (ví dụ `bin/usage.mjs`), `bin/lumina-agent.mjs` chỉ thêm nhánh lệnh `usage` và dòng help; không làm đổi hành vi lệnh `install`.
-- Mọi CLI entry guard so sánh bằng `realpathSync(process.argv[1])` (bài học lỗi symlink ở `compact-number.mjs`).
-- Đọc file theo dòng (stream/`readline`) để transcript lớn không nạp hết vào RAM; độ phức tạp O(tổng số dòng).
-- Cập nhật `package.json` `files` nếu thêm file mới dưới `bin/`.
+- Put logic in a separate module (e.g. `bin/usage.mjs`); `bin/lumina-agent.mjs` only adds the `usage` command branch and a help line; do not change `install` behavior.
+- Every CLI entry guard compares using `realpathSync(process.argv[1])` (lesson from the symlink bug in `compact-number.mjs`).
+- Read files line by line (stream/`readline`) so large transcripts are not loaded into RAM; complexity O(total lines).
+- Update `package.json` `files` if adding new files under `bin/`.
 
-## Kiểm thử (bắt buộc)
+## Testing (required)
 
-Thêm `tests/usage-cli.test.mjs` (node:test, fixture JSONL trong thư mục tạm, đặt `HOME` giả để không đọc transcript thật):
+Add `tests/usage-cli.test.mjs` (node:test, JSONL fixtures in a temp dir, fake `HOME` so real transcripts are not read):
 
-- Tổng theo phiên đúng, kể cả `message.id` lặp (lấy bản mới nhất).
-- `--by agent` tách phiên chính và từng subagent theo tên vai trò; subagent chưa xong (không có transcript/`finished`) được báo riêng, không cộng.
-- `--by turn` đọc dòng `type:"turn"` từ cả `logs.jsonl` và `logs-*.jsonl`; `request` bị che secret.
-- `--since/--until`, `--session`, `--limit`, `--json` (JSON hợp lệ, số nguyên).
-- Transcript thiếu → exit 1, stderr rõ ràng, stdout rỗng; dòng hỏng được đếm.
-- Gọi qua đường dẫn symlink vẫn chạy.
-- `npm test` toàn bộ pass; `npm run check`, `python3 scripts/check-agent-config.py`, `git diff --check`.
+- Session total correct, including repeated `message.id` (take the latest).
+- `--by agent` separates main session and each subagent by role name; unfinished subagents (no transcript/`finished`) are reported separately, not summed.
+- `--by turn` reads `type:"turn"` lines from both `logs.jsonl` and `logs-*.jsonl`; `request` has secrets masked.
+- `--since/--until`, `--session`, `--limit`, `--json` (valid JSON, integers).
+- Missing transcript -> exit 1, clear stderr, empty stdout; corrupt lines are counted.
+- Invocation via a symlink path still works.
+- Full `npm test` passes; `npm run check`, `python3 scripts/check-agent-config.py`, `git diff --check`.
 
-## Tiêu chí hoàn thành
+## Done criteria
 
-- `lumina-agent usage` chạy được trên transcript thật của repo này, in bảng hợp lý (không tuyên bố số liệu khi chưa chạy).
-- Cập nhật mục lệnh trong `README.md` và `AGENTS.md` nếu có danh sách lệnh CLI.
-- Báo cáo bằng skill `report` (template Change): file/dòng đổi, lệnh đã chạy và kết quả thật, giới hạn còn lại.
+- `lumina-agent usage` runs on this repo's real transcripts and prints a sensible table (do not claim numbers before running).
+- Update the command section in `README.md` and `AGENTS.md` if they list CLI commands.
+- Report via the `report` skill (Change template): files/lines changed, commands actually run with real results, remaining limits.
 
-## Ngoài phạm vi
+## Out of scope
 
-- Không sửa hook `turn-log`, `report-usage`, `audit-log` hay logic xoay vòng log.
-- Không gửi số liệu ra ngoài, không dashboard web.
+- Do not modify the `turn-log`, `report-usage`, `audit-log` hooks or log rotation logic.
+- Do not send data outside; no web dashboard.

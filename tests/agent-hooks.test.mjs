@@ -24,7 +24,7 @@ test('agent-role-reminder asks on a short prompt for each heavy role name', () =
   for (const role of ['analyst', 'planner', 'architect', 'reviewer', 'qa-tester', 'researcher']) {
     const output = runAgentHook('agent-role-reminder.sh', { subagent_type: role, prompt: 'short' });
     assert.equal(output.permissionDecision, 'ask', role);
-    assert.match(output.permissionDecisionReason, /giao thẳng coder/);
+    assert.match(output.permissionDecisionReason, /go straight to coder/);
   }
 });
 

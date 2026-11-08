@@ -1,6 +1,6 @@
 ---
 name: complexity-performance
-description: Phân tích độ phức tạp thuật toán, vòng lặp, query/API, bộ nhớ và tài nguyên khi implement, sửa hoặc review code; dùng khi cần tính Big O, tìm bottleneck hoặc kiểm chứng hiệu năng.
+description: Analyze algorithmic complexity, loops, queries/APIs, memory and resources when implementing, modifying or reviewing code; use when computing Big O, finding bottlenecks or verifying performance.
 license: MIT
 metadata:
   version: "1.1"
@@ -8,36 +8,36 @@ metadata:
 
 # Complexity & Performance
 
-Đánh giá chi phí xử lý bằng bằng chứng từ code, dữ liệu và phép đo; không kết luận hiệu năng chỉ từ Big O hoặc khi chưa benchmark/profile.
+Evaluate processing cost with evidence from code, data and measurements; never conclude performance from Big O alone or without benchmarking/profiling.
 
-## Quy trình
+## Process
 
-1. Xác định đoạn xử lý, input và `n`/`m` đại diện cho dữ liệu nào.
-2. Kiểm tra vòng lặp, traversal, lookup, sort, allocation, query database, network, I/O và retry. Nếu có database, đọc và áp dụng thêm skill [`database`](../database/SKILL.md) cùng rule [`database-read-only`](../../rules/backend.md#database-read-only-mặc-định).
-3. Tính time/space complexity cho đường đi chính, worst case và khởi tạo/preprocessing nếu có.
-4. Với vòng lặp lồng nhau, xác định kích thước từng tập; dùng `O(n × m)` khi chúng độc lập, không mặc định `O(n²)`.
-5. Tìm N+1 query/API call, tải toàn bộ dữ liệu vào RAM, retry vô hạn và thiếu giới hạn page/batch/upload/input.
-6. Với query database, đếm số query mỗi request/job trên tập dữ liệu nhiều record; kiểm tra số query có tăng theo số record không, lazy loading/N+1, join/eager loading, điều kiện `WHERE`, `JOIN`, `ORDER BY`, pagination, cột được đọc, index và lượng record quét/trả về. Áp dụng xuyên framework/ORM (Laravel/Eloquent, EF Core, SQL trực tiếp và stack khác). Dùng query log/profiler/test instrumentation và `EXPLAIN`/query plan khi có thể; nếu không có công cụ thì ghi rõ phần chưa đo.
-7. Đánh giá cyclomatic complexity, độ dài hàm, số tham số và độ sâu lồng nhau như tín hiệu review.
-8. Đề xuất tối ưu phù hợp: `Map`/`Set`, eager loading, batch, pagination, chunk, cursor, streaming, queue/job, cache hoặc index; nêu trade-off.
-9. Kiểm chứng bằng test, benchmark, query log, `EXPLAIN` hoặc profiler; ghi rõ phần chưa đo.
+1. Identify the processing section, its input and what data `n`/`m` represent.
+2. Check loops, traversals, lookups, sorts, allocations, database queries, network, I/O and retries. If a database is involved, also read and apply the [`database`](../database/SKILL.md) skill and the [`database-read-only`](../../rules/backend.md#database-read-only-by-default) rule.
+3. Compute time/space complexity for the main path, worst case and initialization/preprocessing if any.
+4. For nested loops, determine each set's size; use `O(n × m)` when independent, never default to `O(n²)`.
+5. Look for N+1 queries/API calls, loading all data into RAM, infinite retries and missing page/batch/upload/input limits.
+6. For database queries, count queries per request/job on a many-record dataset; check whether the query count grows with the record count, lazy loading/N+1, join/eager loading, `WHERE`, `JOIN`, `ORDER BY` conditions, pagination, columns read, indexes and the number of records scanned/returned. Applies across frameworks/ORMs (Laravel/Eloquent, EF Core, raw SQL and other stacks). Use query logs/profilers/test instrumentation and `EXPLAIN`/query plans when possible; without tools, state what was not measured.
+7. Evaluate cyclomatic complexity, function length, parameter count and nesting depth as review signals.
+8. Suggest suitable optimizations: `Map`/`Set`, eager loading, batching, pagination, chunking, cursors, streaming, queues/jobs, cache or indexes; state trade-offs.
+9. Verify with tests, benchmarks, query logs, `EXPLAIN` or a profiler; state what was not measured.
 
-## Ngưỡng cần chú ý
+## Thresholds to watch
 
-- Ưu tiên `O(n)` hoặc `O(n log n)` khi xử lý danh sách.
-- `O(n²)` trở lên phải giải thích lý do, giới hạn input và hướng tối ưu.
-- Retry phải có giới hạn số lần, timeout và điều kiện dừng.
-- Cyclomatic complexity mục tiêu không quá 10; hàm trên 50 dòng logic, hơn 3–4 tham số hoặc lồng quá 3 cấp cần xem xét đơn giản hóa.
-- Không tự đặt giới hạn tài nguyên nếu chưa có yêu cầu hoặc bằng chứng.
+- Prefer `O(n)` or `O(n log n)` when processing lists.
+- `O(n²)` or higher must explain the reason, input limit and optimization direction.
+- Retries must have a bounded count, timeout and stop condition.
+- Target cyclomatic complexity no more than 10; functions over 50 logic lines, more than 3–4 parameters or nesting beyond 3 levels need simplification review.
+- Never set resource limits on your own without a requirement or evidence.
 
-## Báo cáo
+## Reporting
 
-Với code/luồng xử lý phụ thuộc dữ liệu, dùng template [`change-report-template.md`](../report/assets/change-report-template.md) và ghi `**Big O: ...**` in đậm trong mục file (tiếng Anh, `<độ phức tạp> — Good | needs optimization`; N+1 ghi `N+1 — needs optimization`); phân tích nội bộ vẫn dùng Before/After, `n`/`m`, số query, dạng query, record quét/trả về, index/query plan nếu có, I/O/bộ nhớ, hành vi giữ nguyên, kiểm chứng và đánh giá coding. Khi có database, kết hợp kết quả từ skill [`database`](../database/SKILL.md), không tự chạy thao tác ghi/DDL hoặc thay đổi index.
+For data-dependent code/flows, use the [`change-report-template.md`](../report/assets/change-report-template.md) template and write `**Big O: ...**` in bold in the file section (in English, `<complexity> — Good | needs optimization`; N+1 is written `N+1 — needs optimization`); internal analysis still uses Before/After, `n`/`m`, query count, query shape, records scanned/returned, index/query plan if any, I/O/memory, preserved behavior, verification and coding assessment. With a database, combine results from the [`database`](../database/SKILL.md) skill; never run write/DDL operations or change indexes yourself.
 
-Với rule, skill, docs, template hoặc config thuần túy, bỏ dòng Big O trong báo cáo; không suy diễn Big O từ việc agent đọc file hoặc số lượng file.
+For pure rules, skills, docs, templates or config, drop the Big O line from the report; never infer Big O from the agent reading files or the number of files.
 
-## Giới hạn
+## Limits
 
-- Không khẳng định mức cải thiện nếu chưa đo.
-- Không gộp các vòng lặp/query chỉ vì hình thức giống nhau khi input khác nhau.
-- Chỉ đề xuất refactor liên quan bottleneck hoặc yêu cầu hiện tại.
+- Never claim an improvement level without measuring.
+- Never merge loops/queries just because they look alike when inputs differ.
+- Suggest only refactors tied to the bottleneck or the current requirement.

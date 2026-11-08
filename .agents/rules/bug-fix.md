@@ -1,12 +1,12 @@
-# Debug — có bằng chứng, đúng nguyên nhân gốc
+# Debug — evidence-based, root cause
 
-- Không sửa lỗi dựa trên phỏng đoán: phải tái hiện được hoặc xác định rõ điều kiện xảy ra, có expected vs actual theo đặc tả và bằng chứng thật (log, stack trace, request/response, query, dữ liệu); dữ liệu/database thật chỉ đọc, không lộ secret/PII khi thu bằng chứng.
-- Khoanh vùng tầng lỗi và xác định nguồn gốc (code, dữ liệu, cấu hình/môi trường, input/thao tác người dùng ngoài đặc tả, dependency/hệ thống ngoài) bằng bằng chứng; kiểm từng giả thuyết, sửa nguyên nhân gốc, không workaround tùy tiện hay chỉ che triệu chứng. Input người dùng sai đặc tả mà hệ thống không validate/báo lỗi rõ vẫn là lỗi code.
-- Có regression test tái hiện và fail vì đúng lỗi trước khi sửa, pass sau khi sửa và fail lại khi bỏ riêng bản sửa; không tắt test, không đổi expected trái đặc tả.
-- Sửa tối thiểu đúng phạm vi; lỗi phát hiện thêm ngoài scope chỉ báo vị trí/tác động và xin phép.
-- Bug bảo mật bắt buộc qua [`review-web-security`](../skills/review-web-security/SKILL.md); không ghi payload khai thác, token hay dữ liệu nhạy cảm vào báo cáo, log, commit hoặc PR công khai.
-- Lỗi lúc có lúc không: không kết luận "flaky" khi chưa tìm ra nguyên nhân.
-- Bug UI phải có ảnh trước và sau khi sửa cùng route/viewport theo [`frontend`](./frontend.md); không chụp được phải ghi rõ lý do.
-- Kiểm chứng lại case lỗi, case bình thường, case biên, regression và hiệu năng liên quan; phần chưa xác minh trên môi trường mục tiêu phải ghi rõ.
+- Never fix by guessing: you must reproduce or clearly identify the conditions, have expected vs actual per spec and real evidence (log, stack trace, request/response, query, data); real data/database is read-only, never expose secrets/PII when collecting evidence.
+- Localize the failing layer and identify the source (code, data, config/environment, user input/action outside spec, external dependency/system) with evidence; test each hypothesis, fix the root cause, no arbitrary workaround or symptom masking. User input outside spec that the system does not validate/report clearly is still a code bug.
+- Have a regression test that reproduces and fails for the right reason before the fix, passes after the fix and fails again when the fix alone is removed; never disable tests, never change expected results against the spec.
+- Minimal fix within scope; extra bugs found outside scope: only report location/impact and ask permission.
+- Security bugs must go through [`review-web-security`](../skills/review-web-security/SKILL.md); never write exploit payloads, tokens or sensitive data into reports, logs, commits or public PRs.
+- Intermittent bugs: never conclude "flaky" before finding the cause.
+- UI bugs must have before and after images of the same route/viewport per [`frontend`](./frontend.md); if capture is impossible, state why.
+- Re-verify the failing case, normal case, edge case, regression and related performance; parts unverified on the target environment must be stated.
 
-Quy trình (mức S1–S4, chạy lặp lỗi flaky, lưu evidence), kiểm tra theo loại lỗi và checklist chất lượng: [`debugs`](../skills/debugs/SKILL.md). Database: [`backend`](./backend.md#database-read-only-mặc-định). Phạm vi: [`coding`](./coding.md#kiss-yagni-và-phạm-vi).
+Process (levels S1–S4, repeated runs for flaky bugs, saving evidence), per-bug-type checks and quality checklist: [`debugs`](../skills/debugs/SKILL.md). Database: [`backend`](./backend.md#database-read-only-by-default). Scope: [`coding`](./coding.md#kiss-yagni-and-scope).

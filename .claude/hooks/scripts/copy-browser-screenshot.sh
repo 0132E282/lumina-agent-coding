@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# PostToolUse hook: tool trình duyệt (Claude in Chrome) lưu ảnh chụp vào thư mục
-# tạm hệ thống; hook copy ảnh đó vào project để bằng chứng không mất khi OS dọn tạm
-# và báo đường dẫn mới qua additionalContext.
+# PostToolUse hook: the browser tool (Claude in Chrome) saves screenshots into the system
+# temp directory; this hook copies the image into the project so the evidence survives OS temp cleanup
+# and reports the new path via additionalContext.
 #
-# Nhận JSON input từ stdin theo schema PostToolUse:
+# Reads JSON input from stdin per the PostToolUse schema:
 #   { "tool_name": "...", "tool_response": ..., "cwd": "..." }
 #
-# ! Cấu trúc tool_response của Chrome chưa được xác minh nên quét mọi chuỗi trong đó
-# theo regex file ảnh, rồi chỉ nhận file thường (không symlink) nằm dưới thư mục tạm.
+# ! The Chrome tool_response structure is not verified, so scan every string in it
+# with an image-file regex, then accept only regular files (no symlinks) under the temp directory.
 #
-# Copy, không move; trùng tên thì thêm hậu tố, không ghi đè. Luôn exit 0, không chặn tool.
+# Copy, not move; on a name clash add a suffix, never overwrite. Always exit 0, never blocks the tool.
 
-# ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+# ! Skip if the project already has the same hook (avoid running twice with the user-level copy).
 . "$(dirname "$0")/_dedupe-guard.sh"
 
 set -o pipefail
@@ -61,7 +61,7 @@ while IFS= read -r source_path; do
   [ -f "$source_path" ] && [ ! -L "$source_path" ] || continue
   source_dir_real="$(cd "$(dirname "$source_path")" 2>/dev/null && pwd -P)" || continue
   is_under_temp_root "$source_dir_real" || continue
-  # Project nằm dưới thư mục tạm thì không copy ảnh đã ở trong project.
+  # If the project lives under the temp directory, do not copy images already inside the project.
   case "$source_dir_real/" in
     "$project_dir_real"/*) continue ;;
   esac
@@ -84,9 +84,9 @@ done <<< "$candidates"
 
 [ -z "$copied_lines" ] && exit 0
 
-context="Ảnh chụp trình duyệt trong thư mục tạm đã được copy vào project:
+context="Browser screenshot in the temp directory was copied into the project:
 ${copied_lines}
-Dẫn đường dẫn trong project ở trên (không dùng đường dẫn tạm) khi báo cáo hoặc làm bằng chứng."
+Cite the project path above (not the temp path) when reporting or using it as evidence."
 
 jq -n --arg ctx "$context" '{
   hookSpecificOutput: {

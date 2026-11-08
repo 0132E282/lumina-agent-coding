@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Helper của turn-log.sh: đọc transcript, ghi MỘT dòng tóm tắt lượt hiện tại vào logs.jsonl.
-// Usage: node turn-log.mjs <task-usage.mjs>  (Stop payload qua stdin). Luôn exit 0.
+// Helper for turn-log.sh: read the transcript, write ONE summary line of the current turn to logs.jsonl.
+// Usage: node turn-log.mjs <task-usage.mjs>  (Stop payload via stdin). Always exit 0.
 import { spawnSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import path from 'node:path';
@@ -8,7 +8,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const REQUEST_LIMIT = 200;
 const FILE_TOOLS = new Set(['Edit', 'Write', 'NotebookEdit']);
-// Tin nhắn type "user" nhưng không phải người dùng gõ: lệnh local, output `!`, thông báo subagent, ngắt lượt.
+// Messages of type "user" that the user did not type: local commands, `!` output, subagent notifications, turn interrupts.
 const NON_PROMPT_PREFIXES = [
   '<task-notification>',
   '<local-command-',
@@ -42,7 +42,7 @@ function isMainSession(event) {
   return event?.isSidechain !== true && event?.parent_tool_use_id == null;
 }
 
-// Trả về text prompt nếu dòng là prompt thật của người dùng, ngược lại null.
+// Return the prompt text if the line is a real user prompt, otherwise null.
 function promptText(event) {
   if (event?.type !== 'user' || !isMainSession(event)) return null;
   if (event.isMeta === true || event.isCompactSummary === true) return null;
@@ -97,8 +97,8 @@ function isFinishedSubagent(result, subagentDirectory) {
   }
 }
 
-// * Token subagent lấy từ transcript riêng <session>/subagents/agent-<id>.jsonl; totalTokens trên tool result
-// * chỉ là context của request cuối, không phải tổng tiêu thụ, nên không dùng.
+// * Subagent tokens come from the separate transcript <session>/subagents/agent-<id>.jsonl; totalTokens on the tool result
+// * is only the context of the last request, not total consumption, so it is not used.
 function measureSubagents(results, transcriptPath, measure, criteria) {
   const subagentDirectory = path.join(path.dirname(transcriptPath), path.basename(transcriptPath, '.jsonl'), 'subagents');
   const sum = { input: 0, output: 0, cacheRead: 0, cacheCreate: 0 };
@@ -118,20 +118,20 @@ function measureSubagents(results, transcriptPath, measure, criteria) {
   return { tokens: measured > 0 ? totals(sum) : null, pending };
 }
 
-// Cùng ngưỡng/validate với lumina_log_rotate trong _log-rotate.sh.
+// Same threshold/validation as lumina_log_rotate in _log-rotate.sh.
 function rotateThresholdBytes() {
   const configured = process.env.LUMINA_LOG_MAX_BYTES ?? '';
   return /^[0-9]+$/.test(configured) && Number(configured) > 0 ? Number(configured) : 1048576;
 }
 
-// Xoay vòng dùng chung helper bash với audit-log; best-effort, lỗi không chặn việc ghi dòng.
-// Chỉ spawn bash khi file đã chạm ngưỡng — tránh một lần spawn mỗi lượt; helper vẫn tự kiểm lại.
+// Rotation shares the bash helper with audit-log; best-effort, errors do not block writing the line.
+// Only spawn bash once the file reached the threshold -- avoids one spawn per turn; the helper still rechecks itself.
 function rotateLog(logDirectory) {
   let size;
   try {
     size = fs.statSync(path.join(logDirectory, 'logs.jsonl')).size;
   } catch {
-    // Thiếu file (hoặc không stat được) thì helper cũng bỏ qua; xoay log là best-effort, không chặn việc ghi.
+    // A missing file (or one that cannot be stat'd) is also skipped by the helper; log rotation is best-effort, never blocks writing.
     return;
   }
   if (size < rotateThresholdBytes()) return;
@@ -169,7 +169,7 @@ async function main() {
     const previous = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
     if (previous.turnStartLine === turnMarker.turnStartLine && previous.turnStartUuid === turnMarker.turnStartUuid) return;
   } catch {
-    // Chưa có marker cho phiên này: lượt đầu tiên được ghi.
+    // No marker for this session yet: the first turn is written.
   }
 
   const tools = {};

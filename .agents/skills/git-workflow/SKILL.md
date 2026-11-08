@@ -1,6 +1,6 @@
 ---
 name: git-workflow
-description: "Thực thi quy tắc git (rules/git.md): commit, push, PR, resolve conflict; commit chỉ khi có lệnh rõ ràng, message Conventional Commits tối đa 75 ký tự, format Prettier, check conflict. Dùng ngay trước git commit, git push, tạo hoặc cập nhật PR, resolve conflict; có validate-commit-message.sh."
+description: "Enforce git rules (rules/git.md): commit, push, PR, resolve conflicts; commit only on explicit command, Conventional Commits message max 75 characters, Prettier format, conflict check. Use right before git commit, git push, creating or updating a PR, resolving conflicts; includes validate-commit-message.sh."
 license: MIT
 metadata:
   version: "1.4"
@@ -8,46 +8,46 @@ metadata:
 
 # 🔧 Git Workflow
 
-Skill gatekeeper bắt buộc cho **commit** và **pull request** — hành động git có thể thay đổi lịch sử/chia sẻ trạng thái với người khác. Áp dụng dù đang ở phiên chính hay subagent, độc lập với [`coder`](../../agents/coder.md).
+Mandatory gatekeeper skill for **commit** and **pull request** — git actions that can change history/shared state with others. Applies in the main session or a subagent, independent of [`coder`](../../agents/coder.md).
 
-## 1. Trước khi `git commit` ([rules/git](../../rules/git.md))
+## 1. Before `git commit` ([rules/git](../../rules/git.md))
 
-Riêng `/git` và `$workflow-git` mặc định scope `all`; `change` khi người dùng chọn rõ. Giữ loại trừ file tạm/rác/secret theo rule `git`; mặc định này không cho phép tự push.
+Only `/git` and `$workflow-git` default to scope `all`; `change` when the user explicitly chooses it. Keep the exclusion of temp/junk/secret files per the `git` rule; this default does not permit pushing on its own.
 
-1. **Có lệnh rõ ràng từ người dùng chưa?** Chưa có → dừng, không commit, bất kể code đã xong hay chưa.
-2. **Gộp đúng phạm vi** — một commit cho toàn bộ thay đổi thuộc scope, không tách vụn. Scope commit: `all` (mặc định của `/git`/`$workflow-git`, mọi thay đổi hợp lệ hiện có) hoặc `change` (chỉ phần liên quan task — khi người dùng chọn rõ, và là mặc định khi commit ngoài hai workflow đó). Push mặc định theo tính năng, push hết khi người dùng nói rõ — **mọi scope đều tuyệt đối không được kèm file tmp/scratch/debug/test thử nghiệm hoặc file rác**. Chạy `git status` rà lại trước `git add`; thấy file rác do mình tạo trong session thì dọn bằng skill [`cleanup-temp-files`](../cleanup-temp-files/SKILL.md) trước, không add vào commit.
-3. **Format lại bằng Prettier trước khi commit**: chạy Prettier trên các file đang staged (`git diff --cached --name-only --diff-filter=ACMR`), rồi `git add` lại đúng các file đó để phần format nằm trong cùng commit. Project chưa cài Prettier (không có trong `PATH` và `npx` không resolve được) → bỏ qua, không tự cài khi chưa được yêu cầu.
-4. **Conventional Commits**: tiêu đề `<type>: <mô tả ngắn gọn>` (`feat`/`fix`/`refactor`/`docs`/`test`/`chore`/`style`/`perf`/`build`/`ci`), tối đa **75 ký tự**; body liệt kê thay đổi chính, nêu rõ vấn đề được giải quyết.
-5. **Chạy script kiểm tra** trước khi commit thật:
+1. **Is there an explicit command from the user?** No → stop, do not commit, whether or not the code is done.
+2. **Group the right scope** — one commit for all changes within the scope, no fragmenting. Commit scope: `all` (default for `/git`/`$workflow-git`, all valid current changes) or `change` (only task-related parts — when the user explicitly chooses it, and the default when committing outside those two workflows). Push defaults to per-feature, push everything when the user says so explicitly — **in every scope, never include tmp/scratch/debug/trial-test files or junk files**. Run `git status` to re-check before `git add`; if you see junk files you created in the session, clean them with the [`cleanup-temp-files`](../cleanup-temp-files/SKILL.md) skill first, never add them to the commit.
+3. **Reformat with Prettier before committing**: run Prettier on the staged files (`git diff --cached --name-only --diff-filter=ACMR`), then `git add` exactly those files again so the formatting lands in the same commit. Project has no Prettier (not in `PATH` and `npx` cannot resolve it) → skip, never install on your own without being asked.
+4. **Conventional Commits**: subject `<type>: <short description>` (`feat`/`fix`/`refactor`/`docs`/`test`/`chore`/`style`/`perf`/`build`/`ci`), max **75 characters**; the body lists the main changes and states the problem solved.
+5. **Run the check script** before the real commit:
    ```bash
-   echo "feat: thêm hook tự động format code bằng Prettier sau khi edit" \
+   echo "feat: add hook to auto-format code with Prettier after edit" \
      | bash .claude/skills/git-workflow/scripts/validate-commit-message.sh -
    ```
-   `exit 0` + `✅` nếu hợp lệ; `exit 1` + lỗi cụ thể nếu sai format hoặc vượt 75 ký tự. Script chỉ kiểm tra format máy kiểm được — phần "why" trong body do người soạn tự đảm bảo theo rule.
+   `exit 0` + `✅` if valid; `exit 1` + a specific error if the format is wrong or exceeds 75 characters. The script only checks machine-checkable format — the "why" in the body is the author's responsibility per the rule.
 
-## 2. Trước khi `git push`
+## 2. Before `git push`
 
-Trước mọi push, rà toàn bộ lịch sử sắp gửi so với remote đích, không chỉ diff cuối: tmp/scratch/debug/test thử nghiệm, log/output tạm, cache, `.DS_Store`, `.dssc`, backup `.bak`/`.orig` và secret tuyệt đối không được push. Kiểm tra cả file tracked và file thêm rồi xóa trong commit sau; `.gitignore` không đủ. Test chính thức vẫn hợp lệ. Phát hiện vi phạm thì dừng và báo, không tự rewrite lịch sử.
+Before every push, review the whole history about to be sent against the target remote, not just the final diff: tmp/scratch/debug/trial tests, temp logs/output, cache, `.DS_Store`, `.dssc`, `.bak`/`.orig` backups and secrets must never be pushed. Check both tracked files and files added then deleted in a later commit; `.gitignore` is not enough. Official tests remain valid. On finding a violation, stop and report, never rewrite history on your own.
 
-1. **Format lại một lần** các file đã đổi so với remote tracking branch (`git diff --name-only @{upstream}...HEAD`) bằng Prettier, nếu project có cài — tránh đẩy lên code lệch format so với lúc Edit/Write (hook `format-on-edit.sh` format theo từng file sửa, bước này là lượt quét cuối trên toàn bộ diff trước khi push).
-2. Prettier format sinh ra thay đổi → đó là thay đổi **chưa commit**; gộp vào đúng commit đang chuẩn bị push (xem mục 1) trước khi push, không để lại format fix trôi sang lần sau.
-3. Project chưa cài Prettier (không có trong `PATH` và `npx` không resolve được) → bỏ qua bước này, không tự cài khi chưa được yêu cầu.
+1. **Reformat once** the files changed vs the remote tracking branch (`git diff --name-only @{upstream}...HEAD`) with Prettier, if the project has it installed — avoid pushing code whose format drifted from Edit/Write time (the `format-on-edit.sh` hook formats per edited file; this step is the final sweep over the whole diff before pushing).
+2. Prettier formatting producing changes → those are **uncommitted** changes; merge them into the commit being prepared for push (see section 1) before pushing, never leave format fixes drifting to next time.
+3. Project has no Prettier (not in `PATH` and `npx` cannot resolve it) → skip this step, never install on your own without being asked.
 
-Hook [`format-before-push.sh`](../../hooks/scripts/format-before-push.sh) tự chạy bước 1 mỗi lần phát hiện lệnh `git push` và cảnh báo (không chặn) nếu format sinh ra thay đổi chưa commit — xem [`hooks/README.md`](../../hooks/README.md#format-before-push--format-lại-trước-khi-push).
+The [`format-before-push.sh`](../../hooks/scripts/format-before-push.sh) hook runs step 1 automatically whenever a `git push` command is detected and warns (does not block) if formatting produces uncommitted changes — see [`hooks/README.md`](../../hooks/README.md#format-before-push--reformat-before-pushing).
 
-## 3. Trước khi tạo Pull Request / khi gặp conflict ([rules/git](../../rules/git.md))
+## 3. Before creating a Pull Request / on conflicts ([rules/git](../../rules/git.md))
 
-1. Trước khi tạo PR hoặc xử lý conflict, cập nhật ref remote bằng fetch đúng remote/nhánh, chốt SHA/merge-base rồi kiểm tra conflict với đích thực tế. Không pull mù quáng làm tích hợp ngoài quyền được giao; network thất bại thì báo chưa cập nhật.
-2. Có conflict: **đọc cả hai phía** (`<<<<<<<`/`=======`/`>>>>>>>`) trước khi quyết định — không xóa trắng một bên mà không xem nội dung.
-3. Xác định phía chứa thay đổi của người dùng, incoming và merge-base bằng SHA/diff; không suy từ nhãn ours/theirs (đặc biệt rebase/cherry-pick). Phần người dùng không sửa nhận incoming/remote; phần đã sửa và conflict ưu tiên bản người dùng, kể cả conflict format. Giữ thay đổi incoming không xung đột, không chọn toàn bộ file mù quáng.
-4. Thiếu căn cứ xác định thay đổi người dùng hoặc có thể mất logic quan trọng ngoài scope thì hỏi trước phần đó. Dirty working tree/index phải được bảo vệ, không tự stash/reset/ghi đè.
-5. **Không tự ý kéo thêm logic từ nhánh đích vào nhánh nguồn** ngoài phần bắt buộc phải gộp để resolve conflict — kể cả khi thấy nhánh đích có tính năng/fix "có vẻ nên có". Người dùng chỉ giao task trên nhánh nguồn; thấy thiếu gì từ nhánh khác thì báo và hỏi, không tự quyết gộp vào.
-6. Resolve xong, chạy lại test/lint liên quan trước khi coi là hoàn tất.
+1. Before creating a PR or resolving conflicts, update the remote ref by fetching the right remote/branch, fix the SHA/merge-base then check conflicts against the real target. Never blindly pull to integrate beyond the delegated permission; if the network fails, report not updated.
+2. With conflicts: **read both sides** (`<<<<<<<`/`=======`/`>>>>>>>`) before deciding — never blank out one side without viewing its content.
+3. Identify the side holding the user's changes, the incoming and the merge-base by SHA/diff; never infer from ours/theirs labels (especially rebase/cherry-pick). Parts the user did not change take incoming/remote; parts changed and conflicting prefer the user's version, including format conflicts. Keep non-conflicting incoming changes, never blindly pick whole files.
+4. Lacking basis to identify the user's changes or at risk of losing important out-of-scope logic → ask first about that part. A dirty working tree/index must be protected, never stash/reset/overwrite on your own.
+5. **Never pull extra logic from the target branch into the source branch** beyond what must be merged to resolve the conflict — even if the target branch has features/fixes that "seem needed". The user only assigned the task on the source branch; if something from another branch seems missing, report and ask, never decide to merge it on your own.
+6. After resolving, rerun the relevant test/lint before considering it complete.
 
 ## Checklist
 
-**Commit**: có lệnh rõ ràng từ người dùng · đã chạy Prettier trên file staged (nếu project có cài) · đã gộp đúng scope (`all` hoặc `change` — không trộn lẫn) · không có file tmp/test/rác lẫn vào · tiêu đề đúng format `<type>: <mô tả>` ≤ 75 ký tự · body nêu rõ vấn đề được giải quyết · đã chạy `validate-commit-message.sh` và nhận `✅`.
+**Commit**: explicit command from the user · ran Prettier on staged files (if the project has it) · grouped the right scope (`all` or `change` — not mixed) · no tmp/test/junk files mixed in · subject in the format `<type>: <description>` ≤ 75 characters · body states the problem solved · ran `validate-commit-message.sh` and got `✅`.
 
-**Push**: đã format lại diff so với remote bằng Prettier (nếu project có cài) · không còn thay đổi format nào trôi ra ngoài commit đang push.
+**Push**: reformatted the diff vs remote with Prettier (if the project has it) · no format changes drifting outside the commit being pushed.
 
-**Pull Request**: ref remote đã cập nhật và SHA/merge-base đã chốt · đã đọc cả hai phía · hunk người dùng không sửa nhận incoming, hunk đã sửa ưu tiên bản người dùng · giữ incoming không xung đột và scope được giao · đã chạy lại test/lint sau resolve.
+**Pull Request**: remote ref updated and SHA/merge-base fixed · read both sides · hunks the user did not change take incoming, changed hunks prefer the user's version · kept non-conflicting incoming and the assigned scope · reran test/lint after resolving.

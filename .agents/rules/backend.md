@@ -1,33 +1,28 @@
----
-trigger: model_decision
-description: "Áp dụng khi sửa backend, API, database hoặc xử lý dữ liệu/phân quyền"
----
+# Backend and data rules
 
-# Quy tắc backend và dữ liệu
+## Backend — contract, content and security
 
-## Backend — contract, nội dung và bảo mật
+- Read the real stack/schema/routes/contract; do not change contracts, shared modules or flows outside scope without approval.
+- New APIs/routes need a verifiable URL or reference doc; never invent schemas, endpoints or responses.
+- Validate at boundaries; allowlist written fields, parameterize queries; never leak secrets, PII or stack traces.
+- Publish only permitted content; preview/draft needs permission, robots/noindex does not replace authentication.
+- Avoid N+1; transactions, cache, uploads, HTML, timeout/retry and idempotency must preserve integrity and security boundaries.
 
-- Đọc stack/schema/route/contract thật; không đổi contract, module dùng chung hoặc luồng ngoài phạm vi khi chưa được chấp thuận.
-- API/route mới phải có URL hoặc tài liệu tham chiếu xác minh được; không tự bịa schema, endpoint hay response.
-- Validate tại boundary; allowlist field ghi, parameterize query; không lộ secret, PII hoặc stack trace.
-- Chỉ public nội dung được phép; preview/draft cần quyền, robots/noindex không thay authentication.
-- Tránh N+1; transaction, cache, upload, HTML, timeout/retry và idempotency phải bảo toàn tính toàn vẹn và boundary bảo mật.
+Process/checklist: [`coding-backend`](../skills/coding-backend/SKILL.md), [`database`](../skills/database/SKILL.md), [`review-web-security`](../skills/review-web-security/SKILL.md).
 
-Quy trình/checklist: [`coding-backend`](../skills/coding-backend/SKILL.md), [`database`](../skills/database/SKILL.md), [`review-web-security`](../skills/review-web-security/SKILL.md).
+## Data safety
 
-## An toàn dữ liệu
+- Authorization/tenant always in the backend, as early as possible and on the correct resource/action/owner; UI is only UX, not access control.
+- Write groups that must succeed or fail together must use a transaction.
+- No irreversible side effects inside a transaction.
 
-- Authorization/tenant luôn ở backend, càng sớm càng tốt và đúng resource/action/owner; UI chỉ là UX, không phải kiểm soát quyền.
-- Nhóm thao tác ghi phải cùng thành công hoặc thất bại phải dùng transaction.
-- Không đặt side effect không thể rollback bên trong transaction.
+Process/checklist per engine and security boundary: [`database`](../skills/database/SKILL.md), [`coding-backend`](../skills/coding-backend/SKILL.md), [`review-web-security`](../skills/review-web-security/SKILL.md).
 
-Quy trình/checklist theo engine và security boundary: [`database`](../skills/database/SKILL.md), [`coding-backend`](../skills/coding-backend/SKILL.md), [`review-web-security`](../skills/review-web-security/SKILL.md).
+## Database read-only by default
 
-## Database read-only mặc định
+- Every real database is read-only by default: never run writes, DDL, migrations, seeds, change indexes/schema/collections or flush production cache on your own.
+- You may draft migrations/write scripts when asked, but drafting does not grant permission to run them.
+- Run a mutation only when the user explicitly requests both design and execution; never extend from a read/analysis request.
+- Test/sandbox is an exception only when the user explicitly confirms.
 
-- Mọi database thật mặc định chỉ được đọc: không tự chạy write, DDL, migration, seed, đổi index/schema/collection hoặc flush production cache.
-- Được soạn migration/script ghi khi được yêu cầu, nhưng viết xong không cấp quyền chạy.
-- Chỉ chạy đúng mutation khi người dùng yêu cầu rõ cả thiết kế và thực thi; không suy rộng từ yêu cầu đọc/phân tích.
-- Chỉ coi test/sandbox là ngoại lệ khi người dùng xác nhận rõ.
-
-Phạm vi lệnh và quy trình theo engine: [`database`](../skills/database/SKILL.md). Transaction/authorization: [`data-safety`](#an-toàn-dữ-liệu). Explicit authorization tương tự Git: [`git`](./git.md).
+Command scope and per-engine process: [`database`](../skills/database/SKILL.md). Transaction/authorization: [`data-safety`](#data-safety). Explicit authorization like Git: [`git`](./git.md).

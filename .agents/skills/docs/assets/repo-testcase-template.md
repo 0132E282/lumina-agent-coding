@@ -1,50 +1,50 @@
 ---
-title: "<Testcase cấp repo — tên plan>"
-description: "<Khi nào AI nên tham khảo bộ testcase repo này>"
+title: "<Repo-level testcases — plan name>"
+description: "<When the AI should consult this repo testcase set>"
 tags:
   - repo-testcase
   - "<feature-kebab-case>"
 ---
 
-# <Testcase cấp repo — tên plan>
+# <Repo-level testcases — plan name>
 
-Chỉ thiết kế sau khi coding hoàn tất toàn bộ task của plan; bộ testcase này chưa thực thi.
+Design only after coding of all the plan's tasks is complete; this testcase set has not been executed.
 
-## Mục lục
+## Contents
 
-- [Phạm vi và nguồn](#phạm-vi-và-nguồn)
-- [Testcase](#testcase)
-- [Đối soát và giới hạn](#đối-soát-và-giới-hạn)
+- [Scope and sources](#scope-and-sources)
+- [Testcases](#testcases)
+- [Reconciliation and limits](#reconciliation-and-limits)
 
-## Phạm vi và nguồn
+## Scope and sources
 
-- Plan: <link plan đã hoàn tất>.
-- Nguồn yêu cầu/AC: <link nguồn thật>.
-- Code, route, API, luồng đã kiểm tra: <path và bằng chứng thật>.
-- Ngoài phạm vi: <phần không được giao>.
+- Plan: <link to the completed plan>.
+- Requirement/AC source: <link to the real source>.
+- Code, routes, APIs, flows checked: <paths and real evidence>.
+- Out of scope: <parts not assigned>.
 
-## Testcase
+## Testcases
 
-### <ID ổn định> — <Title>
+### <Stable ID> — <Title>
 
-- ID: <ID duy nhất, giữ ID cũ nếu có>.
-- Requirement ID: <REQ/BR/AC có thật trong nguồn>.
-- Title: <hành vi cụ thể>.
+- ID: <unique ID, keep the old ID if any>.
+- Requirement ID: <REQ/BR/AC that really exists in the source>.
+- Title: <specific behavior>.
 - Priority: <High / Medium / Low>.
-- Preconditions: <trạng thái trước test>.
-- Test data: <dữ liệu giả, không dùng secret/PII thật>.
+- Preconditions: <state before the test>.
+- Test data: <fake data, no real secrets/PII>.
 - Steps:
-  1. <thao tác cụ thể>.
-- Expected result: <output/checkpoint quan sát được, gắn với bước tương ứng>.
-- Postconditions / Cleanup: <trạng thái sau test/cách dọn hoặc không áp dụng>.
-- Actual result: Chưa chạy.
+  1. <specific action>.
+- Expected result: <observable output/checkpoint, tied to the matching step>.
+- Postconditions / Cleanup: <state after the test/how to clean up, or not applicable>.
+- Actual result: Not run yet.
 - Status: Not Run
-- Evidence / Bug ID: Chưa có (khi chạy: ảnh hoặc API theo [testcase mục 7.2](../../testing/references/testcase.md#72-bằng-chứng-và-kết-quả-api)).
-- API (khi có): `METHOD URL` · tham số · Kết quả: Chưa chạy.
+- Evidence / Bug ID: None yet (when run: screenshots or API per [testcase section 7.2](../../testing/references/testcase.md#72-evidence-and-api-results)).
+- API (when applicable): `METHOD URL` · parameters · Result: Not run yet.
 
-## Đối soát và giới hạn
+## Reconciliation and limits
 
-- Tổng module/case: <số thật>; Not Run: <tổng case>; chưa thực thi bộ testcase.
-- ID/truy vết: <kết quả đối soát thật>.
-- Thiếu thông tin: <Draft/TBD và nguồn cần xác nhận hoặc Không có>.
-- Menu cần cập nhật cùng lượt: `docs/repo/index.json` và `docs/index.json`.
+- Total modules/cases: <real numbers>; Not Run: <total cases>; the testcase set has not been executed.
+- IDs/traceability: <real reconciliation result>.
+- Missing information: <Draft/TBD and the source needing confirmation, or None>.
+- Menus to update in the same turn: `docs/repo/index.json` and `docs/index.json`.

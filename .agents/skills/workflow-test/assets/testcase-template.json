@@ -1,5 +1,5 @@
 {
-  "title": "<tên bộ testcase>",
+  "title": "<testcase suite name>",
   "createdAt": "<YYYY-MM-DD>",
   "scope": {
     "kind": "<feature|repo|pr>",
@@ -28,7 +28,7 @@
         {
           "id": "<API-01>",
           "method": "<GET|POST|...>",
-          "url": "<URL thật đầy đủ>",
+          "url": "<full real URL>",
           "params": {
             "path": {},
             "query": {},
@@ -44,7 +44,7 @@
             "status": null,
             "body": null
           },
-          "result": "<Đúng|Sai>",
+          "result": "<Correct|Incorrect>",
           "mismatch": null
         }
       ],
@@ -54,7 +54,7 @@
   "algorithmComplexity": [
     {
       "id": "<algorithm-id>",
-      "scope": "<file/luồng>",
+      "scope": "<file/flow>",
       "applies": null,
       "notApplicableReason": null,
       "inputs": [],

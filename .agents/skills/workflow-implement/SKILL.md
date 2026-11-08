@@ -1,8 +1,8 @@
 ---
 name: workflow-implement
-description: "Triển khai code bằng agent coder theo task cụ thể hoặc plan JSON trong docs/plans/"
+description: "Implement code via agent coder for a specific task or plan JSON in docs/plans/"
 ---
 
 # workflow-implement
 
-Khi người dùng giao triển khai code, áp dụng rule chung [implementation](../../rules/delivery.md#triển-khai-theo-yêu-cầu) và vai trò [coder](../../agents/coder.md); không cần command implement. Skill này là cách gọi trực tiếp cùng rule, không duy trì quy trình riêng. Tái dùng plan/handoff còn hợp lệ, giữ scope/checks/report theo nguồn và quyền thực tế của runtime.
+When the user assigns code implementation, apply the shared rule [implementation](../../rules/delivery.md#implementation-on-request) and the [coder](../../agents/coder.md) role; no implement command needed. This skill is a direct way to invoke the same rule, maintaining no separate process. Reuse still-valid plans/handoffs, keeping scope/checks/report per the source and the runtime's real permissions.

@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# PostToolUse hook: sau khi chạy lệnh cài/thêm dependency (npm/yarn/pnpm,
-# composer, pip) qua tool Bash, tự chạy audit READ-ONLY tương ứng của
-# chính package manager và báo lại cho Claude qua additionalContext —
-# liên hệ skill dependency-audit và rules/backend.md (tinh
-# thần tương tự: audit tự do, không tự ý upgrade/install thêm).
+# PostToolUse hook: after a command that installs/adds dependencies (npm/yarn/pnpm,
+# composer, pip) via the Bash tool, run the matching READ-ONLY audit of the
+# package manager itself and report back to Claude via additionalContext --
+# see skill dependency-audit and rules/backend.md (similar
+# spirit: free to audit, never upgrade/install more on its own).
 #
-# Nhận JSON input từ stdin theo schema PostToolUse:
+# Reads JSON input from stdin per the PostToolUse schema:
 #   { "tool_name": "Bash", "tool_input": { "command": "..." }, ... }
 #
-# CHỈ chạy lệnh audit (không --fix/--force, không tự install/update gì
-# thêm). Best-effort: thiếu jq, không khớp lệnh cài dependency nào, hoặc
-# thiếu audit tool tương ứng -> bỏ qua êm.
+# ONLY runs the audit command (no --fix/--force, no extra install/update
+# of anything). Best-effort: missing jq, no dependency-install command matched, or
+# missing matching audit tool -> skip quietly.
 
-# ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+# ! Skip if the project already has the same hook (avoid running twice with the user-level copy).
 . "$(dirname "$0")/_dedupe-guard.sh"
 
 set -o pipefail
@@ -28,8 +28,8 @@ tool_name="$(printf '%s' "$input" | jq -r '.tool_name // ""' 2>/dev/null)"
 command_str="$(printf '%s' "$input" | jq -r '.tool_input.command // ""' 2>/dev/null)"
 [ -z "$command_str" ] && exit 0
 
-# ! Chỉ xét lệnh thực thi thật (helper dùng chung), không bắt nhầm chữ
-# "pnpm install"/"yarn add"... trong thân heredoc, chuỗi trong nháy hay commit message.
+# ! Only consider commands that truly execute (shared helper), never mistaking text such as
+# "pnpm install"/"yarn add"... in heredoc bodies, quoted strings or commit messages.
 . "$(dirname "$0")/_shell-command.sh"
 
 audit_cmd=""
@@ -58,7 +58,7 @@ done < <(command_invocations "$command_str")
 
 [ -n "$audit_cmd" ] || exit 0
 
-# Kiểm tra tool thực thi có sẵn trước khi chạy thử.
+# Check that the executing tool exists before trying to run it.
 case "$ecosystem" in
   npm) command -v npm >/dev/null 2>&1 || exit 0 ;;
   yarn) command -v yarn >/dev/null 2>&1 || exit 0 ;;
@@ -70,13 +70,13 @@ esac
 audit_output="$(eval "$audit_cmd" 2>&1)" || true
 [ -z "$audit_output" ] && exit 0
 
-# Bỏ qua khi tool tự báo không có lỗ hổng -> không cần làm phình context.
+# Skip when the tool itself reports no vulnerabilities -> do not bloat the context.
 printf '%s' "$audit_output" | grep -qiE '0 vulnerabilit|no known vulnerabilit|no security vulnerability advisories found|found 0 vulnerabilit' && exit 0
 
-context="Sau khi chạy lệnh cài dependency, ${audit_cmd} báo:
+context="After the dependency install command, ${audit_cmd} reported:
 ${audit_output}
 
-Dùng skill dependency-audit để phân loại severity và đề xuất version fix — không tự ý upgrade/install thêm khi chưa được yêu cầu."
+Use skill dependency-audit to classify severity and suggest fix versions -- never upgrade/install more on your own unless asked."
 
 jq -n --arg ctx "$context" '{
   hookSpecificOutput: {

@@ -1,14 +1,14 @@
 ---
 name: workflow-test
-description: "QA theo tính năng/plan, repo hoặc PR; lưu testcase/kết quả và độ phức tạp thuật toán vào testcase.json."
+description: "QA by feature/plan, repo or PR; save testcases/results and algorithm complexity into testcase.json."
 ---
 
 # workflow-test
 
-Đọc nguồn `.claude/commands/test.md` và vai trò `.claude/agents/qa-tester.md`; Claude dùng `/test`, Codex dùng `$workflow-test` cùng argument. Mặc định tính năng/task trong plan được giao; `repo [nhánh]` kiểm thử repo, `pr [URL|#số]` kiểm thử PR và regression liên quan. Không tự lập lại plan hoặc sửa ứng dụng.
+Read the source `.claude/commands/test.md` and the role `.claude/agents/qa-tester.md`; Claude uses `/test`, Codex uses `$workflow-test` with the same argument. Default is the feature/task in the assigned plan; `repo [branch]` tests the repo, `pr [URL|#number]` tests the PR and related regression. Never redo the plan or fix the application.
 
-Output mặc định là `testcase.json` ở gốc repo theo [template](./assets/testcase-template.json), không phải menu docs. Giữ ID/history, tái dùng case từ index cũ nếu có mà không tạo hai nguồn kết quả. Đường dẫn này ưu tiên hơn mặc định lưu docs của vai trò/skill QA khi chạy workflow này. Case chưa chạy là `Not Run`; mỗi execution có thời gian, status và evidence thật (ảnh hoặc API theo [`testcase` mục 7.2](../testing/references/testcase.md#72-bằng-chứng-và-kết-quả-api)); API ghi vào `executions[].apiChecks`, mỗi endpoint một mục `Đúng`/`Sai`.
+Default output is `testcase.json` at the repo root per the [template](./assets/testcase-template.json), not a docs menu. Keep IDs/history, reuse cases from an old index if present without creating two result sources. This path takes priority over the QA role/skill's default docs storage when running this workflow. Unrun cases are `Not Run`; each execution has time, status and real evidence (image or API per [`testcase` section 7.2](../testing/references/testcase.md#72-evidence-and-api-results)); APIs go in `executions[].apiChecks`, one `Correct`/`Incorrect` entry per endpoint.
 
-Ghi `algorithmComplexity` bằng complexity-performance (database khi có query): Before/After time/space/allocation/preprocessing, input, I/O, basis, evidence và giới hạn. Không benchmark thì báo tĩnh; chưa biết thì null có lý do, không có runtime liên quan thì N/A.
+Record `algorithmComplexity` using complexity-performance (database when queries exist): Before/After time/space/allocation/preprocessing, input, I/O, basis, evidence and limits. Without benchmarks report static; unknown is null with a reason, no relevant runtime is N/A.
 
-Giao qa-tester khi runtime hỗ trợ theo workflow; thiếu thì làm tuần tự cùng vai trò và báo giới hạn, không giả lập agent/checks. Dùng skill `report` khi hoàn tất.
+Assign qa-tester when the runtime supports it per workflow; otherwise work sequentially in the same role and report the limit, never simulating agents/checks. Use skill `report` on completion.

@@ -67,21 +67,21 @@ async function runHook() {
     if (payload?.hook_event_name !== 'PostToolUse' || !['Edit', 'Write'].includes(payload.tool_name)) return;
     const touchedPath = payload.tool_input?.file_path;
     if (typeof touchedPath !== 'string' || !touchedPath || typeof payload.cwd !== 'string' || !path.isAbsolute(payload.cwd)) {
-      emitContext('Final newline: không kiểm tra được file_path/cwd của tool.');
+      emitContext('Final newline: cannot check the tool file_path/cwd.');
       return;
     }
     const root = fs.realpathSync(payload.cwd);
     const target = path.resolve(root, touchedPath);
     if (!withinRoot(target, root)) return;
     const status = inspect(target, true, root);
-    if (status === 'corrected') emitContext(`Final newline: đã thêm newline cuối file ${JSON.stringify(touchedPath)}.`);
+    if (status === 'corrected') emitContext(`Final newline: added final newline to file ${JSON.stringify(touchedPath)}.`);
   } catch {
-    emitContext('Final newline: không thể kiểm tra/sửa file vừa thao tác; chạy --check trên file khi có thể.');
+    emitContext('Final newline: cannot check/fix the file just touched; run --check on the file when possible.');
   }
 }
 
 const argumentsList = process.argv.slice(2);
-// ! Hook mode: bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+// ! Hook mode: skip if the project already has the same hook (avoid running twice with the user-level copy).
 function projectOwnsHook() {
   try {
     const ownDirectory = fs.realpathSync(path.dirname(new URL(import.meta.url).pathname));

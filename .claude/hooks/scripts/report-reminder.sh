@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# Stop hook: nhắc dùng skill `report` nếu phát hiện đã Edit/Write trong
-# session này mà CHƯA gọi skill `report` sau đó — enforce rules/delivery.md
-# bằng cơ chế thay vì chỉ dựa vào Claude tự giác. CHỈ nhắc qua
-# additionalContext, KHÔNG tự chặn gì và KHÔNG dùng decision/reason (những
-# field đó sẽ chặn Claude dừng lại).
+# Stop hook: remind to use skill `report` if it detects an Edit/Write in
+# this session with NO `report` skill call afterwards -- enforces rules/delivery.md
+# by mechanism instead of relying on Claude's discipline. ONLY reminds via
+# additionalContext, does NOT block anything and does NOT use decision/reason (those
+# fields would block Claude from stopping).
 #
-# Nhận JSON input từ stdin theo schema Stop: { "session_id": "...", ... }
+# Reads JSON input from stdin per the Stop schema: { "session_id": "...", ... }
 #
-# Dựa vào .agents/storage/logs/logs.jsonl và file đã xoay mới nhất (ghi bởi hook audit-log) —
-# phải bật hook đó cùng lúc, và audit-log phải ghi field input.skill cho tool Skill.
+# Relies on .agents/storage/logs/logs.jsonl and the newest rotated file (written by the audit-log hook) --
+# that hook must be enabled too, and audit-log must record the input.skill field for the Skill tool.
 #
-# Luôn exit 0 — hook phụ trợ, không bao giờ chặn việc Claude Code dừng lại.
+# Always exit 0 -- auxiliary hook, never blocks Claude Code from stopping.
 
-# ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+# ! Skip if the project already has the same hook (avoid running twice with the user-level copy).
 . "$(dirname "$0")/_dedupe-guard.sh"
 
 set -o pipefail
@@ -32,17 +32,17 @@ else
 fi
 log_dir="$log_root/.agents/storage/logs"
 
-# Đọc file đang ghi + file đã xoay mới nhất (session có thể vắt qua một lần xoay).
-# Helper lọc trước theo session bằng grep để jq -s không phải slurp cả log; jq bên dưới vẫn lọc chính xác.
-# Thiếu helper thì chỉ đọc file đang ghi.
+# Read the active file + the newest rotated file (a session may span one rotation).
+# The helper prefilters by session with grep so jq -s does not slurp the whole log; the jq below still filters exactly.
+# Without the helper only the active file is read.
 log_rotate_helper="$(dirname "$0")/_log-rotate.sh"
 if [ -f "$log_rotate_helper" ]; then
   . "$log_rotate_helper"
-  # Kiểm file đang ghi trước (thường có) để không phải liệt kê thư mục.
+  # Check the active file first (usually present) to avoid listing the directory.
   [ -f "$log_dir/logs.jsonl" ] || [ -n "$(lumina_rotated_logs "$log_dir")" ] || exit 0
   read_session_lines() { lumina_session_log_lines "$log_dir" "$session_id"; }
 elif [ -f "$log_dir/logs.jsonl" ]; then
-  # Vẫn lọc trước theo session như helper để dòng JSON hỏng của session khác không làm jq thất bại.
+  # Still prefilter by session like the helper so a broken JSON line from another session does not make jq fail.
   session_needle="$(jq -cn --arg sid "$session_id" '{session_id: $sid}')"
   session_needle="${session_needle#\{}"
   session_needle="${session_needle%\}}"
@@ -53,10 +53,10 @@ fi
 
 project_dir="$(pwd)"
 
-# Đếm Edit/Write xảy ra SAU lần gọi skill `report` gần nhất (hoặc từ đầu
-# session nếu chưa gọi lần nào) — nếu > 0 nghĩa là có thay đổi chưa báo cáo.
-# Chỉ tính entry của phiên chính (không có agent_id): Edit/Write của subagent
-# được phiên chính gộp vào một báo cáo tổng sau khi mọi task xong.
+# Count Edit/Write occurring AFTER the most recent `report` skill call (or from the start of
+# the session if never called) -- if > 0 there are unreported changes.
+# Only count main-session entries (no agent_id): subagent Edit/Write
+# is merged by the main session into one overall report after all tasks finish.
 result="$(read_session_lines \
   | jq -s -r --arg sid "$session_id" --arg cwd "$project_dir" '
   map(select(.session_id == $sid and .cwd == $cwd and ((.agent_id // "") == ""))) as $entries
@@ -76,12 +76,12 @@ preview="${rest#*|}"
 [ -z "$count" ] && exit 0
 [ "$count" = "0" ] && exit 0
 
-# ! Nhắc một lần cho mỗi nhóm Edit/Write chưa báo cáo — nhắc lại cùng nhóm sẽ chặn Stop lặp vô hạn.
+# ! Remind once per group of unreported Edit/Write -- reminding the same group again would block Stop in an infinite loop.
 state_file="$log_root/.agents/storage/state/report-reminder-$session_id"
 [ "$(cat "$state_file" 2>/dev/null)" = "$latest_ts" ] && exit 0
 mkdir -p "$(dirname "$state_file")" && printf '%s' "$latest_ts" > "$state_file"
 
-msg="📊 Đã Edit/Write ${count} lần (${preview}) mà chưa thấy gọi skill \`report\` để xuất báo cáo thay đổi — rules/delivery.md yêu cầu bắt buộc. Dùng Skill tool với \`report\` trước khi báo hoàn thành task; số token sẽ được cung cấp tự động khi gọi skill."
+msg="📊 Edit/Write ${count} time(s) (${preview}) with no skill \`report\` call seen to produce the change report -- required by rules/delivery.md. Use the Skill tool with \`report\` before declaring the task complete; token numbers are supplied automatically when the skill is called."
 
 jq -n --arg msg "$msg" '{
   hookSpecificOutput: {

@@ -1,6 +1,6 @@
 ---
 name: dependency-audit
-description: "Rà soát dependency (npm, composer, pip, cargo, go mod...) tìm bản lỗi thời hoặc CVE bằng audit tool của ecosystem, đề xuất upgrade tối thiểu. Dùng trước khi thêm dependency, khi review PR đổi manifest/lockfile hoặc khi hỏi dependency có an toàn không. Không tự chạy upgrade/install."
+description: "Audit dependencies (npm, composer, pip, cargo, go mod...) for outdated versions or CVEs using the ecosystem's audit tool, and propose minimal upgrades. Use before adding a dependency, when reviewing a PR that changes manifests/lockfiles, or when asked whether a dependency is safe. Never runs upgrade/install on its own."
 license: MIT
 metadata:
   version: "1.1"
@@ -8,18 +8,18 @@ metadata:
 
 # 📦 Dependency Audit
 
-Skill **read-only** cho dependency — cùng tinh thần [`rules/backend`](../../rules/backend.md#database-read-only-mặc-định) áp cho package manager: tự do audit, **không tự ý** `install`/`update`/`upgrade` khi chưa được yêu cầu rõ.
+A **read-only** skill for dependencies — same spirit as [`rules/backend`](../../rules/backend.md#database-read-only-by-default) applied to package managers: audit freely, **never** `install`/`update`/`upgrade` without being explicitly asked.
 
-## Quy trình
+## Process
 
-1. Xác định ecosystem + lockfile thật trong project (`package-lock.json`/`yarn.lock`/`pnpm-lock.yaml`, `composer.lock`, `poetry.lock`/`requirements.txt`, `Cargo.lock`, `go.sum`) — monorepo audit riêng từng phần.
-2. Chạy audit tool read-only tương ứng, không kèm `--fix`/`--force`: `npm|yarn|pnpm audit`, `composer audit`, `pip-audit`, `cargo audit`, `govulncheck ./...`. Thiếu tool trong `PATH` → nói rõ không audit được, không bịa kết quả ([`rules/search-priority`](../../rules/search-priority.md)).
-3. Severity lấy đúng theo output thật của tool, không tự đặt mức khác.
-4. Mỗi lỗ hổng ghi: package, version hiện tại, version fix tối thiểu, patch/minor/major theo SemVer — nhảy major thì cảnh báo khả năng breaking change.
-5. **Chỉ đề xuất lệnh cụ thể** (`npm install pkg@x.y.z`...), không tự chạy — giống Explicit Authorization của [`rules/git`](../../rules/git.md) áp cho package manager; lockfile đổi sau upgrade cũng qua đúng quy trình commit, không tự commit kèm.
-6. Ngoại lệ: người dùng yêu cầu rõ *cả hai* (audit **và** tự chạy upgrade) → được chạy đúng lệnh đã đề xuất. Không suy rộng từ "kiểm tra dependency" sang tự tiện cài/update.
+1. Identify the ecosystem + real lockfile in the project (`package-lock.json`/`yarn.lock`/`pnpm-lock.yaml`, `composer.lock`, `poetry.lock`/`requirements.txt`, `Cargo.lock`, `go.sum`) — in a monorepo, audit each part separately.
+2. Run the matching read-only audit tool, without `--fix`/`--force`: `npm|yarn|pnpm audit`, `composer audit`, `pip-audit`, `cargo audit`, `govulncheck ./...`. Tool missing from `PATH` -> state clearly that it cannot be audited, never invent results ([`rules/search-priority`](../../rules/search-priority.md)).
+3. Take severity exactly from the tool's real output; never set a different level yourself.
+4. For each vulnerability record: package, current version, minimum fix version, patch/minor/major per SemVer — a major jump warns of possible breaking changes.
+5. **Only propose concrete commands** (`npm install pkg@x.y.z`...), never run them — like the Explicit Authorization of [`rules/git`](../../rules/git.md) applied to package managers; lockfile changes after an upgrade also go through the proper commit process, never auto-committed along.
+6. Exception: the user explicitly asks for *both* (audit **and** running the upgrade) -> may run exactly the proposed commands. Never extend "check dependencies" into installing/updating on your own.
 
-## Khi áp dụng
+## When to apply
 
-- Trước khi thêm dependency mới; khi review PR đổi manifest/lockfile; khi người dùng hỏi trực tiếp dependency có an toàn không.
-- Không dùng để tự ý `npm update`/`composer update` hàng loạt khi chỉ được yêu cầu kiểm tra.
+- Before adding a new dependency; when reviewing a PR that changes manifests/lockfiles; when the user directly asks whether a dependency is safe.
+- Not for blanket `npm update`/`composer update` when only asked to check.

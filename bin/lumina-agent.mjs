@@ -259,7 +259,7 @@ export async function installFromSource({ source, target, dryRun = false, global
   for (const relative of allEntries.keys()) {
     if (!roots.some(root => relative === root || relative.startsWith(`${root}/`))) allEntries.delete(relative);
   }
-  // ! Global mode bỏ .claude/rules — Claude tự nạp ~/.claude/rules, trùng với .claude/rules của project (rule bị nạp hai lần).
+  // ! Global mode skips .claude/rules -- Claude loads ~/.claude/rules itself, duplicating the project's .claude/rules (rules loaded twice).
   if (global) allEntries.delete('.claude/rules');
   const entries = allEntries;
   let block = instructionBlock;
@@ -561,7 +561,7 @@ export function promptAgents(input = process.stdin, output = process.stdout, { g
     choices: available.map(runtime => ({ value: runtime, label: runtimeLabels[runtime], selected: true })),
     title: 'Select agents to install',
     description: `↑/↓ move · Space toggle · Enter confirm${note}`,
-    footer: 'Ctrl+C để thoát',
+    footer: 'Ctrl+C to exit',
     actions: [
       { label: 'Install' },
       { label: 'Cancel', cancel: true },

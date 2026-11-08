@@ -1,8 +1,8 @@
 ---
 name: workflow-cleanup
-description: "Làm gọn context agent, giữ mục tiêu/quyết định/tiến độ và bước tiếp theo; không dọn file workspace."
+description: "Trim agent context, keeping goal/decisions/progress and next step; does not clean workspace files."
 ---
 
 # workflow-cleanup
 
-Đọc nguồn `.claude/commands/cleanup.md`; Claude dùng `/cleanup`, Codex dùng `$workflow-cleanup`. Rút gọn context và giữ yêu cầu/quyết định/bằng chứng/bước tiếp theo, dùng khả năng compact thật của runtime nếu có. Nếu chỉ tạo tóm tắt thì báo đúng trạng thái đó, không giả lập reset bộ nhớ. Không delegation chỉ để làm gọn context, không xóa file hoặc gọi skill dọn workspace. Không tự lưu handoff nếu chưa được yêu cầu.
+Read the source `.claude/commands/cleanup.md`; Claude uses `/cleanup`, Codex uses `$workflow-cleanup`. Trim context and keep requirements/decisions/evidence/next step, using the runtime's real compact ability if available. If only a summary is created, report exactly that status, never simulating a memory reset. No delegation just to trim context, never delete files or call the workspace-cleanup skill. Never save a handoff unless asked.

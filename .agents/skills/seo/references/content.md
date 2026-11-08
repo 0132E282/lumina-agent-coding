@@ -1,45 +1,45 @@
-# SEO Content Website
+# SEO Website Content
 
-Mỗi trang phải trả lời: **Viết cho ai? Giải quyết vấn đề gì? Người đọc nên làm gì tiếp theo?** Viết đủ để đáp ứng nhu cầu, không kéo dài hoặc lặp từ khóa chỉ vì SEO. Áp dụng cho Claude Code, Codex và các agent khác.
+Every page must answer: **Who is it for? What problem does it solve? What should the reader do next?** Write enough to meet the need, never pad or repeat keywords just for SEO. Applies to Claude Code, Codex and other agents.
 
-## Nguyên tắc
+## Principles
 
-- Đọc hướng dẫn project, brief, nội dung hiện có và dữ liệu sản phẩm/doanh nghiệp trước. Giữ giọng thương hiệu, ngôn ngữ, URL và cấu trúc UI có sẵn; yêu cầu viết content không cho phép redesign.
-- Không bịa giá, năng lực, khách hàng, chứng nhận, số liệu, đánh giá hoặc trải nghiệm. Dữ kiện thiếu phải ghi vào phần cần xác nhận, không đưa như sự thật vào bản viết. Ví dụ giả định phải được gắn nhãn rõ.
-- Không suy đoán search volume hoặc cam kết thứ hạng. Nếu chưa có dữ liệu từ khóa, đưa đề xuất intent/chủ đề có nhãn giả thuyết. Tra nguồn đáng tin khi nội dung cần xác minh thông tin hiện hành.
-- Chỉ làm phạm vi được giao: kế hoạch, dàn ý hoặc bản viết. Không tự đăng CMS, publish, sửa code/URL hoặc tạo chính sách cam kết thay doanh nghiệp.
+- Read project guidance, brief, existing content and product/business data first. Keep existing brand voice, language, URLs and UI structure; a content-writing request does not allow redesign.
+- Never invent prices, capabilities, customers, certifications, figures, reviews or experiences. Missing facts go in the needs-confirmation section, never stated as fact in the draft. Hypothetical examples must be clearly labeled.
+- Never guess search volume or promise ranking. Without keyword data, offer intent/topic suggestions labeled as hypotheses. Check reliable sources when content needs current information verified.
+- Do only the assigned scope: plan, outline or draft. Never post to the CMS, publish, change code/URLs or create commitment policies on the business's behalf.
 
-## Quy trình
+## Process
 
-1. **Xác định người đọc**: lĩnh vực, sản phẩm/dịch vụ, thị trường, nhóm khách hàng, vấn đề, câu hỏi trước khi mua và hành động mong muốn. Tận dụng brief/repo để suy ra; chỉ hỏi thông tin thiếu ảnh hưởng nội dung, tiếp tục phần độc lập.
-2. **Liệt kê chủ đề**: lấy từ sản phẩm, dịch vụ, FAQ, phản hồi khách hàng và dữ liệu tìm kiếm nếu có. Phân loại nhu cầu tìm hiểu, so sánh, lựa chọn hoặc mua/liên hệ.
-3. **Gán chủ đề cho trang**: kiểm tra trang hiện có trước khi đề xuất trang mới. Mỗi nhu cầu có trang đích chính; tránh nhiều bài trả lời cùng intent mà không có khác biệt hữu ích. Khi trùng, đề xuất cập nhật/gộp, không tự xóa hoặc đổi URL.
-4. **Lập dàn ý**: nêu người đọc, mục tiêu, thông điệp chính, câu hỏi cần trả lời, heading, bằng chứng cần có và CTA phù hợp. Không ép mọi loại trang theo cùng bố cục marketing.
-5. **Viết và tối ưu**: trả lời nhu cầu chính sớm; dùng câu rõ, đoạn dễ đọc, ví dụ thực tế và thuật ngữ nhất quán. Tạo SEO title, meta description, H1 và heading hợp lý; dùng từ khóa tự nhiên, không đặt mật độ hay số từ cứng. Đề xuất link nội bộ đúng ngữ cảnh tới trang đã xác minh hoặc đánh dấu trang chưa có.
-6. **Review và bàn giao**: kiểm tra tính chính xác, trùng lặp, giọng thương hiệu, CTA và nguồn. Ghi file vào nơi người dùng chỉ định; mặc định kế hoạch ở `docs/content-plan.md`, bản viết ở `docs/content/<page-slug>.md`. Ghi đề xuất xuất bản/cập nhật và thông tin cần xác nhận; phân biệt bản nháp với nội dung đã publish.
+1. **Identify the reader**: field, product/service, market, customer group, problem, pre-purchase questions and desired action. Use the brief/repo to infer; ask only about missing information that affects content, continue independent parts.
+2. **List topics**: from products, services, FAQ, customer feedback and search data if any. Classify needs as learn, compare, choose or buy/contact.
+3. **Assign topics to pages**: check existing pages before proposing new ones. Each need has one main landing page; avoid several articles answering the same intent without useful difference. On overlap, propose update/merge, never delete or change URLs on your own.
+4. **Outline**: state reader, goal, main message, questions to answer, headings, needed evidence and suitable CTA. Do not force every page type into the same marketing layout.
+5. **Write and optimize**: answer the main need early; use clear sentences, readable paragraphs, real examples and consistent terminology. Create sensible SEO title, meta description, H1 and headings; use keywords naturally, no fixed density or word count. Suggest contextual internal links to verified pages or mark pages that do not exist yet.
+6. **Review and handoff**: check accuracy, duplication, brand voice, CTA and sources. Write files where the user specifies; by default plan in `docs/content-plan.md`, drafts in `docs/content/<page-slug>.md`. Record publish/update suggestions and information needing confirmation; distinguish drafts from published content.
 
-## Nhóm trang
+## Page groups
 
-| Trang | Nội dung cần có | Mục tiêu |
+| Page | Needed content | Goal |
 |---|---|---|
-| Trang chủ | Cung cấp gì, dành cho ai, lợi ích chính, lý do lựa chọn có căn cứ và CTA | Hiểu nhanh và hành động |
-| Giới thiệu | Câu chuyện, năng lực, đội ngũ và thông tin thực tế | Xây dựng niềm tin |
-| Sản phẩm/dịch vụ | Đặc điểm, lợi ích, đối tượng phù hợp, giá/cách báo giá, quy trình và FAQ | Hỗ trợ quyết định |
-| Blog/kiến thức | Hướng dẫn, giải đáp, so sánh và giải quyết vấn đề cụ thể | Đáp ứng nhu cầu tìm hiểu |
-| Dự án/case study | Bối cảnh, vấn đề, phạm vi, giải pháp, kết quả có bằng chứng | Chứng minh năng lực |
-| Liên hệ/chính sách | Kênh liên hệ và chính sách thực tế áp dụng theo loại website | Cung cấp thông tin cần thiết |
+| Home | What is offered, for whom, main benefits, evidence-based reasons to choose and CTA | Quick understanding and action |
+| About | Story, capabilities, team and real information | Build trust |
+| Product/service | Features, benefits, suitable audience, price/quoting method, process and FAQ | Support decisions |
+| Blog/knowledge | Guides, answers, comparisons and solving specific problems | Meet learning needs |
+| Project/case study | Context, problem, scope, solution, evidence-backed results | Prove capability |
+| Contact/policy | Contact channels and real applicable policies by website type | Provide needed information |
 
-Chỉ chọn nhóm phù hợp; không tự tạo đủ mọi trang. Chính sách phải dựa trên quy định doanh nghiệp và phạm vi áp dụng được cung cấp; thiếu thì bàn giao dàn ý cùng câu hỏi cần xác nhận.
+Choose only suitable groups; never create every page. Policies must rest on the business's provided rules and scope; if missing, hand off an outline with questions needing confirmation.
 
-## Đầu ra
+## Output
 
-**Kế hoạch nội dung**:
+**Content plan**:
 
-| Trang/URL | Người đọc và intent | Chủ đề/từ khóa đề xuất | Thông điệp và CTA | Bằng chứng cần có | Link nội bộ | Ưu tiên |
+| Page/URL | Reader and intent | Proposed topic/keyword | Message and CTA | Needed evidence | Internal links | Priority |
 |---|---|---|---|---|---|---|
 
-**Bản viết từng trang**: mục tiêu/người đọc → URL hiện có hoặc slug đề xuất → SEO title → meta description → H1 → nội dung theo heading → CTA/link nội bộ → nguồn và thông tin cần xác nhận. Phần ghi chú biên tập tách khỏi nội dung hiển thị cho khách hàng.
+**Per-page draft**: goal/reader → existing URL or proposed slug → SEO title → meta description → H1 → content by heading → CTA/internal links → sources and information needing confirmation. Editorial notes are separate from customer-visible content.
 
-Ví dụ website dịch vụ phần mềm: trang dịch vụ “Phát triển website Laravel cho doanh nghiệp”; bài hướng dẫn “Cần chuẩn bị gì trước khi thuê làm website?”; bài so sánh “Website theo mẫu và thiết kế riêng khác nhau thế nào?”. Case study chỉ dùng dự án và kết quả thực tế được cung cấp.
+Example for a software-services website: service page "Laravel website development for businesses"; guide "What to prepare before hiring a website developer?"; comparison "How do template and custom-designed websites differ?". Case studies use only the real projects and results provided.
 
-Khi cần xử lý crawl/index, sitemap, canonical, HTTP status hoặc render, dùng [seo](../../seo/references/website.md). Sau xuất bản, đề xuất theo dõi query/trang và chuyển đổi khi có dữ liệu; cập nhật khi thông tin thay đổi, không chỉ đổi ngày bài viết.
+For crawl/index, sitemap, canonical, HTTP status or rendering, use [seo](../../seo/references/website.md). After publishing, suggest tracking queries/pages and conversions when data exists; update when information changes, not just the article date.

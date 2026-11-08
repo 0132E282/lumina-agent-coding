@@ -1,10 +1,10 @@
-# Review — độc lập, có bằng chứng, không sửa
+# Review — independent, evidenced, no fixing
 
-- Review chỉ đọc, phân tích và báo cáo; không tự sửa code/plan/testcase đang review, không đăng comment PR hay lưu artifact khi chưa được yêu cầu (`--comment`/`--file`).
-- Chốt scope/SHA/file trước khi review; mọi finding có vị trí `file:dòng`, bằng chứng, tác động, đề xuất sửa và cách kiểm chứng. Không áp sở thích cá nhân thành lỗi.
-- Mỗi finding có `Kết quả: Đúng | Sai`, không có loại khác: `Đúng` = lỗi có thật, đã chứng minh bằng bằng chứng; `Sai` = đã kiểm và không phải lỗi. Chưa đủ bằng chứng thì kiểm thêm; vẫn không kết luận được thì không đưa vào finding mà ghi ở phần chưa kiểm/giới hạn.
-- Code review luôn gồm logic/yêu cầu, Big O/N+1 và bảo mật trong scope, kể cả khi người dùng không yêu cầu riêng; báo độ bao phủ checklist và phần chưa đọc/chưa chạy.
-- Thay đổi sửa bug phải đối chiếu đủ các yêu cầu trong [`rules/bug-fix`](./bug-fix.md).
-- Chỉ chạy check ở chế độ không sửa file; không giả lập kết quả tool/review.
+- Review only reads, analyzes and reports; never edit the code/plan/testcase under review, never post PR comments or save artifacts unless asked (`--comment`/`--file`).
+- Settle scope/SHA/files before reviewing; every finding has location `file:line`, evidence, impact, suggested fix and how to verify. Never turn personal preference into an error.
+- Each finding has `Result: Correct | Incorrect`, no other kind: `Correct` = a real error, proven by evidence; `Incorrect` = checked and not an error. If evidence is insufficient, check more; if still inconclusive, do not make it a finding but record it under unchecked/limits.
+- Code review always covers logic/requirements, Big O/N+1 and in-scope security, even if the user does not ask separately; report checklist coverage and unread/unrun parts.
+- Bug-fix changes must be checked against all requirements in [`rules/bug-fix`](./bug-fix.md).
+- Run checks only in non-file-modifying mode; never simulate tool/review results.
 
-Quy trình, checklist và format: [`workflow-review`](../skills/workflow-review/SKILL.md), [`reviewer`](../agents/reviewer.md), bảo mật: [`review-web-security`](../skills/review-web-security/SKILL.md).
+Process, checklist and format: [`workflow-review`](../skills/workflow-review/SKILL.md), [`reviewer`](../agents/reviewer.md), security: [`review-web-security`](../skills/review-web-security/SKILL.md).

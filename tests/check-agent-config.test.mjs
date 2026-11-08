@@ -22,7 +22,7 @@ function link(root, target, relativePath) {
   fs.symlinkSync(target, path.join(root, relativePath));
 }
 
-// Script tự lấy root = thư mục cha của scripts/, nên copy cả checker và check_docs.py vào fixture.
+// The script takes root = parent of scripts/, so copy both the checker and check_docs.py into the fixture.
 function validTree(context) {
   const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'check-agent-config-test-')));
   context.after(() => fs.rmSync(root, { recursive: true, force: true }));
@@ -30,8 +30,8 @@ function validTree(context) {
     fs.mkdirSync(path.join(root, 'scripts'), { recursive: true });
     fs.copyFileSync(path.join(repoRoot, 'scripts', name), path.join(root, 'scripts', name));
   }
-  write(root, 'AGENTS.md', '# Agents\n\nSee [delivery](.agents/rules/delivery.md#báo-cáo-bắt-buộc) and [skill](.claude/skills/report/SKILL.md).\n');
-  write(root, '.agents/rules/delivery.md', '# Delivery\n\n## Báo cáo bắt buộc\n');
+  write(root, 'AGENTS.md', '# Agents\n\nSee [delivery](.agents/rules/delivery.md#mandatory-reporting) and [skill](.claude/skills/report/SKILL.md).\n');
+  write(root, '.agents/rules/delivery.md', '# Delivery\n\n## Mandatory reporting\n');
   write(root, '.agents/skills/report/SKILL.md', '# Report\n\n[rule](../../rules/delivery.md)\n');
   write(root, '.claude/agents/coder.md', '# Coding agent\n');
   write(root, '.claude/hooks/scripts/hook.sh', '#!/usr/bin/env bash\n');

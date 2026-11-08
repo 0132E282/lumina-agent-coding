@@ -1,6 +1,6 @@
 ---
-title: Rule/skill debug, dòng Token gọn và remind-cleanup theo ngưỡng context
-description: Testcase cấp repository cho rule bug-fix, skill debugs, định dạng Token compact có tổng, và hook remind-cleanup (ngưỡng 80% context, bỏ qua thư mục cấu hình, nhắc mỗi file một lần).
+title: Debug rule/skill, compact Token line and context-threshold remind-cleanup
+description: Repository-level testcases for the bug-fix rule, debugs skill, compact Token format with total, and the remind-cleanup hook (80% context threshold, skips config dirs, reminds once per file).
 tags:
   - agent-rules
   - skills
@@ -9,100 +9,100 @@ tags:
   - regression
 ---
 
-# Rule/skill debug, dòng Token gọn và remind-cleanup theo ngưỡng context
+# Debug rule/skill, compact Token line and context-threshold remind-cleanup
 
-Trạng thái thực thi: **Not Run**. Tài liệu này chỉ thiết kế testcase từ cấu hình và hook thực tế sau triển khai.
+Execution status: **Not Run**. This document only designs testcases from the real configuration and hooks after implementation.
 
 ## Test cases
 
-### TC-DBG-001 — Rule bug-fix và skill debugs liên kết đúng
+### TC-DBG-001 — bug-fix rule and debugs skill link correctly
 
-- Bước: mở `.agents/rules/bug-fix.md`, `.agents/rules/delivery.md` (mục Chất lượng và bằng chứng), `.agents/skills/debugs/SKILL.md`, `.agents/skills/debugs/references/checklist.md`, `AGENTS.md` (Choosing skills by task); kiểm tra mọi relative link.
-- Kết quả mong đợi: delivery trỏ `rules/bug-fix`; rule trỏ skill `debugs`; skill trỏ ngược rule và `references/checklist.md`; AGENTS.md có dòng "Debug / bug fix"; không còn link tới `rules/debug.md`.
-- Trạng thái: Not Run.
+- Steps: open `.agents/rules/bug-fix.md`, `.agents/rules/delivery.md` (quality and evidence section), `.agents/skills/debugs/SKILL.md`, `.agents/skills/debugs/references/checklist.md`, `AGENTS.md` (Choosing skills by task); check every relative link.
+- Expected: delivery points to `rules/bug-fix`; the rule points to skill `debugs`; the skill points back to the rule and `references/checklist.md`; AGENTS.md has a "Debug / bug fix" line; no link to `rules/debug.md` remains.
+- Status: Not Run.
 
-### TC-DBG-002 — Nội dung tiêu chí debug đầy đủ
+### TC-DBG-002 — Debug criteria content complete
 
-- Bước: đối chiếu `checklist.md` với 10 tiêu chí (Reproduce → Verification), 9 loại lỗi và 9 mục checklist chất lượng; đối chiếu SKILL.md có 7 bước quy trình.
-- Kết quả mong đợi: đủ tiêu chí, loại lỗi và checklist; database chỉ đọc; không có chỉ dẫn sửa theo phỏng đoán.
-- Trạng thái: Not Run.
+- Steps: compare `checklist.md` against the 10 criteria (Reproduce → Verification), 9 bug types and 9 quality checklist items; compare SKILL.md against the 7-step process.
+- Expected: all criteria, bug types and checklist items present; database read-only; no guess-based fix instructions.
+- Status: Not Run.
 
-### TC-TOK-001 — Hook report-usage phát dòng Token compact có tổng
+### TC-TOK-001 — report-usage hook emits compact Token line with total
 
-- Tiền điều kiện: transcript có usage input 18, output 4448, cache đọc 912046, cache tạo 13421; đã có mốc báo cáo trước.
-- Bước: gọi skill `report` (PostToolUse) và đọc `additionalContext`.
-- Kết quả mong đợi: `📈 Token: input 18 | output 4.4k | cache đọc 912k | cache tạo 13.4k | tổng 930k (từ mốc trước).`; `emitted.json` lưu số thô kèm `total` 929933.
-- Trạng thái: Not Run.
+- Precondition: transcript has usage input 18, output 4448, cache read 912046, cache create 13421; a previous report marker exists.
+- Steps: invoke skill `report` (PostToolUse) and read `additionalContext`.
+- Expected: `📈 Token: input 18 | output 4.4k | cache read 912k | cache create 13.4k | total 930k (since previous marker).`; `emitted.json` stores raw numbers with `total` 929933.
+- Status: Not Run.
 
-### TC-TOK-002 — Hook report-usage-check đối chiếu số compact/thô/tổng
+### TC-TOK-002 — report-usage-check hook compares compact/raw/total numbers
 
-- Bước: Stop với báo cáo chứa dòng Token (a) compact đúng, (b) số thô đúng, (c) compact sai `4.5k`, (d) thiếu `tổng`, (e) `tổng` sai.
-- Kết quả mong đợi: (a)(b)(d) im lặng; (c)(e) cảnh báo lệch hiển thị số hook dạng compact kèm tổng.
-- Trạng thái: Not Run.
+- Steps: Stop with a report whose Token line is (a) correct compact, (b) correct raw numbers, (c) wrong compact `4.5k`, (d) missing `total`, (e) wrong `total`.
+- Expected: (a)(b)(d) silent; (c)(e) warn about display mismatch with the hook's compact numbers including total.
+- Status: Not Run.
 
-### TC-CLN-001 — remind-cleanup im lặng dưới 80% context
+### TC-CLN-001 — remind-cleanup silent below 80% context
 
-- Tiền điều kiện: session đã Write `tmp-notes.md` ở gốc; usage message assistant cuối < 160k (giới hạn mặc định 200k).
-- Bước: chạy Stop hook `remind-cleanup.sh`.
-- Kết quả mong đợi: không output.
-- Trạng thái: Not Run.
+- Precondition: session has Written `tmp-notes.md` at root; last assistant message usage < 160k (default limit 200k).
+- Steps: run Stop hook `remind-cleanup.sh`.
+- Expected: no output.
+- Status: Not Run.
 
-### TC-CLN-002 — remind-cleanup nhắc khi ≥ 80% và chỉ một lần mỗi file
+### TC-CLN-002 — remind-cleanup reminds at ≥ 80% and only once per file
 
-- Bước: usage ≥ 80% → Stop lần 1; Stop lần 2 cùng file; Write thêm `scratch-new.txt` → Stop lần 3; lặp lại với `CLAUDE_CONTEXT_LIMIT=100000`.
-- Kết quả mong đợi: lần 1 nhắc kèm `% (used/limit)` và 1 file; lần 2 không output; lần 3 chỉ nhắc file mới; override giới hạn đổi % tương ứng; không file nào bị xoá.
-- Trạng thái: Not Run.
+- Steps: usage ≥ 80% → Stop 1st time; Stop 2nd time same file; Write another `scratch-new.txt` → Stop 3rd time; repeat with `CLAUDE_CONTEXT_LIMIT=100000`.
+- Expected: 1st reminds with `% (used/limit)` and 1 file; 2nd no output; 3rd reminds only the new file; limit override changes the percentage accordingly; no file is deleted.
+- Status: Not Run.
 
-### TC-CLN-003 — Finder bỏ qua thư mục cấu hình/tài liệu
+### TC-CLN-003 — Finder skips config/docs directories
 
-- Bước: session Write `.agents/rules/debug.md`, `.agents/skills/x/draft-skill.md`, `.claude/hooks/debug-hook.sh`, `docs/draft-x.md`, `tmp-notes.md`; chạy `find-session-scratch-files.sh <session_id>`.
-- Kết quả mong đợi: chỉ liệt kê `tmp-notes.md`.
-- Trạng thái: Not Run.
+- Steps: session Writes `.agents/rules/debug.md`, `.agents/skills/x/draft-skill.md`, `.claude/hooks/debug-hook.sh`, `docs/draft-x.md`, `tmp-notes.md`; run `find-session-scratch-files.sh <session_id>`.
+- Expected: lists only `tmp-notes.md`.
+- Status: Not Run.
 
-### TC-DBG-003 — Mức độ, lỗi lúc có lúc không, bảo mật và mẫu báo cáo Debug
+### TC-DBG-003 — Severity, intermittent bugs, security and Debug report template
 
-- Bước: mở `.agents/rules/bug-fix.md`, `.agents/skills/debugs/SKILL.md`, `references/checklist.md` (mục Mức độ), `.agents/skills/report/assets/debug-report-template.md` và bảng template trong `.agents/skills/report/SKILL.md`.
-- Kết quả mong đợi: có thang S1–S4; quy trình lỗi intermittent (chạy lặp, ghi tỉ lệ, thử race); bug bảo mật bắt buộc qua `review-web-security`, cấm ghi payload; số đo hiệu năng tối thiểu; postmortem cho lỗi production; regression test phải fail lại khi bỏ riêng bản sửa; skill report liệt kê mẫu Debug.
-- Trạng thái: Not Run.
+- Steps: open `.agents/rules/bug-fix.md`, `.agents/skills/debugs/SKILL.md`, `references/checklist.md` (Severity section), `.agents/skills/report/assets/debug-report-template.md` and the template table in `.agents/skills/report/SKILL.md`.
+- Expected: S1–S4 scale present; intermittent-bug process (repeat runs, record rate, try race); security bugs must go through `review-web-security`, payloads forbidden in reports; minimum performance measurements; postmortem for production bugs; regression test must fail again when only the fix is removed; report skill lists the Debug template.
+- Status: Not Run.
 
-### TC-REV-001 — Rule review và mục C10
+### TC-REV-001 — Review rule and item C10
 
-- Bước: mở `.agents/rules/review.md`, `.agents/skills/workflow-review/references/code-review-checklists.md` (C10), `.claude/agents/reviewer-agent.md`, `.claude/agents/coding-agent.md` (quy tắc 9).
-- Kết quả mong đợi: review chỉ báo cáo, có bằng chứng, luôn gồm logic/Big O/bảo mật; C10 kiểm nguồn gốc, nguyên nhân gốc, regression test fail trên base, ảnh UI, mức độ, bảo mật; reviewer-agent và coding-agent trỏ đúng rule.
-- Trạng thái: Not Run.
+- Steps: open `.agents/rules/review.md`, `.agents/skills/workflow-review/references/code-review-checklists.md` (C10), `.claude/agents/reviewer-agent.md`, `.claude/agents/coding-agent.md` (rule 9).
+- Expected: review only reports, with evidence, always covers logic/Big O/security; C10 checks origin, root cause, regression test failing on base, UI screenshots, severity, security; reviewer-agent and coding-agent point to the correct rule.
+- Status: Not Run.
 
-### TC-HOOK-001 — report-reminder bỏ qua Edit/Write của subagent
+### TC-HOOK-001 — report-reminder ignores subagent Edit/Write
 
-- Bước: ghi log audit có một Edit kèm `agent_id` (subagent) và chạy Stop hook `report-reminder.sh`; thêm Edit không có `agent_id` rồi chạy lại.
-- Kết quả mong đợi: lần 1 không nhắc; lần 2 chỉ nhắc file của phiên chính.
-- Trạng thái: Not Run.
+- Steps: write an audit log with one Edit carrying `agent_id` (subagent) and run Stop hook `report-reminder.sh`; add an Edit without `agent_id` and run again.
+- Expected: 1st run no reminder; 2nd run reminds only for main-session files.
+- Status: Not Run.
 
-### TC-HOOK-002 — Nhắc test cho commit sửa bug
+### TC-HOOK-002 — Test reminder for bug-fix commits
 
-- Bước: trong repo tạm, stage file nguồn không kèm test rồi gọi hook với lệnh commit có message type `fix`; lặp với file `tests/x.test.mjs` staged; lặp với type `feat`.
-- Kết quả mong đợi: chỉ trường hợp fix không kèm test có lời nhắc; hook không chặn commit.
-- Trạng thái: Not Run.
+- Steps: in a temp repo, stage a source file without tests then invoke the hook with a commit command whose message type is `fix`; repeat with `tests/x.test.mjs` staged; repeat with type `feat`.
+- Expected: only fix without a test gets a reminder; the hook does not block the commit.
+- Status: Not Run.
 
-### TC-HOOK-003 — commit-msg-guard không bắt nhầm lệnh không phải commit
+### TC-HOOK-003 — commit-msg-guard does not catch non-commit commands
 
-- Bước: chạy hook PreToolUse với lệnh Bash ghi file (heredoc/`python3 -`) có chứa chuỗi lệnh commit trong nội dung.
-- Kết quả mong đợi: hook không chặn; chỉ kiểm message khi lệnh thực sự là commit.
-- Trạng thái: Not Run.
+- Steps: run the PreToolUse hook with a Bash command that writes a file (heredoc/`python3 -`) containing a commit command string in its content.
+- Expected: hook does not block; checks the message only when the command is really a commit.
+- Status: Not Run.
 
-### TC-CFG-001 — Checker link/anchor và mục lục docs
+### TC-CFG-001 — Link/anchor checker and docs index
 
-- Bước: chạy `python3 scripts/check-agent-config.py` trên repo; tạo link gãy, anchor sai và entry `docs/repo` lệch `docs/index.json` trong bản sao tạm rồi chạy lại.
-- Kết quả mong đợi: repo hiện tại hợp lệ; bản sao lỗi báo đúng `file:dòng` và entry lệch, exit khác 0.
-- Trạng thái: Not Run.
+- Steps: run `python3 scripts/check-agent-config.py` on the repo; create a broken link, wrong anchor and a `docs/repo` entry out of sync with `docs/index.json` in a temp copy and rerun.
+- Expected: current repo valid; the broken copy reports the correct `file:line` and mismatched entry, exit non-zero.
+- Status: Not Run.
 
-### TC-DBG-004 — verify-regression.sh chứng minh test fail trên base
+### TC-DBG-004 — verify-regression.sh proves the test fails on base
 
-- Bước: trong repo tạm có bug ở base và bản sửa + test mới ở working tree, chạy `bash .agents/skills/debugs/scripts/verify-regression.sh <base> -- node --test <test>`; lặp với test pass cả hai phía, head còn fail và không có file test.
-- Kết quả mong đợi: exit 0 / 1 / 1 / 2 tương ứng; log ghi ở `.agents/storage/evidence/<slug>/`; worktree tạm được dọn, working tree/index không đổi.
-- Trạng thái: Not Run.
+- Steps: in a temp repo with the bug at base and the fix + new test in the working tree, run `bash .agents/skills/debugs/scripts/verify-regression.sh <base> -- node --test <test>`; repeat with a test that passes on both sides, head still failing, and no test file.
+- Expected: exit 0 / 1 / 1 / 2 respectively; logs written to `.agents/storage/evidence/<slug>/`; temp worktree cleaned up, working tree/index unchanged.
+- Status: Not Run.
 
-### TC-REG-001 — Regression checks repository
+### TC-REG-001 — Repository regression checks
 
-- Bước: chạy `npm test`, `python3 scripts/check-agent-config.py`, `bash -n` các hook `.sh` đã sửa, JSON validation `docs/index.json`/`docs/repo/index.json` và `git diff --check`.
-- Kết quả mong đợi: mọi lệnh thành công.
-- Trạng thái: Not Run.
+- Steps: run `npm test`, `python3 scripts/check-agent-config.py`, `bash -n` on the changed `.sh` hooks, JSON validation of `docs/index.json`/`docs/repo/index.json` and `git diff --check`.
+- Expected: all commands succeed.
+- Status: Not Run.

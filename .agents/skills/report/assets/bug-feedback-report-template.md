@@ -1,12 +1,12 @@
-# Mẫu báo cáo Bug/Feedback
+# Bug/Feedback report template
 
-Ghi bug hoặc feedback phát hiện lúc làm việc; không thay review có sẵn hay bug report QA. Dạng text.
+Record a bug or feedback found during work; does not replace an existing review or QA bug report. Text format.
 
 `------------------------`
 
-Title: [Type] tiêu đề ngắn nêu rõ vấn đề (Type tự do: Bug, Feedback, Idea, Missing capability...)
-URL: `file:dòng`, URL hoặc `chưa xác định`
+Title: [Type] short title stating the problem (Type is free: Bug, Feedback, Idea, Missing capability...)
+URL: `file:line`, URL or `undetermined`
 
-- Hiện tượng: [điều gì xảy ra]
-- Cách phát hiện: [đã làm gì]
-- Đã xử lý tới đâu: [trạng thái]
+- Symptom: [what happens]
+- How found: [what was done]
+- Handling status: [status]

@@ -1,14 +1,9 @@
----
-trigger: model_decision
-description: "Áp dụng khi sửa UI/frontend, clone-website hoặc component giao diện"
----
+# Frontend — match the pattern, usable, safe
 
-# Frontend — đúng mẫu, dễ dùng, an toàn
+- Only edit the assigned route/component/section and UI behavior; never add, remove, restore, reorder or restyle UI, copy, modals, CTAs, assets, routes, responsive behavior or state outside scope (authority and revert/conflict handling per [`coding`](./coding.md#kiss-yagni-and-scope)).
+- Before UI edits, state the file/section and capture a baseline of the same route/viewport if a browser is available; before handoff capture a final of the same viewport, compare the diff and remove out-of-scope UI. Final evidence has URL and images at `.agents/storage/evidence/<task-slug>/` of the project being worked on; browser-tool images saved in system temp directories (`/var/folders`, `/tmp`) must be copied there before citing in a report, never cite temp paths; if unable to run/capture, state it.
+- New UI must have a standard design/source; never genericize on your own. Keep approved route/state/data fetching and content; never use fake data to mask API errors.
+- Keep semantic HTML, keyboard/focus/label/alt/contrast, responsive, reduced motion, UI states, deep links and the public SEO boundary.
+- Never expose secrets; escape/sanitize untrusted data.
 
-- Chỉ sửa route/component/section và hành vi UI được giao; không thêm, xoá, khôi phục, đổi thứ tự hay restyle UI, copy, modal, CTA, asset, route, responsive hoặc state ngoài scope (quyền và xử lý revert/conflict theo [`coding`](./coding.md#kiss-yagni-và-phạm-vi)).
-- Trước UI edit, nêu file/section và chụp baseline cùng route/viewport nếu browser khả dụng; trước bàn giao chụp final cùng viewport, đối chiếu diff và loại UI ngoài scope. Evidence cuối có URL và ảnh tại `.agents/storage/evidence/<task-slug>/` của project đang làm; ảnh công cụ trình duyệt lưu ở thư mục tạm hệ thống (`/var/folders`, `/tmp`) phải copy vào đó trước khi dẫn vào báo cáo, không dẫn đường dẫn tạm; không chạy/chụp được phải ghi rõ.
-- UI mới phải có design/source chuẩn; không tự generic hóa. Giữ route/state/data fetching và content đã duyệt; không dùng dữ liệu giả che lỗi API.
-- Giữ semantic HTML, keyboard/focus/label/alt/contrast, responsive, reduced motion, trạng thái UI, deep link và public SEO boundary.
-- Không lộ secret; escape/sanitize dữ liệu không tin cậy.
-
-Quy trình/checklist UI, CMS và kiểm chứng: [`coding-frontend`](../skills/coding-frontend/SKILL.md), [`clone-website`](../skills/clone-website/SKILL.md) và [`type-safety`](./coding.md#an-toàn-type). Render/state/effect loop và N+1 trước bàn giao: [`delivery`](./delivery.md#chất-lượng-và-bằng-chứng).
+Process/checklist for UI, CMS and verification: [`coding-frontend`](../skills/coding-frontend/SKILL.md), [`clone-website`](../skills/clone-website/SKILL.md) and [`type-safety`](./coding.md#type-safety). Render/state/effect loops and N+1 before handoff: [`delivery`](./delivery.md#quality-and-evidence).

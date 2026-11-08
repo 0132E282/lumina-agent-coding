@@ -1,32 +1,27 @@
----
-trigger: model_decision
-description: "Áp dụng khi đọc, viết hoặc đồng bộ tài liệu trong docs/, kể cả implementation plan"
----
+# Documentation rules
 
-# Quy tắc tài liệu
+## Docs sync
 
-## Đồng bộ tài liệu
+- Docs are part of the Definition of Done: a change that makes existing docs wrong must update the affected part in the same turn.
+- Completing a whole implementation plan must create Markdown repo testcases with status `Not Run`, then update `docs/repo/index.json` and `docs/index.json`.
+- API changes with a suitable existing Postman artifact must update that artifact, not create a duplicate.
 
-- Docs là một phần Definition of Done: thay đổi làm tài liệu hiện có sai phải cập nhật đúng phần bị ảnh hưởng trong cùng lượt.
-- Hoàn tất toàn bộ implementation plan phải tạo testcase repo Markdown trạng thái `Not Run`, rồi cập nhật `docs/repo/index.json` và `docs/index.json`.
-- API đổi và đã có Postman artifact phù hợp thì cập nhật artifact hiện có, không tạo bản trùng.
+Process for routing, schema, TOC and sync: [`docs`](../skills/docs/SKILL.md). Test artifacts: [`testcase`](../skills/testing/references/testcase.md). Core registry: [`documentation-reading-and-toc`](#docs-registry).
 
-Quy trình routing, schema, TOC và sync: [`docs`](../skills/docs/SKILL.md). Test artifact: [`testcase`](../skills/testing/references/testcase.md). Registry core: [`documentation-reading-and-toc`](#registry-tài-liệu).
+## Docs registry
 
-## Registry tài liệu
+- Before reading/writing docs in `docs/`, read the suitable owner's `index.json`, search by metadata and open files via `path`.
+- Catalog entries have only `title`, `description`, `tags`, `path`; paths are repo-relative. The catalog manages only content in `docs/`, embeds no content and does not mix the `docs/testcases/index.json` schema.
+- Read the whole target file and the sources/conventions that decide content before editing; state parts that cannot be read.
+- Detailed artifacts and their index must update in the same turn; keep testcase ID/history and never invent dates/results.
 
-- Trước khi đọc/viết tài liệu trong `docs/`, đọc `index.json` của owner phù hợp, tìm bằng metadata và mở file qua `path`.
-- Catalog entry chỉ có `title`, `description`, `tags`, `path`; path repo-relative. Catalog chỉ quản lý nội dung trong `docs/`, không nhúng content và không trộn schema `docs/testcases/index.json`.
-- Đọc toàn bộ file đích và nguồn/convention quyết định nội dung trước khi sửa; phần không đọc được phải ghi rõ.
-- Artifact chi tiết và index tương ứng phải cập nhật cùng lượt; giữ ID/history testcase và không bịa ngày/kết quả.
-
-Routing từng index, schema artifact, TOC/anchor và kiểm chứng link: [`docs`](../skills/docs/SKILL.md).
+Routing per index, artifact schema, TOC/anchors and link verification: [`docs`](../skills/docs/SKILL.md).
 
 ## Implementation plan contract
 
-- Implementation plan là JSON hợp lệ tại `docs/plans/<title-slug>-<yyyyMMdd>.json`, có `title`, `description`, `tags`, `content`, `createdAt`; không dùng Markdown plan tự do.
-- `docs/plans/index.json` cập nhật cùng lượt và entry chỉ có `title`, `description`, `tags`, `path`.
-- Task là object đồng nhất, giữ đủ field/schema kể cả khi giá trị là `null`/`[]`; mọi path phải được xác minh và trace REQ/BR → AC → task → test.
-- Runtime plan mode/quyền ghi có ưu tiên; không vượt read-only hoặc tuyên bố đã lưu khi chưa ghi.
+- An implementation plan is valid JSON at `docs/plans/<title-slug>-<yyyyMMdd>.json`, with `title`, `description`, `tags`, `content`, `createdAt`; no free-form Markdown plans.
+- `docs/plans/index.json` updates in the same turn and entries have only `title`, `description`, `tags`, `path`.
+- A task is a uniform object, keeping all fields/schema even when the value is `null`/`[]`; every path must be verified and trace REQ/BR → AC → task → test.
+- Runtime plan mode/write permission takes precedence; never exceed read-only or claim saved when not written.
 
-Luồng planning và schema task/traceability đầy đủ: [`workflow-plan`](../skills/workflow-plan/SKILL.md), [`planner`](../agents/planner.md) và [`implementation-plan-template.json`](../skills/docs/assets/implementation-plan-template.json).
+Full planning flow and task/traceability schema: [`workflow-plan`](../skills/workflow-plan/SKILL.md), [`planner`](../agents/planner.md) and [`implementation-plan-template.json`](../skills/docs/assets/implementation-plan-template.json).

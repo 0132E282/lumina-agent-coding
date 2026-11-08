@@ -1,124 +1,124 @@
-# QA templates và ví dụ
+# QA templates and examples
 
-Mẫu dùng cho `qa-tester`: checklist chọn phạm vi, ma trận bao phủ, mẫu test case, bản ghi thực thi, mẫu bug report và ví dụ minh họa. Mở khi cần soạn artifact tương ứng.
+Templates for `qa-tester`: scope selection checklist, coverage matrix, test case template, execution record, bug report template and illustrative example. Open when drafting the matching artifact.
 
-## Checklist lựa chọn phạm vi
+## Scope selection checklist
 
-Chỉ áp dụng mục liên quan; ghi N/A và lý do khi cần.
+Apply only relevant items; write N/A and the reason when needed.
 
-| Nhóm | Điểm cần kiểm tra |
+| Group | What to check |
 |---|---|
-| Chức năng | Luồng chính, thay thế, ngoại lệ, kết quả và quy tắc tính toán |
-| Validation | Bắt buộc, kiểu dữ liệu, định dạng, độ dài, giá trị biên, null và rỗng |
-| Quyền | Chưa đăng nhập, sai vai trò, quyền theo bản ghi, tenant, truy cập qua API trực tiếp |
-| API | Method, path, header, schema, status theo contract, lỗi, phân trang, lọc và sắp xếp |
-| Dữ liệu | Toàn vẹn quan hệ, unique, rollback, đồng bộ trạng thái, soft delete |
-| Đồng thời | Nhấn/gửi lặp, race condition, idempotency nếu contract yêu cầu |
-| Tích hợp | Timeout, lỗi dịch vụ, retry, webhook trùng hoặc sai thứ tự nếu liên quan |
-| Thời gian | Múi giờ, đầu/cuối kỳ, ngày hết hạn và quy tắc làm tròn |
-| Giao diện | Responsive, bàn phím, focus, thông báo, trạng thái loading và empty |
-| Bảo mật | Truy cập trái phép, lộ dữ liệu, xử lý input và session trong phạm vi được giao |
-| Hiệu năng | Workload, môi trường, chỉ số và ngưỡng đã thống nhất; thiếu ngưỡng thì chưa kết luận đạt |
+| Functionality | Main, alternate, exception flows, results and calculation rules |
+| Validation | Required, data type, format, length, boundary values, null and empty |
+| Permissions | Not logged in, wrong role, per-record permission, tenant, direct API access |
+| API | Method, path, header, schema, status per contract, errors, pagination, filtering and sorting |
+| Data | Relational integrity, unique, rollback, state sync, soft delete |
+| Concurrency | Repeated clicks/submits, race condition, idempotency if the contract requires |
+| Integration | Timeout, service errors, retry, duplicate or out-of-order webhooks if relevant |
+| Time | Timezone, period start/end, expiry dates and rounding rules |
+| UI | Responsive, keyboard, focus, messages, loading and empty states |
+| Security | Unauthorized access, data exposure, input handling and session within assigned scope |
+| Performance | Workload, environment, metrics and agreed thresholds; without thresholds do not conclude pass |
 
-Với Laravel/backend, cân nhắc Form Request validation, middleware/policy, Sanctum nếu được dùng, Eloquent relations, transaction, queue, cache và soft delete — liên hệ [`rules/backend.md`](../../../rules/backend.md#an-toàn-dữ-liệu) (transaction, phân quyền ở backend). Chỉ đưa vào phạm vi khi dự án thực sự sử dụng chúng.
+For Laravel/backend, consider Form Request validation, middleware/policy, Sanctum if used, Eloquent relations, transaction, queue, cache and soft delete — see [`rules/backend.md`](../../../rules/backend.md#data-safety) (transaction, backend authorization). Include in scope only when the project actually uses them.
 
-## Ma trận bao phủ
+## Coverage matrix
 
-| Requirement ID | Nội dung / nguồn | Scenario | Test case IDs | Rủi ro | Tình trạng thiết kế |
+| Requirement ID | Content / source | Scenario | Test case IDs | Risk | Design status |
 |---|---|---|---|---|---|
-| REQ-001 | [Yêu cầu và nguồn] | [Kịch bản] | TC-MODULE-001 | P1 | Ready / Draft / Missing |
+| REQ-001 | [Requirement and source] | [Scenario] | TC-MODULE-001 | P1 | Ready / Draft / Missing |
 
-Không xem tỷ lệ bao phủ yêu cầu là bằng chứng kiểm thử toàn diện. Phân biệt độ bao phủ thiết kế với kết quả đã thực thi.
+Never treat requirement coverage ratio as evidence of comprehensive testing. Distinguish design coverage from executed results.
 
-## Mẫu test case chi tiết
+## Detailed test case template
 
 ```
-### TC-MODULE-001 — [Hành vi cần kiểm chứng]
-- Requirement ID / nguồn: [...]
+### TC-MODULE-001 — [Behavior to verify]
+- Requirement ID / source: [...]
 - Module: [...]
-- Mục tiêu: [...]
-- Loại test / kỹ thuật: [...]
-- Priority: P1 — [lý do]
-- Tiền điều kiện: [...]
-- Dữ liệu test / fixture: [...]
-- Tình trạng thiết kế: Ready | Draft
-- Trạng thái thực thi: Not Run
+- Goal: [...]
+- Test type / technique: [...]
+- Priority: P1 — [reason]
+- Preconditions: [...]
+- Test data / fixture: [...]
+- Design status: Ready | Draft
+- Execution status: Not Run
 
-| Bước | Thao tác | Kết quả mong đợi |
+| Step | Action | Expected result |
 | --- | --- | --- |
-| 1 | [Thao tác cụ thể] | [Kết quả quan sát được] |
-| 2 | [Thao tác cụ thể] | [Kết quả quan sát được] |
+| 1 | [Concrete action] | [Observable result] |
+| 2 | [Concrete action] | [Observable result] |
 
-- Hậu điều kiện: [...]
+- Postconditions: [...]
 - Cleanup: [...]
-- Phụ thuộc / giả định: [Không có hoặc ghi cụ thể]
+- Dependencies / assumptions: [None or specific]
 ```
 
-Nếu dùng bảng tổng hợp, vẫn phải giữ đủ bước và expected result; không gộp thành tiêu đề mơ hồ. Nếu cần tự động hóa, chuyển case thành test code theo framework có sẵn của dự án; không tự thêm dependency khi chưa cần.
+With a summary table, still keep all steps and expected results; never merge into a vague title. For automation, convert cases to test code using the project's existing framework; never add dependencies unless needed.
 
-## Bản ghi thực thi
+## Execution record
 
-| Execution ID | Test case ID / revision | Build / môi trường | Thời điểm | Status | Actual result | Evidence | Bug ID |
+| Execution ID | Test case ID / revision | Build / environment | Time | Status | Actual result | Evidence | Bug ID |
 |---|---|---|---|---|---|---|---|
-| RUN-001 | TC-MODULE-001 / v1 | [...] | [...] | Not Run | Chưa thực thi | — | — |
+| RUN-001 | TC-MODULE-001 / v1 | [...] | [...] | Not Run | Not executed | — | — |
 
-Quy ước status:
+Status conventions:
 
-- **Not Run**: chưa chạy.
-- **Pass**: đã chạy, mọi checkpoint bắt buộc đạt.
-- **Fail**: đã chạy, có checkpoint không đạt expected result đã xác nhận.
-- **Blocked**: không thể hoàn thành do thiếu điều kiện hoặc lỗi chặn; nêu lý do.
-- **Skipped**: chủ động không chạy trong lần này; nêu lý do.
+- **Not Run**: not run yet.
+- **Pass**: run, all mandatory checkpoints met.
+- **Fail**: run, some checkpoint missed the confirmed expected result.
+- **Blocked**: cannot complete due to missing conditions or a blocking bug; state the reason.
+- **Skipped**: deliberately not run this time; state the reason.
 
-## Mẫu bug report
+## Bug report template
 
 ```
-### BUG-MODULE-001 — [Điều kiện gây lỗi + hành vi sai]
+### BUG-MODULE-001 — [Triggering condition + wrong behavior]
 - Test case / Requirement ID: [...]
-- Build / môi trường / trình duyệt: [...]
-- Severity: Critical | Major | Minor | Trivial — [ảnh hưởng]
-- Priority: [theo quy ước dự án, là đề xuất nếu chưa được chốt]
-- Tiền điều kiện và dữ liệu: [...]
-- Các bước tái hiện:
+- Build / environment / browser: [...]
+- Severity: Critical | Major | Minor | Trivial — [impact]
+- Priority: [per project convention; a proposal if not settled]
+- Preconditions and data: [...]
+- Reproduction steps:
   1. [...]
   2. [...]
-- Expected result: [..., dẫn nguồn]
+- Expected result: [..., cite source]
 - Actual result: [...]
-- Tần suất: [số lần tái hiện / số lần thử, hoặc chưa xác định]
-- Bằng chứng: [ảnh, response, log đã che dữ liệu nhạy cảm]
-- Ảnh hưởng: [...]
-- Giả thuyết nguyên nhân: [tùy chọn; không trình bày như kết luận]
+- Frequency: [times reproduced / attempts, or undetermined]
+- Evidence: [images, responses, logs with sensitive data masked]
+- Impact: [...]
+- Cause hypothesis: [optional; never presented as a conclusion]
 ```
 
-Severity là mức ảnh hưởng; priority là thứ tự ưu tiên xử lý. Không tự kết luận mọi lỗi bảo mật đều Critical nếu chưa đánh giá tác động.
+Severity is impact level; priority is handling order. Never conclude every security bug is Critical without assessing impact.
 
-## Ví dụ minh họa
+## Illustrative example
 
-Ví dụ này sử dụng đặc tả giả lập, không áp dụng tự động cho dự án thật:
+This example uses a mock spec and does not automatically apply to real projects:
 
-- `REQ-DEMO-001`: `POST /api/products` yêu cầu `name` là chuỗi 1–100 ký tự, `price` là số nguyên không âm; dữ liệu hợp lệ trả HTTP 201.
-- `REQ-DEMO-002`: Chỉ admin được tạo; user đã đăng nhập không có quyền nhận HTTP 403 và không tạo bản ghi.
-- `REQ-DEMO-003`: Dữ liệu không hợp lệ trả HTTP 422, response có `errors` theo tên trường và không tạo bản ghi.
+- `REQ-DEMO-001`: `POST /api/products` requires `name` as a 1–100 char string, `price` as a non-negative integer; valid data returns HTTP 201.
+- `REQ-DEMO-002`: Only admins may create; a logged-in user without permission gets HTTP 403 and no record is created.
+- `REQ-DEMO-003`: Invalid data returns HTTP 422, the response has `errors` by field name and no record is created.
 
-**TC-PRODUCT-001 — Từ chối tạo sản phẩm khi price âm**
+**TC-PRODUCT-001 — Reject product creation when price is negative**
 
 - Requirement ID: REQ-DEMO-001, REQ-DEMO-003.
 - Module: Product API.
-- Mục tiêu: kiểm tra validation `price` và không ghi dữ liệu khi request bị từ chối.
-- Loại test / kỹ thuật: API negative / giá trị biên `-1` của số nguyên không âm.
-- Priority: P1 — bảo vệ tính hợp lệ của dữ liệu sản phẩm.
-- Tiền điều kiện: môi trường test; admin đã đăng nhập; tên `QA_PRICE_NEG_001` chưa tồn tại; có quyền đọc dữ liệu test để đối chiếu.
-- Dữ liệu: `{"name":"QA_PRICE_NEG_001","price":-1}`; dùng token test, không ghi token vào báo cáo.
-- Tình trạng thiết kế: Ready.
-- Trạng thái thực thi: Not Run.
+- Goal: verify `price` validation and no data written when the request is rejected.
+- Test type / technique: API negative / boundary value `-1` of a non-negative integer.
+- Priority: P1 — protects product data validity.
+- Preconditions: test environment; admin logged in; name `QA_PRICE_NEG_001` does not exist; read access to test data for cross-checking.
+- Data: `{"name":"QA_PRICE_NEG_001","price":-1}`; use a test token, never write the token in reports.
+- Design status: Ready.
+- Execution status: Not Run.
 
-| Bước | Thao tác | Kết quả mong đợi |
+| Step | Action | Expected result |
 |---|---|---|
-| 1 | Gửi `POST /api/products` với JSON trên, header xác thực admin và `Accept: application/json` | HTTP 422; response có `errors.price` chứa ít nhất một thông báo validation |
-| 2 | Đối chiếu dữ liệu `products` bằng truy vấn read-only theo tên fixture | Không có bản ghi `name = QA_PRICE_NEG_001` |
+| 1 | Send `POST /api/products` with the JSON above, admin auth header and `Accept: application/json` | HTTP 422; response has `errors.price` with at least one validation message |
+| 2 | Cross-check `products` data with a read-only query by fixture name | No record with `name = QA_PRICE_NEG_001` |
 
-- Hậu điều kiện: không có sản phẩm mới từ request này.
-- Cleanup: nếu test thất bại và tạo dữ liệu, xóa fixture trong môi trường test theo cơ chế cleanup được cấp.
-- Phụ thuộc: đặc tả giả lập ở trên; không yêu cầu nguyên văn thông báo vì đặc tả chưa quy định.
+- Postconditions: no new product from this request.
+- Cleanup: if the test fails and creates data, delete the fixture in the test environment via the granted cleanup mechanism.
+- Dependencies: the mock spec above; exact message text not required since the spec does not define it.
 
-Các case liên quan cần thiết kế riêng: `price = 0`, `name` dài 100/101 ký tự, user thiếu quyền, request chưa đăng nhập. Expected result của request chưa đăng nhập phải được bổ sung từ contract trước khi đánh dấu Ready.
+Related cases to design separately: `price = 0`, `name` of 100/101 chars, user without permission, not-logged-in request. The not-logged-in expected result must come from the contract before marking Ready.

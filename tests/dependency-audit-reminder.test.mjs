@@ -13,8 +13,8 @@ const systemPath = '/usr/bin:/bin';
 const AUDIT_TOOLS = ['npm', 'yarn', 'pnpm', 'composer', 'pip-audit'];
 const VULNERABLE_OUTPUT = 'lodash  <4.17.21  Severity: high  Prototype Pollution';
 
-// Fake package manager: ghi lại lệnh và in $FAKE_OUTPUT, không bao giờ chạm mạng.
-// macOS quét mỗi file thực thi mới ở lần chạy đầu, nên fake được tạo một lần cho cả file test.
+// Fake package manager: records the command and prints $FAKE_OUTPUT, never touches the network.
+// macOS scans each new executable on first run, so the fake is created once for the whole test file.
 const fakeRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'dependency-audit-fakes-')));
 after(() => fs.rmSync(fakeRoot, { recursive: true, force: true }));
 for (const tool of AUDIT_TOOLS) {
@@ -63,7 +63,7 @@ for (const [command, auditCommand] of INSTALL_COMMANDS) {
     assert.deepEqual(calledCommands, [auditCommand === 'pip-audit' ? 'pip-audit ' : auditCommand]);
     assert.equal(output.hookSpecificOutput.hookEventName, 'PostToolUse');
     const message = output.hookSpecificOutput.additionalContext;
-    assert.ok(message.includes(`${auditCommand} báo:`), message);
+    assert.ok(message.includes(`${auditCommand} reported:`), message);
     assert.ok(message.includes(VULNERABLE_OUTPUT), message);
     assert.match(message, /dependency-audit/);
   });
@@ -112,12 +112,12 @@ test('missing audit tool stays silent', context => {
   }
 });
 
-// Regression: *"npm install"*/*"npm add"* từng khớp cả "pnpm install/add", nên pnpm chạy npm audit.
+// Regression: *"npm install"*/*"npm add"* used to match "pnpm install/add" too, so pnpm ran npm audit.
 test('"pnpm add <pkg>" runs "pnpm audit", not "npm audit"', context => {
   for (const command of ['pnpm add lodash', 'cd web && pnpm add -D vitest']) {
     const { output, calledCommands } = runReminder(context, { command });
     assert.deepEqual(calledCommands, ['pnpm audit'], command);
-    assert.ok(output.hookSpecificOutput.additionalContext.includes('pnpm audit báo:'), command);
+    assert.ok(output.hookSpecificOutput.additionalContext.includes('pnpm audit reported:'), command);
   }
 });
 
@@ -125,15 +125,15 @@ test('"pnpm install" runs "pnpm audit", not "npm audit"', context => {
   for (const command of ['pnpm install', 'cd web && pnpm install --frozen-lockfile']) {
     const { output, calledCommands } = runReminder(context, { command });
     assert.deepEqual(calledCommands, ['pnpm audit'], command);
-    assert.ok(output.hookSpecificOutput.additionalContext.includes('pnpm audit báo:'), command);
+    assert.ok(output.hookSpecificOutput.additionalContext.includes('pnpm audit reported:'), command);
   }
 });
 
-// Regression: glob *"pnpm install"*/*"yarn add"*... từng khớp chữ nằm trong thân heredoc, chuỗi
-// trong nháy, commit message, echo/grep — nên audit thật chạy dù không có lệnh cài nào thực thi.
+// Regression: glob *"pnpm install"*/*"yarn add"*... used to match words inside heredoc bodies, quoted strings,
+// commit messages, echo/grep -- so a real audit ran even though no install command executed.
 test('install words inside heredoc data, quoted arguments or messages do not run any audit', context => {
   for (const command of [
-    "git commit -F - <<'EOF'\nfix: chặn pnpm install chạy nhầm\nEOF",
+    "git commit -F - <<'EOF'\nfix: block pnpm install running by mistake\nEOF",
     "python3 - <<'EOF'\nprint(\"yarn add x\")\nEOF",
     'echo "composer require foo"',
     'grep -r "pip install" .',

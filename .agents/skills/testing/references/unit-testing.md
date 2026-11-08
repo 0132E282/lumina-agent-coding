@@ -1,46 +1,46 @@
 # 🧪 Testing Strategy
 
-Code test/helper tuân thủ type, comment, DRY/SRP và readability trong [`coding-standards`](../../coding-standards/SKILL.md). Khi chạy nhiều module/case, giữ đủ case accounting và chỉ hạ concurrency vì dependency/state/rate-limit/tài nguyên có bằng chứng.
+Test code/helpers follow type, comment, DRY/SRP and readability in [`coding-standards`](../../coding-standards/SKILL.md). When running many modules/cases, keep full case accounting and lower concurrency only for dependency/state/rate-limit/resource reasons with evidence.
 
-Khi kiểm thử hộp đen theo module/tính năng và lập lịch nhiều module, áp dụng thêm [`testcase` mục 7.1](./testcase.md#71-hộp-đen-và-lập-lịch-khi-thực-thi).
+When black-box testing by module/feature and scheduling many modules, also apply [`testcase` section 7.1](./testcase.md#71-black-box-and-scheduling-at-execution).
 
-Lớp **kỹ thuật viết test code** khi implement — khác [`qa-tester`](../../../agents/qa-tester.md) (thiết kế ca kiểm thử **nghiệp vụ** từ đặc tả). Skill này không quan tâm case nghiệp vụ nào cần test, chỉ quan tâm cách viết test đúng kỹ thuật cho một đơn vị code.
+The **technique layer for writing test code** when implementing — different from [`qa-tester`](../../../agents/qa-tester.md) (designs **business** test cases from specs). This skill does not care which business cases need testing, only how to write technically correct tests for one unit of code.
 
-## Nguyên tắc bắt buộc
+## Mandatory principles
 
-- Test **hành vi** (input/output), không test chi tiết triển khai — đổi cách viết nội bộ hàm mà không đổi input/output thì test không được fail.
-- Sửa bug → viết test tái hiện bug **trước**, thấy fail, rồi fix tới khi pass ([`rules/delivery`](../../../rules/delivery.md#chất-lượng-và-bằng-chứng)).
-- Độ phủ theo **rủi ro**, không theo % cứng — ưu tiên business logic/edge case/luồng tiền-dữ liệu nhạy cảm, bỏ qua getter/setter/CRUD đã cover gián tiếp.
-- Rule of Three cho test fixture/helper ([`rules/coding`](../../../rules/coding.md#nguyên-tắc-code)) — không gom chung từ lần lặp thứ 2.
+- Test **behavior** (input/output), not implementation details — changing a function's internals without changing input/output must not fail the test.
+- Bug fix → write a bug-reproducing test **first**, see it fail, then fix until it passes ([`rules/delivery`](../../../rules/delivery.md#quality-and-evidence)).
+- Coverage by **risk**, not a fixed % — prioritize business logic/edge cases/money-and-sensitive-data flows, skip getters/setters/CRUD indirectly covered.
+- Rule of Three for test fixtures/helpers ([`rules/coding`](../../../rules/coding.md#coding-principles)) — do not share from the 2nd repetition.
 
-## Chọn test double
+## Choosing test doubles
 
-| Loại | Dùng khi |
+| Type | Use when |
 |---|---|
-| **Stub** | Chỉ cần trả dữ liệu giả cố định, không quan tâm cách nó được gọi |
-| **Mock** | Cần xác nhận tương tác đã xảy ra đúng (gọi đúng hàm/tham số/số lần) |
-| **Fake** | Cần bản triển khai nhẹ, hoạt động thật nhưng không hợp production (in-memory DB thay SQL) |
-| **Spy** | Chạy hành vi thật **và** ghi lại lời gọi để kiểm tra sau |
+| **Stub** | Only need fixed fake data, do not care how it is called |
+| **Mock** | Need to confirm the interaction happened correctly (right function/params/count) |
+| **Fake** | Need a lightweight implementation that works for real but is unfit for production (in-memory DB instead of SQL) |
+| **Spy** | Run real behavior **and** record calls to check later |
 
-Chỉ double hóa dependency **không xác định/không kiểm soát được** (I/O thật, `Date.now()`, số ngẫu nhiên, env thay đổi). Logic nội bộ thuần test trực tiếp — mock quá tay làm test chỉ còn xác nhận lại mock ([`rules/coding`](../../../rules/coding.md#kiss-yagni-và-phạm-vi)).
+Double only **unknown/uncontrolled** dependencies (real I/O, `Date.now()`, random numbers, changing env). Test pure internal logic directly — over-mocking leaves tests only re-confirming the mock ([`rules/coding`](../../../rules/coding.md#kiss-yagni-and-scope)).
 
-## Cấu trúc test
+## Test structure
 
-**Arrange–Act–Assert**: tên test mô tả hành vi + điều kiện (`should_X_when_Y`, không mô tả cách triển khai); mỗi test tập trung một khái niệm hành vi, hành vi không liên quan thì tách test riêng.
+**Arrange–Act–Assert**: test name describes behavior + condition (`should_X_when_Y`, not implementation); each test focuses on one behavior concept, unrelated behavior gets a separate test.
 
-## Hộp đen và chạy song song theo tính năng
+## Black-box and per-feature parallel runs
 
-Khi task kiểm thử theo module/tính năng, áp dụng [`testcase` mục 7.1](./testcase.md#71-hộp-đen-và-lập-lịch-khi-thực-thi) làm nguồn chuẩn cho thiết kế hộp đen, lập lịch toàn bộ module, chia case và đối soát kết quả.
+When testing by module/feature, apply [`testcase` section 7.1](./testcase.md#71-black-box-and-scheduling-at-execution) as the standard source for black-box design, scheduling all modules, splitting cases and reconciling results.
 
-## Dấu hiệu test có vấn đề
+## Signs of a bad test
 
-- Luôn pass dù code sai (thiếu assert thật, hoặc assert hiển nhiên đúng).
-- Flaky do `Date.now()`/`Math.random()`/thứ tự chạy không seed/cách ly.
-- Phụ thuộc trạng thái test khác chạy trước (fail khi đổi thứ tự).
-- Mock quá nhiều tới mức chỉ còn xác nhận lại chính mock.
+- Always passes even when the code is wrong (no real assert, or an obviously true assert).
+- Flaky due to `Date.now()`/`Math.random()`/unseeded run order/isolation.
+- Depends on state from another test run earlier (fails when order changes).
+- So much mocking that it only re-confirms the mock itself.
 
-## Khi áp dụng
+## When to apply
 
-- Sau khi viết/sửa logic mới cần test kỹ thuật, hoặc ngay sau khi fix bug (regression test).
-- Khi review test hiện có nghi giả/flaky — rà theo mục "Dấu hiệu" trên.
-- Không dùng cho thiết kế ca kiểm thử nghiệp vụ (→ `qa-tester`) hay chọn pattern kiến trúc (→ [`design-patterns`](../../design-patterns/SKILL.md)).
+- After writing/changing new logic that needs technical tests, or right after a bug fix (regression test).
+- When reviewing existing tests suspected fake/flaky — check against the "Signs" section above.
+- Not for business test case design (→ `qa-tester`) or choosing architecture patterns (→ [`design-patterns`](../../design-patterns/SKILL.md)).

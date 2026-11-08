@@ -140,8 +140,8 @@ test('appends one line per call when invoked through the .agents/hooks/scripts s
   assert.ok(fs.readFileSync(path.join(project, logRelativePath), 'utf8').endsWith('\n'));
 });
 
-// Regression: audit-log.sh từng ghi nguyên 200 ký tự đầu của Bash command, kể cả secret.
-// Giá trị giả được ghép chuỗi để không giống secret thật trong source.
+// Regression: audit-log.sh used to log the first 200 characters of a Bash command verbatim, secrets included.
+// The fake value is built by string concatenation so it does not look like a real secret in the source.
 const FAKE_SECRET = 'FAKE' + 'value' + '1234567890';
 
 function loggedCommand(context, command) {

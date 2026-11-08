@@ -1,6 +1,6 @@
 ---
-title: Rút gọn toàn bộ rule và chuyển chi tiết sang skill
-description: Testcase cấp repository để kiểm tra rule mỏng, semantic owner, reference và cấu hình runtime sau khi refactor.
+title: Compact all rules and move details into skills
+description: Repository-level testcases to verify thin rules, semantic owners, references and runtime configuration after the refactor.
 tags:
   - agent-rules
   - skills
@@ -8,40 +8,40 @@ tags:
   - regression
 ---
 
-# Rút gọn toàn bộ rule và chuyển chi tiết sang skill
+# Compact all rules and move details into skills
 
-Trạng thái thực thi: **Not Run**. Tài liệu này chỉ thiết kế testcase từ cấu hình và luồng thực tế sau triển khai.
+Execution status: **Not Run**. This document only designs testcases from the real configuration and flows after implementation.
 
 ## Test cases
 
-### TC-RULE-001 — Inventory và cấu trúc rule mỏng
+### TC-RULE-001 — Inventory and thin rule structure
 
-- Tiền điều kiện: repository ở trạng thái sau triển khai plan.
-- Bước: liệt kê `.agents/rules/*.md`, đếm file và đọc từng rule.
-- Kết quả mong đợi: có đủ 18 rule; mỗi rule chỉ giữ trigger/phạm vi, invariant/policy cốt lõi và pointer tới owner; không còn ví dụ hoặc checklist vận hành dài.
-- Trạng thái: Not Run.
+- Precondition: repository is in the post-implementation state of the plan.
+- Steps: list `.agents/rules/*.md`, count files and read each rule.
+- Expected: all 18 rules present; each rule keeps only trigger/scope, core invariant/policy and a pointer to its owner; no long examples or operational checklists remain.
+- Status: Not Run.
 
-### TC-RULE-002 — Bảo toàn semantics tại skill/role owner
+### TC-RULE-002 — Semantics preserved at skill/role owner
 
-- Tiền điều kiện: có semantic mapping trong plan triển khai.
-- Bước: truy từng pointer từ rule tới skill/role, tìm các invariant Git authorization/conflict, scope authorization, report gate, plan schema, `any`, Rule of Three, comment label/length, UI evidence, database read-only, transaction, case accounting, docs registry, no-fabrication và response format.
-- Kết quả mong đợi: mọi semantics trước refactor tồn tại đúng một owner chính hoặc pointer rõ; không xuất hiện policy mới hay mất constraint.
-- Trạng thái: Not Run.
+- Precondition: a semantic mapping exists in the implementation plan.
+- Steps: trace each pointer from rule to skill/role, look for these invariants: Git authorization/conflict, scope authorization, report gate, plan schema, `any`, Rule of Three, comment label/length, UI evidence, database read-only, transaction, case accounting, docs registry, no-fabrication and response format.
+- Expected: every pre-refactor semantic exists in exactly one primary owner or a clear pointer; no new policy appears and no constraint is lost.
+- Status: Not Run.
 
-### TC-RULE-003 — Runtime adapter và reference
+### TC-RULE-003 — Runtime adapter and reference
 
-- Bước: chạy `python3 scripts/check-agent-config.py`, scan relative link và tên rule cũ `commit-discipline`/`pull-request-conflict`.
-- Kết quả mong đợi: checker thành công; symlink/adapters hợp lệ; không còn stale reference ngoài lịch sử mô tả plan có chủ đích.
-- Trạng thái: Not Run.
+- Steps: run `python3 scripts/check-agent-config.py`, scan relative links and the old rule names `commit-discipline`/`pull-request-conflict`.
+- Expected: checker succeeds; symlinks/adapters valid; no stale references outside intentional plan history descriptions.
+- Status: Not Run.
 
-### TC-RULE-004 — Regression checks repository
+### TC-RULE-004 — Repository regression checks
 
-- Bước: chạy `npm run check`, `npm test`, JSON validation, final-newline checker trên file text thay đổi và `git diff --check`.
-- Kết quả mong đợi: mọi lệnh thành công; JSON parse được; không có whitespace/newline error.
-- Trạng thái: Not Run.
+- Steps: run `npm run check`, `npm test`, JSON validation, final-newline checker on changed text files and `git diff --check`.
+- Expected: all commands succeed; JSON parses; no whitespace/newline errors.
+- Status: Not Run.
 
-### TC-RULE-005 — Scope và dirty-work preservation
+### TC-RULE-005 — Scope and dirty-work preservation
 
-- Bước: so `git status --short`, `git diff` và `git diff --cached` với baseline trước triển khai.
-- Kết quả mong đợi: không commit/push; deleted Git rules vẫn deleted; các hunk có sẵn trong `bin/lumina-agent.mjs`, `tests/lumina-agent.test.mjs`, Git/database/dependency/hook được giữ; không có product-code diff mới ngoài scope.
-- Trạng thái: Not Run.
+- Steps: compare `git status --short`, `git diff` and `git diff --cached` against the pre-implementation baseline.
+- Expected: no commit/push; deleted Git rules remain deleted; existing hunks in `bin/lumina-agent.mjs`, `tests/lumina-agent.test.mjs`, Git/database/dependency/hook are kept; no new product-code diff outside scope.
+- Status: Not Run.

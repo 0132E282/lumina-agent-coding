@@ -43,7 +43,7 @@ function subagentLabel(block) {
 }
 
 function subagentEvidence(labels) {
-  const text = `${labels.length} lần gọi subagent`;
+  const text = `${labels.length} subagent calls`;
   if (labels.every(label => subagentToolNames.has(label))) return text;
   return `${text}: ${labels.slice(0, 5).join(' | ')}${labels.length > 5 ? ' | …' : ''}`;
 }
@@ -54,7 +54,7 @@ function resultLength(content) {
   return content.reduce((total, part) => total + (typeof part?.text === 'string' ? part.text.length : 0), 0);
 }
 
-// includeSidechain dùng khi đo chính transcript của subagent (mọi dòng đều isSidechain).
+// includeSidechain is used when measuring the subagent's own transcript (every line is isSidechain).
 export function measure(lines, sinceLine, criteria, { includeSidechain = false } = {}) {
   const messages = new Map();
   const reads = new Map();
@@ -108,10 +108,10 @@ export function measure(lines, sinceLine, criteria, { includeSidechain = false }
   for (const [command, times] of commands) {
     if (times >= criteria.repeatCommand) waste.push({ rule: 'repeatCommand', evidence: truncate(command), count: times });
   }
-  for (const size of bigResults) waste.push({ rule: 'bigToolResult', evidence: `${size} ký tự`, count: 1 });
+  for (const size of bigResults) waste.push({ rule: 'bigToolResult', evidence: `${size} chars`, count: 1 });
   if (subagentCalls >= criteria.subagentCalls) waste.push({ rule: 'subagentCalls', evidence: subagentEvidence(subagentLabels), count: subagentCalls });
   if (usage.cacheCreate >= criteria.cacheMinTokens && usage.cacheCreate > criteria.cacheCreateOverRead * usage.cacheRead) {
-    waste.push({ rule: 'cacheCreateOverRead', evidence: `cache tạo ${usage.cacheCreate} > cache đọc ${usage.cacheRead}`, count: 1 });
+    waste.push({ rule: 'cacheCreateOverRead', evidence: `cache create ${usage.cacheCreate} > cache read ${usage.cacheRead}`, count: 1 });
   }
   return { usage, waste };
 }
@@ -130,7 +130,7 @@ function main() {
   }
 }
 
-// * So bằng realpath vì có thể được gọi qua symlink .claude/skills → .agents/skills; khi bị import thì không chạy CLI.
+// * Compare by realpath since it may be invoked via the symlink .claude/skills → .agents/skills; do not run the CLI when imported.
 if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   try {
     main();

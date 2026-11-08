@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# Validate commit message theo rules/git.md:
-#   - Tiêu đề (subject) dạng "<type>: <mô tả>"
-#   - Tiêu đề không quá 75 ký tự
+# Validate a commit message per rules/git.md:
+#   - Subject in the form "<type>: <description>"
+#   - Subject no longer than 75 characters
 #
-# Dùng được theo 2 cách:
-#   1. Làm git commit-msg hook:  ./validate-commit-message.sh "$1"
-#      (git truyền path tới file chứa commit message vào $1)
-#   2. Đứng riêng, đọc từ stdin: echo "feat: ..." | ./validate-commit-message.sh -
+# Can be used two ways:
+#   1. As a git commit-msg hook:  ./validate-commit-message.sh "$1"
+#      (git passes the path to the file containing the commit message in $1)
+#   2. Standalone, reading stdin: echo "feat: ..." | ./validate-commit-message.sh -
 #
-# Exit 0 nếu hợp lệ, exit 1 kèm danh sách lỗi (in ra stderr) nếu vi phạm.
+# Exit 0 if valid, exit 1 with the list of errors (printed to stderr) if violated.
 
 set -euo pipefail
 
@@ -23,33 +23,33 @@ else
   message="$(cat "$input_source")"
 fi
 
-# Bỏ qua dòng comment (git commit -v chèn sẵn các dòng "# ...")
+# Skip comment lines (git commit -v inserts "# ..." lines)
 subject="$(printf '%s\n' "$message" | sed '/^#/d' | sed -n '1p')"
 
 errors=()
 
 if [ -z "$subject" ]; then
-  errors+=("Thiếu tiêu đề commit (subject rỗng).")
+  errors+=("Missing commit subject (empty subject).")
 fi
 
 if ! printf '%s' "$subject" | grep -qE "^(${ALLOWED_TYPES})(\([a-z0-9_-]+\))?: .+"; then
-  errors+=("Tiêu đề phải theo format '<type>: <mô tả>' với type thuộc [${ALLOWED_TYPES//|/, }]. Nhận được: \"${subject}\"")
+  errors+=("Subject must follow the format '<type>: <description>' with type in [${ALLOWED_TYPES//|/, }]. Got: \"${subject}\"")
 fi
 
 subject_length=${#subject}
 if [ "$subject_length" -gt "$MAX_SUBJECT_LENGTH" ]; then
-  errors+=("Tiêu đề dài ${subject_length} ký tự, vượt giới hạn ${MAX_SUBJECT_LENGTH} ký tự.")
+  errors+=("Subject is ${subject_length} characters, exceeding the ${MAX_SUBJECT_LENGTH}-character limit.")
 fi
 
 if [ "${#errors[@]}" -gt 0 ]; then
-  echo "❌ Commit message vi phạm rules/git.md:" >&2
+  echo "❌ Commit message violates rules/git.md:" >&2
   for e in "${errors[@]}"; do
     echo "  - ${e}" >&2
   done
   echo "" >&2
-  echo "Ví dụ hợp lệ: \"feat: thêm hook tự động format code bằng Prettier sau khi edit\"" >&2
+  echo "Valid example: \"feat: add hook to auto-format code with Prettier after edit\"" >&2
   exit 1
 fi
 
-echo "✅ Commit message hợp lệ."
+echo "✅ Commit message is valid."
 exit 0

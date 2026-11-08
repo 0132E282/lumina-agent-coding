@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# Stop hook: khi context window của phiên đã dùng >= 80% (đo qua
-# remind-cleanup-context.mjs), nhắc dọn file tạm/scratch nếu phát hiện file có
-# vẻ là rác đã được Write trong session này, giới hạn đúng phạm vi dự án hiện
-# tại — liên hệ skill cleanup-temp-files. CHỈ nhắc qua additionalContext, KHÔNG tự xóa
-# gì và KHÔNG dùng decision/reason (những field đó sẽ chặn Claude dừng lại).
+# Stop hook: when the session's context window has used >= 80% (measured via
+# remind-cleanup-context.mjs), remind to clean up temp/scratch files if it detects files that
+# look like junk Written in this session, limited to the current project
+# scope -- see skill cleanup-temp-files. ONLY reminds via additionalContext, does NOT delete
+# anything and does NOT use decision/reason (those fields would block Claude from stopping).
 #
-# Nhận JSON input từ stdin theo schema Stop: { "session_id": "...", "transcript_path": "...", ... }
+# Reads JSON input from stdin per the Stop schema: { "session_id": "...", "transcript_path": "...", ... }
 #
-# Mỗi file chỉ nhắc một lần mỗi session: path đã nhắc lưu tại
-# .agents/storage/state/<session_id>.cleanup-reminded (một path mỗi dòng).
+# Each file is reminded only once per session: reminded paths are stored in
+# .agents/storage/state/<session_id>.cleanup-reminded (one path per line).
 #
-# Luôn exit 0 — hook phụ trợ, không bao giờ chặn việc Claude Code dừng lại.
+# Always exit 0 -- auxiliary hook, never blocks Claude Code from stopping.
 
-# ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+# ! Skip if the project already has the same hook (avoid running twice with the user-level copy).
 . "$(dirname "$0")/_dedupe-guard.sh"
 
 set -o pipefail
@@ -47,7 +47,7 @@ fi
 state_directory="$log_root/.agents/storage/state"
 reminded_file="$state_directory/$session_id.cleanup-reminded"
 
-# File rỗng bị bỏ qua: grep BSD coi `-f <file rỗng>` là khớp mọi dòng.
+# Empty files are skipped: BSD grep treats `-f <empty file>` as matching every line.
 if [ -s "$reminded_file" ]; then
   found="$(printf '%s\n' "$found" | grep -vxF -f "$reminded_file" || true)"
 fi
@@ -56,13 +56,13 @@ fi
 count="$(printf '%s\n' "$found" | grep -c . || true)"
 preview="$(printf '%s\n' "$found" | head -5 | tr '\n' ' ')"
 
-jq -n --arg msg "🧹 Context đã dùng ${context_usage}. Phát hiện ${count} file có vẻ là file tạm được tạo trong session này: ${preview}— chạy skill cleanup-temp-files nếu không cần giữ lại." '{
+jq -n --arg msg "🧹 Context used ${context_usage}. Detected ${count} file(s) that look like temp files created in this session: ${preview}-- run skill cleanup-temp-files if they need not be kept." '{
   hookSpecificOutput: {
     hookEventName: "Stop",
     additionalContext: $msg
   }
 }'
 
-# Best-effort: ghi state lỗi thì lần sau nhắc lại, không chặn Stop.
+# Best-effort: if writing state fails the reminder repeats next time; does not block Stop.
 { mkdir -p "$state_directory" && printf '%s\n' "$found" >> "$reminded_file"; } 2>/dev/null || true
 exit 0

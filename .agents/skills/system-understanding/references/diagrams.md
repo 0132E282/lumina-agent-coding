@@ -1,44 +1,44 @@
 # System Diagrams
 
-Tạo sơ đồ Mermaid từ cấu trúc và contract đã xác minh trong repository. Sơ đồ là cách nén quan hệ và luồng để giảm tải context, giúp AI và người đọc quét cấu trúc nhanh hơn. Chọn đúng loại sơ đồ theo phạm vi; không dùng sơ đồ để bù cho phần chưa khảo sát.
+Create Mermaid diagrams from structure and contracts verified in the repository. Diagrams compress relations and flows to cut context load, helping AI and readers scan structure faster. Pick the right diagram type for the scope; never use diagrams to cover unsurveyed parts.
 
-## Loại sơ đồ
+## Diagram types
 
-- **Cấu trúc thư mục**: thể hiện thư mục cấp cao, module, entry point và trách nhiệm chính.
-- **ERD database**: thể hiện entity/collection, PK/FK hoặc key, cardinality, index liên quan và quan hệ đã xác minh.
-- **User/system flow**: thể hiện actor, entry point, validation/auth, service/module, database/external service, output và side effect.
+- **Directory structure**: shows high-level directories, modules, entry points and main responsibilities.
+- **Database ERD**: shows entities/collections, PK/FK or keys, cardinality, relevant indexes and verified relations.
+- **User/system flow**: shows actor, entry point, validation/auth, service/module, database/external service, output and side effects.
 
-## Quy trình
+## Process
 
-1. Đọc file nguồn liên quan: manifest, route, module, schema/model, query, API contract và tài liệu hiện có.
-2. Xác định phạm vi sơ đồ và ghi nguồn căn cứ bằng path/file/dòng khi có thể.
-3. Tách **Đã xác minh**, **Giả định** và **Chưa đủ dữ liệu**; không tự đặt field, quan hệ, actor hoặc service.
-4. Vẽ Mermaid với nhãn ngắn, hướng đi rõ và chỉ giữ thành phần cần thiết để hiểu quan hệ.
-5. Nếu không có database hoặc user/system flow trong phạm vi, ghi `Không áp dụng`. Nếu thiếu schema, ghi `Chưa đủ dữ liệu để vẽ ERD`.
-6. Đối chiếu sơ đồ với file nguồn trước khi bàn giao; sửa node/edge sai hoặc bỏ phần chưa có bằng chứng.
+1. Read relevant source files: manifest, routes, modules, schema/models, queries, API contracts and existing docs.
+2. Determine the diagram scope and record the basis by path/file/line when possible.
+3. Separate **Verified**, **Assumption** and **Insufficient data**; never invent fields, relations, actors or services.
+4. Draw Mermaid with short labels, clear direction and only the components needed to understand the relation.
+5. If the scope has no database or user/system flow, write `Not applicable`. If schema is missing, write `Insufficient data to draw ERD`.
+6. Check the diagram against source files before handoff; fix wrong nodes/edges or drop parts lacking evidence.
 
-## Khi sơ đồ giúp giảm tải
+## When diagrams reduce load
 
-- Ưu tiên sơ đồ khi có từ 3 thành phần liên quan, nhiều bước tuần tự, hierarchy hoặc dependency/cross-module khó theo dõi bằng đoạn văn.
-- Không vẽ mọi chi tiết; giữ node/edge đủ để trả lời câu hỏi của tài liệu.
-- Dùng prose cho mục đích, giả định, constraint, caveat và kết luận; không chép lại toàn bộ sơ đồ thành danh sách dài.
+- Prefer diagrams with 3 or more related components, many sequential steps, hierarchy or cross-module dependencies hard to follow in prose.
+- Do not draw every detail; keep enough nodes/edges to answer the doc's question.
+- Use prose for purpose, assumptions, constraints, caveats and conclusions; never copy the whole diagram into a long list.
 
-## Mẫu đầu ra
+## Output template
 
 ```markdown
-### Sơ đồ [cấu trúc thư mục / ERD / user flow]
+### Diagram [directory structure / ERD / user flow]
 
-**Nguồn**: `[file hoặc phạm vi đã đọc]`
-**Trạng thái**: Đã xác minh / Có giả định / Chưa đủ dữ liệu
+**Source**: `[file or scope read]`
+**Status**: Verified / Has assumptions / Insufficient data
 
 ```mermaid
 flowchart TD
-    A[Thành phần đã xác minh] --> B[Quan hệ đã xác minh]
+    A[Verified component] --> B[Verified relation]
 ```
 ```
 
-## Giới hạn
+## Limits
 
-- Không tự thiết kế HLD/LLD mới; khi cần phương án kiến trúc, bàn giao cho `architect`.
-- Không chạy migration, đổi schema/index hoặc truy cập database production để vẽ sơ đồ.
-- Không kết luận ownership, cardinality, quyền hoặc flow chỉ từ tên file.
+- Never design new HLD/LLD; for architecture options, hand off to `architect`.
+- Never run migrations, change schema/index or access the production database to draw diagrams.
+- Never conclude ownership, cardinality, permissions or flow from file names alone.

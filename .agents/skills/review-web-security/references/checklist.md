@@ -1,143 +1,143 @@
-# Checklist bảo mật chi tiết
+# Detailed security checklist
 
-Đánh dấu mỗi mục theo trạng thái: `Đạt`, `Lỗi xác nhận`, `Không áp dụng`. Với `Đạt` hoặc `Lỗi xác nhận`, dẫn bằng chứng; với `Không áp dụng`, nêu lý do ngắn. Gom những mục cùng nguyên nhân thành một finding.
+Mark each item with status: `Pass`, `Confirmed bug`, `Not applicable`. For `Pass` or `Confirmed bug`, cite evidence; for `Not applicable`, give a short reason. Merge items with the same cause into one finding.
 
-## A. Xác thực và tài khoản
+## A. Authentication and accounts
 
-- Mật khẩu plaintext, hash nhanh/không phù hợp, credential mặc định hoặc yếu.
-- Brute force, credential stuffing; thiếu giới hạn lượt thử và phát hiện lạm dụng.
-- User enumeration qua response, thời gian hoặc luồng reset/đăng ký.
-- Reset token dễ đoán, không hết hạn, dùng lại được hoặc không gắn đúng tài khoản.
-- Đổi mật khẩu/email và liên kết tài khoản thiếu xác minh phù hợp.
-- OTP/MFA thiếu giới hạn, hết hạn, dùng một lần; bypass qua endpoint phụ/recovery.
-- OAuth/OIDC kiểm tra sai redirect URI, state, nonce, PKCE, issuer hoặc audience.
-- JWT không kiểm tra đúng chữ ký, thuật toán cho phép, issuer, audience, thời hạn.
-- Session/token còn hiệu lực trái chính sách sau logout, khóa tài khoản, đổi quyền hoặc đổi mật khẩu.
-- API key dùng chung, quyền rộng, lộ hoặc thiếu thu hồi/xoay vòng.
+- Plaintext passwords, fast/unsuitable hash, default or weak credentials.
+- Brute force, credential stuffing; missing attempt limits and abuse detection.
+- User enumeration via response, timing or reset/registration flow.
+- Guessable reset tokens, no expiry, reusable or not bound to the right account.
+- Password/email change and account linking lacking proper verification.
+- OTP/MFA lacking limits, expiry, single use; bypass via side endpoints/recovery.
+- OAuth/OIDC wrongly checking redirect URI, state, nonce, PKCE, issuer or audience.
+- JWT not properly checking signature, allowed algorithms, issuer, audience, expiry.
+- Session/token still valid against policy after logout, account lock, permission change or password change.
+- Shared API keys, broad permissions, leaked or lacking revocation/rotation.
 
-## B. Session, cookie và CSRF
+## B. Session, cookie and CSRF
 
-- Session fixation; không regenerate session sau xác thực hoặc nâng quyền.
-- Thiếu idle/absolute timeout phù hợp; logout không vô hiệu hóa session server.
-- Cookie thiếu Secure/HttpOnly/SameSite phù hợp; domain/path quá rộng.
-- Token/session xuất hiện trong URL, log, referrer hoặc analytics.
-- CSRF trên thao tác dùng credential tự động gửi như cookie; GET có side effect.
-- WebSocket dùng cookie nhưng thiếu kiểm tra origin phù hợp.
-- Cơ chế chống CSRF có nhưng endpoint liên quan được miễn sai hoặc có đường bypass.
+- Session fixation; no session regeneration after authentication or privilege elevation.
+- Missing suitable idle/absolute timeout; logout does not invalidate the server session.
+- Cookies missing suitable Secure/HttpOnly/SameSite; domain/path too broad.
+- Token/session appearing in URL, log, referrer or analytics.
+- CSRF on operations using auto-sent credentials such as cookies; GET with side effects.
+- WebSocket using cookies but lacking proper origin checks.
+- CSRF protection exists but related endpoints are wrongly exempt or have a bypass.
 
-## C. Phân quyền và cách ly dữ liệu
+## C. Authorization and data isolation
 
-- IDOR/BOLA: truy cập đối tượng của người khác qua ID hoặc quan hệ.
-- BFLA: role thấp gọi chức năng quản trị; chỉ kiểm tra quyền ở UI.
-- Endpoint thiếu xác thực: route mới mặc định cho phép thay vì mặc định chặn; middleware auth gắn từng route nên dễ sót; route API/admin/internal gọi được khi chưa đăng nhập.
-- Thiếu quyền đọc/sửa field; mass assignment role, owner, tenant, giá hoặc trạng thái.
-- Tin user_id/tenant_id/role từ client thay vì danh tính và ngữ cảnh được xác minh.
-- Thiếu tenant scope ở query, cache, storage, search, export hoặc job.
-- Bulk action chỉ kiểm tra một phần bản ghi; export/download/restore/preview bỏ qua quyền.
-- Model/module/relation/action động không có allowlist và policy tương ứng.
-- Quyền cũ còn trong cache; default allow khi policy thiếu hoặc kiểm tra lỗi.
-- Tài liệu riêng tư có URL công khai; signed URL không ràng buộc phạm vi/thời hạn phù hợp.
+- IDOR/BOLA: accessing others' objects via ID or relations.
+- BFLA: low role calling admin functions; permission checked only in UI.
+- Endpoints missing authentication: new routes default allow instead of default deny; per-route auth middleware easy to miss; API/admin/internal routes callable when not logged in.
+- Missing field read/write permission; mass assignment of role, owner, tenant, price or status.
+- Trusting user_id/tenant_id/role from the client instead of verified identity and context.
+- Missing tenant scope in query, cache, storage, search, export or job.
+- Bulk action checking only some records; export/download/restore/preview bypassing permissions.
+- Dynamic model/module/relation/action without allowlist and matching policy.
+- Stale permissions in cache; default allow when policy is missing or the check errors.
+- Private documents with public URLs; signed URLs not bound to suitable scope/expiry.
 
-## D. Injection và xử lý input backend
+## D. Injection and backend input handling
 
-- SQL/NoSQL injection; ghép raw query hoặc cho phép operator/query tùy ý.
-- OS command/code/expression injection; eval, shell hoặc script động từ input.
-- Server-side template injection; input trở thành template thực thi.
-- LDAP/XPath/XML injection; XXE qua parser cho phép external entity.
-- Unsafe deserialization hoặc prototype pollution khi input tác động object/config nhạy cảm.
+- SQL/NoSQL injection; raw query concatenation or allowing arbitrary operators/queries.
+- OS command/code/expression injection; eval, shell or dynamic script from input.
+- Server-side template injection; input becoming an executed template.
+- LDAP/XPath/XML injection; XXE via parsers allowing external entities.
+- Unsafe deserialization or prototype pollution when input affects sensitive objects/config.
 - CRLF/HTTP header/email header injection; log injection.
-- CSV/formula injection khi export dữ liệu không đáng tin.
-- Dynamic sort/filter/table/column/relation không giới hạn; nhầm giá trị với identifier.
-- Validation thiếu kiểu, chiều dài, miền giá trị, cấu trúc lồng nhau hoặc canonicalization cần thiết.
+- CSV/formula injection when exporting untrusted data.
+- Unbounded dynamic sort/filter/table/column/relation; confusing values with identifiers.
+- Validation lacking type, length, value domain, nested structure or needed canonicalization.
 
-## E. Frontend và trình duyệt
+## E. Frontend and browser
 
-- Stored/reflected/DOM XSS; encode không đúng ngữ cảnh HTML, attribute, URL hoặc JavaScript.
-- innerHTML, dangerouslySetInnerHTML, v-html, document.write nhận dữ liệu chưa xử lý an toàn.
-- Rich text/Markdown/SVG dùng sanitizer không phù hợp hoặc có cấu hình bypass.
-- HTML injection, URL scheme nguy hiểm, DOM clobbering; eval/new Function từ input.
-- postMessage không kiểm tra chính xác origin, source và schema dữ liệu.
-- Clickjacking trên thao tác nhạy cảm; open redirect hỗ trợ lừa đảo.
-- Secret/private key nhúng trong bundle hoặc biến môi trường frontend.
-- Token/storage có mô hình bảo vệ không phù hợp; XSS có thể đọc dữ liệu hoặc gọi API thay user.
-- Dữ liệu nhạy cảm vào analytics, URL, source map công khai hoặc error report.
-- Browser/service worker cache giữ dữ liệu giữa user hoặc sau logout.
-- Script bên thứ ba thiếu kiểm soát nguồn/toàn vẹn phù hợp; CSP quá rộng.
-- Tin dữ liệu API là an toàn để render; tin hidden field hoặc frontend validation.
+- Stored/reflected/DOM XSS; wrong encoding for HTML, attribute, URL or JavaScript context.
+- innerHTML, dangerouslySetInnerHTML, v-html, document.write receiving data not safely handled.
+- Rich text/Markdown/SVG using unsuitable sanitizer or with bypass config.
+- HTML injection, dangerous URL schemes, DOM clobbering; eval/new Function from input.
+- postMessage not exactly checking origin, source and data schema.
+- Clickjacking on sensitive operations; open redirect aiding phishing.
+- Secrets/private keys embedded in bundle or frontend environment variables.
+- Token/storage with unsuitable protection model; XSS can read data or call APIs as the user.
+- Sensitive data in analytics, URL, public source maps or error reports.
+- Browser/service worker cache keeping data across users or after logout.
+- Third-party scripts lacking suitable source/integrity control; overly broad CSP.
+- Trusting API data as safe to render; trusting hidden fields or frontend validation.
 
-## F. HTTP, API và tích hợp
+## F. HTTP, API and integrations
 
-- CORS phản chiếu origin hoặc cho origin không đáng tin đọc response có credential.
-- SSRF qua fetch URL, import ảnh, PDF renderer; bỏ qua redirect, DNS hoặc truy cập nội bộ.
-- WebSocket/channel/message thiếu xác thực, quyền hoặc giới hạn tài nguyên.
-- HTTP parameter pollution, parser differential, request smuggling giữa proxy và backend.
-- Host-header poisoning; tin X-Forwarded-* từ nguồn không được cấu hình tin cậy.
-- Webhook thiếu xác minh chữ ký, timestamp, chống replay hoặc đối chiếu sự kiện.
-- API bên thứ ba thiếu schema validation, timeout, giới hạn kích thước hoặc xử lý lỗi an toàn.
-- Endpoint cũ/debug/internal bị lộ; inventory API không đầy đủ.
-- GraphQL resolver thiếu quyền; query depth/complexity/batching không giới hạn phù hợp.
-- Serializer trả field thừa hoặc dữ liệu nhạy cảm ngoài nhu cầu.
+- CORS reflecting origin or letting untrusted origins read credentialed responses.
+- SSRF via URL fetch, image import, PDF renderer; ignoring redirect, DNS or internal access.
+- WebSocket/channel/message lacking authentication, permission or resource limits.
+- HTTP parameter pollution, parser differential, request smuggling between proxy and backend.
+- Host-header poisoning; trusting X-Forwarded-* from unconfigured sources.
+- Webhooks lacking signature verification, timestamp, replay protection or event reconciliation.
+- Third-party APIs lacking schema validation, timeout, size limits or safe error handling.
+- Exposed legacy/debug/internal endpoints; incomplete API inventory.
+- GraphQL resolvers lacking permissions; query depth/complexity/batching not suitably limited.
+- Serializers returning extra fields or sensitive data beyond need.
 
-## G. File và nội dung upload
+## G. Files and uploaded content
 
-- Chỉ tin extension/MIME client; file executable hoặc HTML/SVG chủ động được phục vụ cùng origin.
-- File upload có thể được thực thi; thiếu cách ly storage phù hợp.
-- Path traversal, arbitrary file read/write/overwrite qua đường dẫn hoặc tên file.
-- Zip Slip, archive symlink hoặc decompression bomb.
-- Upload/giải nén/chuyển đổi thiếu giới hạn dung lượng, số file, thời gian và tài nguyên.
-- Parser ảnh/PDF/Office/video có lỗ hổng; công cụ chuyển đổi nhận input nguy hiểm.
-- File tạm, file riêng tư, thumbnail hoặc kết quả chuyển đổi thiếu kiểm soát quyền.
+- Trusting only client extension/MIME; executable files or active HTML/SVG served from the same origin.
+- Uploaded files that can be executed; lacking suitable storage isolation.
+- Path traversal, arbitrary file read/write/overwrite via paths or file names.
+- Zip Slip, archive symlinks or decompression bombs.
+- Upload/extraction/conversion lacking limits on size, file count, time and resources.
+- Vulnerable image/PDF/Office/video parsers; converters accepting dangerous input.
+- Temp files, private files, thumbnails or conversion outputs lacking permission control.
 
-## H. Nghiệp vụ và thanh toán
+## H. Business logic and payments
 
-- Tin giá, thuế, tổng tiền, giảm giá, số dư hoặc payment status do frontend gửi.
-- Không đối chiếu giao dịch với order, amount, currency, merchant và trạng thái từ nguồn tin cậy.
-- Số âm, overflow, rounding/currency sai hoặc số lượng vượt miền hợp lệ.
-- Bypass bước quy trình; sửa đối tượng đã khóa; thiếu kiểm tra chuyển trạng thái.
-- Race condition, double spending, TOCTOU; thiếu transaction/locking/constraint phù hợp ([`rules/backend.md`](../../../rules/backend.md#an-toàn-dữ-liệu)).
-- Thiếu idempotency hoặc chống replay cho thanh toán, webhook, refund và retry.
-- Refund vượt giá trị, nhiều lần; coupon/referral/multi-account abuse.
-- Exception/timeout làm hệ thống fail-open hoặc ghi dữ liệu một phần.
+- Trusting price, tax, total, discount, balance or payment status sent by the frontend.
+- Not reconciling transactions with order, amount, currency, merchant and status from a trusted source.
+- Negative numbers, overflow, wrong rounding/currency or quantities outside the valid domain.
+- Workflow step bypass; editing locked objects; missing state-transition checks.
+- Race condition, double spending, TOCTOU; lacking suitable transaction/locking/constraints ([`rules/backend.md`](../../../rules/backend.md#data-safety)).
+- Lacking idempotency or replay protection for payments, webhooks, refunds and retries.
+- Refunds exceeding value or repeated; coupon/referral/multi-account abuse.
+- Exceptions/timeouts making the system fail-open or write partial data.
 
-## I. Database, dữ liệu và mật mã
+## I. Database, data and cryptography
 
-- Database/cache/search public; tài khoản ứng dụng quá quyền.
-- Backup/dump/snapshot lộ; dữ liệu production đưa sang test không che phù hợp.
-- Mật khẩu, OTP, session, token, PII trong log hoặc telemetry.
-- Thuật toán tự thiết kế, primitive lỗi thời hoặc sử dụng thư viện sai.
-- Random token yếu; nonce/IV dùng lại sai yêu cầu; ciphertext thiếu bảo vệ toàn vẹn.
-- Khóa lộ, quyền rộng, lưu không phù hợp hoặc thiếu lifecycle management.
-- Thiếu bảo vệ dữ liệu nhạy cảm khi truyền/lưu theo threat model.
-- Retention/xóa dữ liệu không nhất quán giữa database, file, cache và bản sao theo chính sách.
+- Public database/cache/search; over-privileged application account.
+- Leaked backup/dump/snapshot; production data moved to test without suitable masking.
+- Passwords, OTP, session, token, PII in logs or telemetry.
+- Home-grown algorithms, outdated primitives or wrong library use.
+- Weak random tokens; nonce/IV reused wrongly; ciphertext lacking integrity protection.
+- Leaked keys, broad permissions, unsuitable storage or lacking lifecycle management.
+- Sensitive data lacking protection in transit/at rest per the threat model.
+- Inconsistent retention/deletion across database, files, cache and copies per policy.
 
-## J. Cache, tài nguyên và availability
+## J. Cache, resources and availability
 
-- Cache key thiếu user/tenant/quyền; private response bị cache dùng chung.
-- Cache poisoning/deception; cache giữ quyền hoặc dữ liệu đã thu hồi.
-- Login/OTP/search/export/SMS/email/AI thiếu rate limit, quota và chống abuse phù hợp.
-- Pagination, GraphQL, filter, regex hoặc request body tạo tải không giới hạn.
-- ReDoS, query nặng, upload lớn, queue flooding hoặc decompression gây cạn tài nguyên.
-- Thiếu timeout, concurrency limit, backpressure; retry storm.
-- Rate limit chỉ dựa IP dễ bypass hoặc khóa nhầm; không kiểm tra giới hạn theo danh tính/nghiệp vụ.
+- Cache key lacking user/tenant/permission; private response cached and shared.
+- Cache poisoning/deception; cache keeping revoked permissions or data.
+- Login/OTP/search/export/SMS/email/AI lacking suitable rate limit, quota and abuse protection.
+- Pagination, GraphQL, filter, regex or request body creating unbounded load.
+- ReDoS, heavy queries, large uploads, queue flooding or decompression exhausting resources.
+- Missing timeout, concurrency limit, backpressure; retry storms.
+- IP-only rate limit easy to bypass or locking wrongly; not checking limits per identity/business.
 
-## K. Hạ tầng và cấu hình
+## K. Infrastructure and configuration
 
-- Debug/profiler bật production; .env, .git, backup, directory listing bị phục vụ công khai.
-- HTTP/TLS cấu hình không phù hợp; backend tắt certificate verification.
-- Bucket/storage/port quản trị/database/dashboard public trái nhu cầu.
-- Container/process chạy quyền cao; service account và filesystem quyền quá rộng.
-- Dev/staging dùng secret hoặc tài nguyên production trái phạm vi.
-- Dangling DNS/subdomain takeover; origin bị truy cập trực tiếp bỏ qua kiểm soát cần thiết.
-- Secret commit vào code/history; thiếu thu hồi secret đã lộ.
-- Runtime/framework/OS không được cập nhật bản vá phù hợp.
+- Debug/profiler on in production; .env, .git, backups, directory listing served publicly.
+- Unsuitable HTTP/TLS config; backend with certificate verification off.
+- Bucket/storage/admin ports/database/dashboard public against need.
+- Containers/processes running with high privilege; service accounts and filesystem too broad.
+- Dev/staging using production secrets or resources outside scope.
+- Dangling DNS/subdomain takeover; origin directly reachable bypassing needed controls.
+- Secrets committed to code/history; no revocation of leaked secrets.
+- Runtime/framework/OS lacking suitable patches.
 
-## L. Supply chain, CI/CD và giám sát
+## L. Supply chain, CI/CD and monitoring
 
-- Dependency trực tiếp/gián tiếp có lỗ hổng khả dụng trong ngữ cảnh ứng dụng.
-- Typosquatting, dependency confusion, package/build script không đáng tin.
-- CI chạy code PR không tin cậy với secret; token runner/deploy quá quyền.
-- Artifact/image/build provenance không được kiểm soát phù hợp.
-- Thiếu audit log cho đổi quyền, truy cập tài liệu, export, thao tác tài chính.
-- Log có thể bị sửa/xóa dễ dàng; thiếu cảnh báo cho hành vi rủi ro.
-- Error response lộ SQL, stack trace, cấu hình hoặc secret.
-- Backup chưa kiểm tra restore; thiếu khả năng thu hồi token/key và xử lý sự cố.
+- Direct/transitive dependencies with vulnerabilities exploitable in the app context.
+- Typosquatting, dependency confusion, untrusted package/build scripts.
+- CI running untrusted PR code with secrets; over-privileged runner/deploy tokens.
+- Artifact/image/build provenance not suitably controlled.
+- Missing audit log for permission changes, document access, export, financial operations.
+- Logs easily edited/deleted; missing alerts for risky behavior.
+- Error responses leaking SQL, stack trace, config or secrets.
+- Backups with untested restore; lacking token/key revocation and incident handling.

@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# Stop hook: phát âm thanh thông báo khi Claude Code làm xong task (turn kết thúc).
+# Stop hook: play a notification sound when Claude Code finishes a task (turn ends).
 #
-# Không cần đọc input JSON (session_id, transcript_path...) vì chỉ cần phát
-# âm thanh — nhưng vẫn drain stdin để tránh broken-pipe warning.
+# No need to read the JSON input (session_id, transcript_path...) since it only plays
+# a sound -- but still drain stdin to avoid a broken-pipe warning.
 #
-# Luôn exit 0 — hook phụ trợ (best-effort), không được chặn Claude Code dừng
-# lại. Stop hook mà exit code 2 sẽ CHẶN Claude dừng — tuyệt đối tránh, nên
-# không dùng `set -e`/`set -u` và có `trap ERR` làm lưới an toàn cuối.
+# Always exit 0 -- auxiliary (best-effort) hook, must not stop Claude Code from
+# stopping. A Stop hook with exit code 2 BLOCKS Claude from stopping -- absolutely avoid, so
+# no `set -e`/`set -u` and a `trap ERR` as the last safety net.
 
-# ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+# ! Skip if the project already has the same hook (avoid running twice with the user-level copy).
 . "$(dirname "$0")/_dedupe-guard.sh"
 
 set -o pipefail
