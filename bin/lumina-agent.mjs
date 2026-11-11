@@ -25,7 +25,7 @@ const instructionBlock = `${startMarker}
 ## Lumina agent framework
 
 - Keep project-specific instructions; Lumina content adds workflow and does not change stack/UI/contract.
-- Read [CONTRACT.md](./CONTRACT.md) before working; before coding read all rules in [.agents/rules/](./.agents/rules/), apply only the relevant parts.
+- Read [CONTRACT.md](./CONTRACT.md) before working; before coding read only the rule files in [.agents/rules/](./.agents/rules/) relevant to the task (e.g. git, frontend, backend), not all of them.
 - Skills use the shared source [.agents/skills/](./.agents/skills/). Claude uses commands directly /review, /git, /cleanup; for planning use Plan mode combined with the workflow-plan skill. Codex uses $workflow-..., Antigravity uses /workflow-... per the actual runtime.
 - When implementing, follow common rules and delegate to the coder role; read the full role docs in [.claude/agents/](./.claude/agents/) before executing. Codex adapters are in [.codex/agents/](./.codex/agents/).
 - On task completion with concrete results: use the report skill; for data-dependent code use complexity-performance before reporting. Real databases are read-only by default.
