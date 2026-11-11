@@ -1,37 +1,37 @@
-# Mẫu đầu ra
+# Output template
 
-Chỉ dùng mục cần thiết theo độ lớn yêu cầu.
+Use only the sections needed for the size of the request.
 
-## 1. Yêu cầu và dữ liệu
+## 1. Requirements and data
 
-Nêu engine/phiên bản, semantics, input/output, schema/index được xác nhận, giả định và thông tin thiếu.
+State engine/version, semantics, input/output, confirmed schema/index, assumptions and missing information.
 
-## 2. Query đề xuất
+## 2. Proposed query
 
-Đưa query native đúng dialect, bindings hoặc payload driver. Với Redis dùng command và key/argument; với MongoDB dùng filter/pipeline; không bắt mọi engine trả SQL. Ghi rõ có thể chạy hay chỉ là mẫu cần chỉnh schema. Cung cấp ORM nếu được yêu cầu.
+Give the native query in the right dialect, bindings or driver payload. For Redis use commands and key/arguments; for MongoDB use filter/pipeline; never force every engine to return SQL. State whether it is runnable or only a sample needing schema adjustment. Provide ORM if requested.
 
-## 3. Đánh giá
+## 3. Assessment
 
-| Query/fingerprint | Finding | Bằng chứng | Tác động dự kiến/đã đo | Tin cậy |
+| Query/fingerprint | Finding | Evidence | Expected/measured impact | Confidence |
 |---|---|---|---|---|
-| ... | ... | SQL/plan/metrics | ... | Quan sát/Giả thuyết/Chưa xác định |
+| ... | ... | SQL/plan/metrics | ... | Observed/Hypothesis/Undetermined |
 
-Giải thích operator, cardinality, scan/sort/join/fan-out và độ phức tạp có điều kiện. Khi thiếu plan, không đưa latency hoặc optimizer cost tưởng tượng.
+Explain operators, cardinality, scan/sort/join/fan-out and conditional complexity. Without a plan, never give imaginary latency or optimizer cost.
 
-## 4. Đề xuất tối ưu
+## 4. Optimization proposals
 
-| Ưu tiên | Thay đổi | Vì sao | Tradeoff | Cách kiểm chứng |
+| Priority | Change | Why | Tradeoff | How to verify |
 |---|---|---|---|---|
 | ... | ... | ... | ... | ... |
 
-Tách query rewrite, index/data model và thay đổi kiến trúc. Cung cấp DDL/index command như đề xuất, không tự áp dụng. Nêu index hiện có trùng/lặp nếu có căn cứ.
+Separate query rewrites, index/data model and architectural changes. Provide DDL/index commands as proposals, never apply them yourself. Point out existing duplicate/redundant indexes if there is basis.
 
-## 5. Kết quả và giới hạn
+## 5. Results and limits
 
-Ghi các kiểm tra thật sự đã chạy, kết quả correctness và trước/sau, số liệu chưa có, rủi ro và bước tiếp theo. Nếu chỉ phân tích tĩnh, nói rõ chưa thực thi.
+Record the checks actually run, correctness results and before/after, missing numbers, risks and next steps. If only static analysis was done, state it was not executed.
 
-## Prompt mẫu
+## Sample prompts
 
-> Từ yêu cầu [nghiệp vụ], schema [đường dẫn] và engine [tên/phiên bản], viết query có tham số. Phân tích correctness, độ phức tạp và nguy cơ query nặng; đề xuất index hoặc rewrite kèm tradeoff. Chưa chạy query hay thay đổi database.
+> From requirement [business], schema [path] and engine [name/version], write a parameterized query. Analyze correctness, complexity and heavy-query risks; propose an index or rewrite with tradeoffs. Do not run the query or change the database.
 
-> Review các query và execution plan đính kèm. Xếp hạng theo metrics có sẵn, xác định bottleneck và đề xuất tối ưu. Không suy đoán số liệu bị thiếu.
+> Review the attached queries and execution plans. Rank by the available metrics, identify the bottleneck and propose optimizations. Do not guess missing numbers.

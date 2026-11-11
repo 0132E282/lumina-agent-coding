@@ -1,25 +1,25 @@
-# Mẫu báo cáo security review
+# Security review report template
 
-Trình bày kết quả đã review theo skill `review-web-security`; không bịa thêm trường. Dạng text, không bảng; giữ đủ chín nhãn mỗi finding.
+Present results reviewed per skill `review-web-security`; never invent fields. Text, no tables; keep all nine labels per finding.
 
 `------------------------`
 
-Finding #1: [Tiêu đề]
+Finding #1: [Title]
 Severity: Critical | High | Medium | Low
-Kết quả: Đúng | Sai
-Vị trí: `path/to/file.ext:line` hoặc route
+Result: Correct | Incorrect
+Location: `path/to/file.ext:line` or route
 
-- Nguyên nhân gốc: [luồng dữ liệu/quyền bị vi phạm]
-- Điều kiện khai thác: [tiền đề + kịch bản tái hiện tối thiểu trong môi trường thử nghiệm]
-- Tác động: [phạm vi dữ liệu/tài khoản/tenant]
-- Cách sửa: [patch hoặc hướng xử lý]
-- Kiểm thử hồi quy: [case hợp lệ vẫn pass / case vượt quyền bị chặn / side effect cần tránh]
-- CWE/OWASP: [mapping nếu xác minh được, bỏ nếu không chắc]
+- Root cause: [violated data flow/permission]
+- Exploit conditions: [preconditions + minimal reproduction scenario in a test environment]
+- Impact: [scope of data/accounts/tenants]
+- Fix: [patch or handling direction]
+- Regression test: [valid case still passes / out-of-permission case blocked / side effects to avoid]
+- CWE/OWASP: [mapping if verifiable, omit if unsure]
 
 `------------------------`
 
-**Tổng quan**: [X] lỗi đã xác nhận, mức cao nhất [mức], phạm vi đã review [...].
+**Overview**: [X] confirmed bugs, highest severity [level], reviewed scope [...].
 
-**Kết luận**: Đã kiểm thử [...] | Chưa kiểm thử/chưa đủ dữ kiện [...]. Thứ tự xử lý đề xuất: [...].
+**Conclusion**: Tested [...] | Not tested/insufficient data [...]. Suggested fix order: [...].
 
-Không có lỗi xác nhận → ghi `Chưa phát hiện lỗi trong phạm vi đã kiểm tra`, không ghi `Không có lỗ hổng`.
+No confirmed bug → write `No bug found in the checked scope`, never `No vulnerabilities`.

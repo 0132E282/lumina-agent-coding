@@ -1,15 +1,14 @@
 ---
 name: testing
-description: "Kiểm thử: viết test case có cấu trúc (UI/API/nghiệp vụ/database) và unit test kỹ thuật khi implement (test double, Arrange-Act-Assert, cách ly dependency). Thiết kế và thực thi bộ test lớn có ma trận bao phủ thuộc qa-tester."
+description: "Testing: write structured test cases (UI/API/business/database) and technical unit tests when implementing (test doubles, Arrange-Act-Assert, dependency isolation). Designing and executing large test suites with coverage matrices belongs to qa-tester."
 license: MIT
 metadata:
   version: "1.1"
 ---
 
-# Kiểm thử
+# Testing
 
-Chọn đúng tài liệu chi tiết, chỉ mở phần cần dùng:
+Pick the right detailed doc, open only what is needed:
 
-- Viết test case theo yêu cầu (ID, Requirement ID, Steps, Expected result...), xử lý khi thiếu thông tin: [references/testcase.md](./references/testcase.md)
-- Test UI/E2E và API bằng Playwright (ảnh trước/sau, evidence, liệt kê API): [testing-playwright](../testing-playwright/SKILL.md)
-- Viết unit test kỹ thuật: test double, Arrange-Act-Assert, cách ly dependency, độ phủ theo rủi ro: [references/unit-testing.md](./references/unit-testing.md)
+- Write test cases from requirements (ID, Requirement ID, Steps, Expected result...), handling missing information: [references/testcase.md](./references/testcase.md)
+- Write technical unit tests: test doubles, Arrange-Act-Assert, dependency isolation, risk-based coverage: [references/unit-testing.md](./references/unit-testing.md)

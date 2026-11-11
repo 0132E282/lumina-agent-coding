@@ -4,12 +4,12 @@
 # log phải khớp cwd lúc chạy script này), còn tồn trên đĩa, và khớp pattern
 # "có vẻ là file tạm/scratch". Không quét gì ngoài project, không xóa gì.
 #
-# Dùng bởi skill cleanup-temp-files (gợi ý ứng viên) và hook remind-cleanup
-# (nhắc nhở cuối session). Chỉ liệt kê — việc xác nhận là rác hay deliverable
-# vẫn do Claude/người dùng quyết định.
+# Used by skill cleanup-temp-files (suggests candidates) and hook remind-cleanup
+# (end-of-session reminder). Lists only — Claude/the user still decides
+# whether it is junk or a deliverable.
 #
 # Usage: bash find-session-scratch-files.sh <session_id>
-# Output: mỗi dòng một đường dẫn (có thể rỗng nếu không tìm thấy).
+# Output: one path per line (may be empty if nothing is found).
 
 set -o pipefail
 trap 'exit 0' ERR
@@ -31,12 +31,12 @@ read_session_lines() { lumina_session_log_lines "$log_dir" "$session_id"; }
 
 project_dir="$(pwd)"
 
-# Pattern "có vẻ là tạm": tên file bắt đầu bằng tmp/scratch/debug/draft/sandbox/
-# test-output, hoặc đuôi .tmp/.bak/.orig. Chỉ dựa vào tên nên vẫn có thể trùng
-# file thật — vì vậy loại trừ thêm thư mục cấu hình/tài liệu bên dưới.
+# "Looks temporary" pattern: file name starts with tmp/scratch/debug/draft/sandbox/
+# test-output, or extension .tmp/.bak/.orig. Name-based only, so it can still match
+# real files — hence the config/docs dirs are excluded below.
 scratch_pattern='(^|/)(tmp|scratch|debug|draft|sandbox|test[_-]?output)[^/]*\.[A-Za-z0-9]+$|\.(tmp|bak|orig)$'
-# Thư mục cấu hình/tài liệu của project (tính từ project_dir), ví dụ
-# .agents/rules/debug.md là rule chính thức, không phải file tạm.
+# Project config/docs dirs (relative to project_dir), e.g.
+# .agents/rules/debug.md is an official rule, not a temp file.
 excluded_pattern='^(\.agents/(rules|skills|agents)|\.claude|\.codex|docs)/'
 
 candidates="$(read_session_lines \

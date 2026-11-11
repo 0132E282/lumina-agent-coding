@@ -1,27 +1,23 @@
 ---
 name: workflow-plan
-description: "Bổ sung quy trình lập kế hoạch của project vào Plan mode có sẵn khi người dùng yêu cầu plan; khảo sát, thiết kế khi cần, task/AC/test và bàn giao, không triển khai."
+description: "Add the project's planning process to the existing Plan mode when the user asks for a plan; survey, design when needed, task/AC/test and handoff, no implementation."
 ---
 
 # workflow-plan
 
-## Kết hợp Plan mode
+## Combining with Plan mode
 
-Đây là nguồn quy trình planning chung, không phụ thuộc command riêng. Khi người dùng yêu cầu lập kế hoạch trong Plan mode của Claude/Codex/Antigravity, áp dụng skill này cùng hướng dẫn project. Có thể gọi `$workflow-plan` nếu cần; không cần `/plan` custom.
+This is the shared planning process source, independent of a dedicated command. When the user asks for planning in Claude/Codex/Antigravity Plan mode, apply this skill with project guidance. May call `$workflow-plan` if needed; no custom `/plan` needed.
 
-- Mode, quyền ghi và định dạng trả lời do runtime quyết định. Skill không tự bật/tắt mode, không giả lập tool chuyển mode, không vượt read-only bằng subagent.
-- Không sửa code sản phẩm, cài dependency, migrate hoặc commit/push khi đang planning. Tái dùng handoff/plan còn hợp lệ; không chạy lại phân tích cho cùng input.
-- Không ghi plan file chuyên biệt của runtime ngoài repo hay dưới `~/` (vd `~/.claude/plans/`, `~/.codex/`, `~/.gemini/`), kể cả khi Plan mode của Claude/Codex/Antigravity gợi ý; plan chỉ lưu trong repo theo [`plan-format`](../../rules/docs.md#implementation-plan-contract). Khi native mode read-only, trình bày plan trong chat, ghi rõ JSON/index chưa lưu, rồi lưu ngay sau khi được duyệt và trước triển khai. Không nói đã lưu khi chưa ghi.
+- Mode, write permission and answer format are decided by the runtime. The skill never toggles modes, simulates mode-switch tools or bypasses read-only via subagents.
+- Never edit product code, install dependencies, migrate or commit/push while planning. Reuse still-valid handoffs/plans; never rerun analysis for the same input.
+- If the native mode only allows reading or writing one dedicated plan file, follow that location/format; present the plan content in the permitted output, stating JSON/index are unsaved. When the runtime allows writing docs, save the handoff per the rule below before implementation. Never say saved when not written.
 
-## Khảo sát và báo cáo trước khi lập plan
+## Process by scope
 
-Khi yêu cầu plan là một tính năng, luồng hoặc khu vực của dự án và chưa nêu rõ file/hành vi cần đổi (thay đổi đã chỉ rõ file thì bỏ qua mục này), chưa lập plan ngay: dùng [`system-understanding`](../system-understanding/SKILL.md) đọc toàn bộ phần dự án liên quan, rồi báo cáo cho người dùng mọi chỗ **cần fix** và **cần làm** (có `file:dòng`, bằng chứng, tác động). Chỉ lên plan sau khi người dùng đã xem báo cáo và chốt phạm vi; không tự chuyển bước.
-
-## Quy trình theo phạm vi
-
-1. Đọc yêu cầu và hướng dẫn project; đọc `docs/plans/index.json` nếu có, tìm bằng title/description/tags rồi mở file liên quan qua path. Luôn đọc thiết kế đã có theo [`system-design`](../../rules/system-design.md) và tái sử dụng `docs/requirement-analysis.md` nếu còn đúng; mỗi task dẫn phần thiết kế nó thực hiện. Khảo sát stack, file và hành vi bị ảnh hưởng; không dump toàn repo.
-2. Research chỉ khi thiếu bằng chứng. System design chỉ khi cần HLD/LLD/mô hình dữ liệu mới; dùng vai trò tương ứng và file handoff khi runtime cho phép. Không mặc định full pipeline cho thay đổi nhỏ.
-3. Dùng vai trò [`planner`](../../agents/planner.md) để lập yêu cầu → task → AC → test, phạm vi, dependency, file/hành vi cụ thể, thứ tự thực hiện, rollback/rủi ro và câu hỏi còn thiếu. Chỉ giao subagent khi workflow/phạm vi cần và runtime hỗ trợ; nếu không, thực hiện planning tuần tự theo vai trò, không giả lập delegation.
-4. Review plan khi độ phức tạp/rủi ro cần hoặc người dùng yêu cầu. `reviewer` chỉ nêu findings; planner xử lý findings trong phạm vi kế hoạch. Báo ngắn phần đã chốt/còn thiếu, không tự chuyển sang implement.
-5. Khi được phép ghi, lưu JSON hợp lệ tại `docs/plans/<title-slug>-<yyyyMMdd>.json` theo [`plan-format`](../../rules/docs.md#implementation-plan-contract), mỗi task có `filesToChange` là path đã xác minh. Cập nhật `docs/plans/index.json` với entry chỉ gồm `title`, `description`, `tags`, `path`. JSON trong repo là nguồn plan duy nhất.
-6. Xuất Plan Summary bằng skill `report`, nêu trạng thái lưu file và kiểm chứng thật. Dùng điểm duyệt/thoát Plan mode của runtime; chỉ triển khai khi người dùng đã cho phép và runtime cho phép. Không tạo thêm vòng xác nhận trùng với phê duyệt đã có.
+1. Read the request and project guidance; read `docs/plans/index.json` if present, search by title/description/tags then open relevant files via path. Reuse `docs/requirement-analysis.md`/`docs/system-design.md` if still correct. Survey the affected stack, files and behavior; never dump the whole repo.
+2. Research only when evidence is missing. System design only when new HLD/LLD/data model is needed; use the matching role and handoff files when the runtime allows. Never default to the full pipeline for small changes.
+3. Use the [`planner`](../../agents/planner.md) role to produce requirement → task → AC → test, scope, dependencies, concrete files/behavior, execution order, rollback/risks and open questions. Assign subagents only when the workflow/scope needs it and the runtime supports it; otherwise plan sequentially in the role, never simulating delegation.
+4. Review the plan when complexity/risk requires or the user asks. `reviewer` only lists findings; planner handles findings within plan scope. Briefly report what is settled/missing, never move to implement on your own.
+5. When writing is allowed, save valid JSON at `docs/plans/<title-slug>-<yyyyMMdd>.json` per [`plan-format`](../../rules/docs.md#implementation-plan-contract), each task's `filesToChange` being verified paths. Update `docs/plans/index.json` with entries containing only `title`, `description`, `tags`, `path`. A native plan file is a draft; the JSON is the structured handoff, never keeping two conflicting requirement sources.
+6. Output the Plan Summary via skill `report`, stating the real file-save status and verification. Use the runtime's approval/exit-Plan-mode point; implement only when the user and runtime have allowed it. Never add a confirmation round duplicating existing approval.

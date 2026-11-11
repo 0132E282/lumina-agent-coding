@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# PostToolUse hook: sau khi Edit/Write một file workflow CI (GitHub Actions,
-# GitLab CI, Azure Pipelines), chạy linter YAML tương ứng và báo lỗi lại
-# cho Claude qua additionalContext — liên hệ skill ci-pipeline và
-# rules/delivery.md. Thuần cố vấn, không block.
+# PostToolUse hook: after Edit/Write on a CI workflow file (GitHub Actions,
+# GitLab CI, Azure Pipelines), run the matching YAML linter and report problems back
+# to Claude via additionalContext -- see skill ci-pipeline and
+# rules/delivery.md. Advisory only, never blocks.
 #
-# Nhận JSON input từ stdin theo schema PostToolUse:
+# Reads JSON input from stdin per the PostToolUse schema:
 #   { "tool_name": "Edit", "tool_input": { "file_path": "..." }, ... }
 #
-# Best-effort: thiếu jq, file không phải workflow CI, hoặc thiếu linter
-# tương ứng (actionlint/yamllint) -> bỏ qua êm.
+# Best-effort: missing jq, file is not a CI workflow, or missing matching
+# linter (actionlint/yamllint) -> skip quietly.
 
-# ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+# ! Skip if the project already has the same hook (avoid running twice with the user-level copy).
 . "$(dirname "$0")/_dedupe-guard.sh"
 
 set -o pipefail
@@ -46,7 +46,7 @@ esac
 
 [ -z "$lint_output" ] && exit 0
 
-context="Lint workflow CI trên ${file_path} báo vấn đề (dùng skill ci-pipeline để review/sửa):
+context="CI workflow lint on ${file_path} reported issues (use skill ci-pipeline to review/fix):
 ${lint_output}"
 
 jq -n --arg ctx "$context" '{

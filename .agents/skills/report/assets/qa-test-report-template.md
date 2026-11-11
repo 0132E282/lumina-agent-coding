@@ -1,34 +1,34 @@
-# Mẫu Báo Cáo Test (digest)
+# Test Report Template (digest)
 
-Dùng để tóm tắt kết quả **đã thiết kế/thực thi** bởi agent [`qa-tester`](../../../agents/qa-tester.md) thành bản ngắn dễ copy vào PR/commit — không thay thế ma trận bao phủ, mẫu test case chi tiết hay bug report đầy đủ mà `qa-tester` đã tạo riêng.
+Use to summarize results **designed/executed** by agent [`qa-tester`](../../../agents/qa-tester.md) into a short copy-pasteable version for PR/commit — does not replace the coverage matrix, detailed test case template or full bug report that `qa-tester` produced separately.
 
 ```markdown
 
-## ✅ Báo cáo test
+## ✅ Test report
 
-**Phạm vi**: [feature/luồng được test]
+**Scope**: [feature/flow tested]
 
-- **Unit Tests** (`[lệnh]`): [X]/[Y] test suites PASS ([n]/[m] tests pass).
-- **Linter** (`[lệnh]`): [N] lỗi (clean nếu 0).
-- **Build** (`[lệnh]`): [kết quả build, hoặc bỏ dòng này nếu task không cần build].
+- **Unit Tests** (`[command]`): [X]/[Y] test suites PASS ([n]/[m] tests pass).
+- **Linter** (`[command]`): [N] errors (clean if 0).
+- **Build** (`[command]`): [build result, or drop this line if the task needs no build].
 
-### Danh sách Testcase / Bug đã xử lý
+### Handled Testcase / Bug list
 
 **`TC-xxx` / `BUG-xxx`** (P1/P2/P3) — Pass | Fail | Blocked | Skipped | Not Run
-- Vấn đề: [hành vi sai quan sát được]
-- Nguyên nhân & xử lý: [nguyên nhân gốc + cách xử lý, kèm `file:dòng`]
-- Bằng chứng: [ảnh `.agents/storage/evidence/<task-slug>/...png` hoặc `API-xx`]
+- Problem: [observed wrong behavior]
+- Cause & fix: [root cause + fix, with `file:line`]
+- Evidence: [image `.agents/storage/evidence/<task-slug>/...png` or `API-xx`]
 
-### API (chỉ khi test API — mỗi API một mục, không ghi chung chung)
+### API (only when testing API — one section per API, nothing generic)
 
-**API-01** `METHOD https://host/path/thật` — Kết quả: Đúng | Sai
-- Tham số: `path`/`query`/`body`/`header` đã gửi (che secret/PII) — Đúng | Sai so với contract
-- Expected: status [xxx], field/kiểu chính [...]
-- Actual: status [xxx], response thật (rút gọn) [...]
-- Sai ở đâu (chỉ khi Sai): [status / field / kiểu / giá trị / tham số nào]
+**API-01** `METHOD https://host/real/path` — Result: Correct | Incorrect
+- Parameters: `path`/`query`/`body`/`header` sent (secret/PII masked) — Correct | Incorrect vs contract
+- Expected: status [xxx], main fields/types [...]
+- Actual: status [xxx], real response (trimmed) [...]
+- Where incorrect (only when Incorrect): [which status / field / type / value / parameter]
 
-### Rủi ro còn lại
-- [Luồng/edge case chưa test và lý do — không ghi "đã test" khi chưa chạy]
+### Remaining risks
+- [Flows/edge cases not tested and why — never write "tested" when not run]
 ```
 
-Không dùng bảng (đọc trên mobile); mỗi case một mục như trên. Mọi case Pass/Fail phải có dòng `Bằng chứng` (ảnh hoặc API thật) theo [`testcase` mục 7.2](../../testing/references/testcase.md#72-bằng-chứng-và-kết-quả-api); API chỉ có `Kết quả: Đúng | Sai`. Chưa thực thi → ghi rõ "Chưa thực thi kiểm thử", không suy ra Pass từ việc đã thiết kế xong. Dòng "Nguyên nhân & xử lý" chỉ điền khi đã xác nhận fix thật (không suy đoán); mỗi mục cần truy ngược được về test case/bug report gốc của `qa-tester` khi cần.
+No tables (mobile reading); one section per case as above. Every Pass/Fail case needs an `Evidence` line (image or real API) per [`testcase` section 7.2](../../testing/references/testcase.md#72-evidence-and-api-results); API only has `Result: Correct | Incorrect`. Not executed → state "Tests not executed", never infer Pass from finished design. The "Cause & fix" line is filled only when the fix is truly confirmed (no guessing); each item must trace back to the original `qa-tester` test case/bug report when needed.

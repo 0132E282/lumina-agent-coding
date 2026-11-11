@@ -64,8 +64,8 @@ test('at or above 80% with scratch files reminds with context percentage', conte
   assert.equal(result.status, 0);
   const output = JSON.parse(result.stdout).hookSpecificOutput;
   assert.equal(output.hookEventName, 'Stop');
-  assert.match(output.additionalContext, /Context đã dùng 82% \(164k\/200k\)/);
-  assert.match(output.additionalContext, /Phát hiện 1 file/);
+  assert.match(output.additionalContext, /Context used 82% \(164k\/200k\)/);
+  assert.match(output.additionalContext, /Detected 1 file/);
   assert.match(output.additionalContext, /scratch-notes\.txt/);
   assert.match(output.additionalContext, /cleanup-temp-files/);
 });
@@ -85,7 +85,7 @@ test('CLAUDE_CONTEXT_LIMIT overrides the default limit', context => {
 
   const lowerLimit = runHook(root, payload, { CLAUDE_CONTEXT_LIMIT: '100000' });
   assert.equal(lowerLimit.status, 0);
-  assert.match(JSON.parse(lowerLimit.stdout).hookSpecificOutput.additionalContext, /Context đã dùng 91% \(91k\/100k\)/);
+  assert.match(JSON.parse(lowerLimit.stdout).hookSpecificOutput.additionalContext, /Context used 91% \(91k\/100k\)/);
 
   const invalidLimit = runHook(root, payload, { CLAUDE_CONTEXT_LIMIT: 'abc' });
   assert.equal(invalidLimit.status, 0);
@@ -108,7 +108,7 @@ test('usage above 200k in any earlier message infers a 1M limit; env override st
 
   const overridden = runHook(root, payload, { CLAUDE_CONTEXT_LIMIT: '200000' });
   assert.equal(overridden.status, 0);
-  assert.match(JSON.parse(overridden.stdout).hookSpecificOutput.additionalContext, /Context đã dùng 150% \(300k\/200k\)/);
+  assert.match(JSON.parse(overridden.stdout).hookSpecificOutput.additionalContext, /Context used 150% \(300k\/200k\)/);
 });
 
 test('missing transcript stays silent', context => {
@@ -171,7 +171,7 @@ test('reminds each scratch file only once per session', context => {
   const first = runHook(root, payload);
   assert.equal(first.status, 0);
   const firstMessage = JSON.parse(first.stdout).hookSpecificOutput.additionalContext;
-  assert.match(firstMessage, /Phát hiện 1 file/);
+  assert.match(firstMessage, /Detected 1 file/);
   assert.match(firstMessage, /tmp-notes\.md/);
   assert.doesNotMatch(firstMessage, /debug\.md|draft-x\.md/);
 
@@ -183,7 +183,7 @@ test('reminds each scratch file only once per session', context => {
   const third = runHook(root, payload);
   assert.equal(third.status, 0);
   const thirdMessage = JSON.parse(third.stdout).hookSpecificOutput.additionalContext;
-  assert.match(thirdMessage, /Phát hiện 1 file/);
+  assert.match(thirdMessage, /Detected 1 file/);
   assert.match(thirdMessage, /scratch-new\.txt/);
   assert.doesNotMatch(thirdMessage, /tmp-notes\.md/);
 });
@@ -200,7 +200,7 @@ test('state write failure does not block the reminder', context => {
 
 const realGrep = spawnSync('bash', ['-c', 'command -v grep'], { encoding: 'utf8' }).stdout.trim();
 
-// Giả lập grep kiểu BSD: file pattern rỗng khớp mọi dòng, nên `grep -v -f <rỗng>` không in gì.
+// Simulate BSD-style grep: an empty pattern file matches every line, so `grep -v -f <empty>` prints nothing.
 function bsdLikeGrepDirectory(root) {
   const directory = path.join(root, 'fake-bin');
   fs.mkdirSync(directory);

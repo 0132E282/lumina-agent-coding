@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Kiểm máy tiêu chí Regression của rules/bug-fix.md: regression test phải
-# FAIL trên bản chưa sửa (<base-ref>) và PASS trên working tree hiện tại.
+# Machine-checks the Regression criterion of rules/bug-fix.md: the regression test must
+# FAIL on the unfixed version (<base-ref>) and PASS on the current working tree.
 #
 # Usage: bash verify-regression.sh [--evidence-dir <dir>] <base-ref> -- <test command...>
 #   vd:  bash .agents/skills/debugs/scripts/verify-regression.sh main -- node --test tests/cart.test.mjs
@@ -15,8 +15,8 @@
 # - Không sửa working tree/index hiện tại; worktree tạm luôn được dọn (trap EXIT).
 #   Script chỉ chạy đúng lệnh test được truyền vào — không tự ghi DB hay push.
 #
-# Exit: 0 base FAIL + head PASS; 1 base PASS (test không tái hiện lỗi) hoặc
-# head FAIL; 2 sai cách dùng, ref không hợp lệ hoặc không có regression test.
+# Exit: 0 base FAIL + head PASS; 1 base PASS (test does not reproduce the bug) or
+# head FAIL; 2 bad usage, invalid ref or no regression test.
 
 set -u
 
@@ -50,9 +50,9 @@ done
 [ -n "$base_ref" ] && [ "$#" -gt 0 ] || usage
 test_command=("$@")
 
-repository_root="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "Không ở trong repo git." >&2; exit 2; }
+repository_root="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "Not inside a git repo." >&2; exit 2; }
 cd "$repository_root" || exit 2
-base_sha="$(git rev-parse --verify --quiet "${base_ref}^{commit}")" || { echo "Ref không hợp lệ: $base_ref" >&2; exit 2; }
+base_sha="$(git rev-parse --verify --quiet "${base_ref}^{commit}")" || { echo "Invalid ref: $base_ref" >&2; exit 2; }
 
 test_pattern='(^|/)(tests?|__tests__)/|\.test\.|\.spec\.|_test\.|(^|/)test_'
 test_files=()
@@ -67,7 +67,7 @@ done < <(
   } | sort -u | grep -E -- "$test_pattern"
 )
 if [ "${#test_files[@]}" -eq 0 ]; then
-  echo "Không có regression test: không thấy file test mới/sửa so với $base_ref." >&2
+  echo "No regression test: no new/changed test file found vs $base_ref." >&2
   exit 2
 fi
 
@@ -133,7 +133,7 @@ cleanup() {
 trap cleanup EXIT
 
 if ! git worktree add --quiet --detach "$base_worktree" "$base_sha" >>"$log_file" 2>&1; then
-  echo "Không tạo được worktree ở $base_ref (xem $log_file)." >&2
+  echo "Could not create a worktree at $base_ref (see $log_file)." >&2
   exit 2
 fi
 for file in "${test_files[@]}"; do
@@ -168,12 +168,12 @@ if [ "$head_status" -eq 0 ]; then echo "head: PASS"; else echo "head: FAIL (exit
 echo "log: $log_file"
 
 if [ "$base_status" -eq 0 ]; then
-  echo "Kết luận: test không tái hiện lỗi (pass cả trên base)."
+  echo "Conclusion: test does not reproduce the bug (passes on base too)."
   exit 1
 fi
 if [ "$head_status" -ne 0 ]; then
-  echo "Kết luận: bản sửa chưa làm test pass."
+  echo "Conclusion: the fix did not make the test pass."
   exit 1
 fi
-echo "Kết luận: regression test fail trên base và pass trên head."
+echo "Conclusion: regression test fails on base and passes on head."
 exit 0

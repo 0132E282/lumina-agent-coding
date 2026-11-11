@@ -1,29 +1,29 @@
 #!/usr/bin/env bash
-# PreToolUse hook: LƯỚI AN TOÀN CUỐI (safety net) chặn trường hợp
-# tool_input.prompt gọi Agent "planner" lọt lưới, dài bất thường — KHÔNG
-# phải cơ chế rút gọn context chính. Việc chọn giữ phần nào/bỏ phần nào cần
-# hiểu ngữ nghĩa (architect nói gì, phần nào planner thật sự cần) —
-# bash không làm được, nên trách nhiệm đó thuộc về bước gọi `planner`
-# (session điều phối đã đọc toàn văn tài liệu, tự chọn lọc phần liên quan
-# trước khi đưa vào prompt — xem skills/workflow-plan/SKILL.md). Hook này chỉ cắt cơ học
-# khi prompt vượt ngưỡng rất lớn, phòng trường hợp dán nhầm nguyên văn tài
-# liệu dài mà quên chọn lọc.
+# PreToolUse hook: FINAL SAFETY NET against an
+# Agent "planner" tool_input.prompt that slipped through and is abnormally long -- NOT
+# the main context-shrinking mechanism. Choosing what to keep/drop needs
+# semantic understanding (what the architect said, what the planner really needs) --
+# bash cannot do that, so that responsibility belongs to the step calling `planner`
+# (the orchestrating session has read the full documents and selects the relevant parts
+# before putting them in the prompt -- see skills/workflow-plan/SKILL.md). This hook only cuts mechanically
+# when the prompt exceeds a very large threshold, in case a long document was pasted verbatim
+# without selection.
 #
-# Nhận JSON input từ stdin theo schema PreToolUse:
+# Reads JSON input from stdin per the PreToolUse schema:
 #   { "tool_name": "Agent", "tool_input": { "subagent_type": "planner", "prompt": "..." }, ... }
 #
-# Sửa tool_input qua hookSpecificOutput.updatedInput — field này cho phép
-# PreToolUse hook thay nội dung trước khi tool thực sự chạy.
+# Edits tool_input via hookSpecificOutput.updatedInput -- this field lets a
+# PreToolUse hook replace the content before the tool actually runs.
 #
-# Quy tắc cắt (chỉ áp dụng khi vượt ngưỡng rất lớn): giữ phần đầu (thường
-# chứa mục tiêu/REQ) và phần cuối (thường chứa kết luận/rủi ro), cắt bỏ phần
-# giữa, chèn dòng đánh dấu — không gọi LLM tóm tắt, chỉ cắt theo độ dài.
+# Cut rule (only when over the very large threshold): keep the head (usually
+# containing goals/REQ) and the tail (usually conclusions/risks), cut the
+# middle, insert a marker line -- no LLM summarization, cut by length only.
 #
-# Best-effort: thiếu jq, không phải tool Agent, không phải subagent_type
-# "planner", hoặc prompt chưa vượt ngưỡng -> không sửa gì (không có
-# hookSpecificOutput trong output).
+# Best-effort: missing jq, not the Agent tool, not subagent_type
+# "planner", or prompt under the threshold -> change nothing (no
+# hookSpecificOutput in the output).
 
-# ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+# ! Skip if the project already has the same hook (avoid running twice with the user-level copy).
 . "$(dirname "$0")/_dedupe-guard.sh"
 
 set -o pipefail
@@ -53,14 +53,14 @@ head_part="${prompt:0:$HEAD_CHARS}"
 tail_part="${prompt: -$TAIL_CHARS}"
 marker="
 
-[...đã rút gọn ${prompt_length} ký tự xuống còn phần đầu+cuối do vượt ngưỡng ${MAX_CHARS} — nếu cần chi tiết phần bị cắt, đọc lại tài liệu gốc...]
+[...shortened ${prompt_length} characters to head+tail only because it exceeded the ${MAX_CHARS} threshold -- if the cut part is needed, reread the source document...]
 
 "
 condensed="${head_part}${marker}${tail_part}"
 
-# updatedInput thay toàn bộ tool_input (không chỉ merge field "prompt") —
-# phải giữ lại nguyên các field khác (subagent_type, description...), chỉ
-# đổi "prompt", để không làm hỏng lời gọi Agent tool.
+# updatedInput replaces the whole tool_input (not just merging the "prompt" field) --
+# the other fields (subagent_type, description...) must be kept intact, only
+# "prompt" changes, so the Agent tool call is not broken.
 printf '%s' "$input" | jq --arg prompt "$condensed" '{
   hookSpecificOutput: {
     hookEventName: "PreToolUse",

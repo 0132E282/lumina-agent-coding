@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# PreToolUse hook: nhắc (advisory) khi `git commit` sửa bug (type
-# Conventional Commit `fix`, hoặc message có `Fixes|Closes|Resolves #<số>`)
-# mà danh sách file sẽ commit không có file test nào — liên hệ
-# rules/bug-fix.md (regression test tái hiện lỗi trước khi sửa).
+# PreToolUse hook: remind (advisory) when `git commit` fixes a bug (Conventional Commit
+# type `fix`, or message has `Fixes|Closes|Resolves #<number>`)
+# and the list of files to commit has no test file -- see
+# rules/bug-fix.md (a regression test reproducing the bug before the fix).
 #
-# Nhận JSON input từ stdin theo schema PreToolUse:
+# Reads JSON input from stdin per the PreToolUse schema:
 #   { "tool_name": "Bash", "tool_input": { "command": "..." }, "cwd": "..." }
 #
-# Chỉ trả additionalContext, không deny/ask. Không phải commit fix, không
-# trích được message, thiếu jq/git hoặc không ở trong repo git -> im lặng.
-# Luôn exit 0.
+# Only returns additionalContext, never deny/ask. Not a fix commit, cannot
+# extract the message, missing jq/git or not in a git repo -> silent.
+# Always exit 0.
 
-# ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+# ! Skip if the project already has the same hook (avoid running twice with the user-level copy).
 . "$(dirname "$0")/_dedupe-guard.sh"
 
 set -o pipefail
@@ -37,7 +37,7 @@ working_dir="$(printf '%s' "$input" | jq -r '.cwd // ""' 2>/dev/null)"
 [ -n "$working_dir" ] && [ -d "$working_dir" ] && cd "$working_dir"
 base_directory="$PWD"
 
-# Thư mục `cd`/`-C` tương đối tính từ cwd của lệnh; rỗng = cwd.
+# `cd`/`-C` directories are relative to the command's cwd; empty = cwd.
 resolve_directory() {
   case "$1" in
     "") printf '%s' "$base_directory" ;;
@@ -46,11 +46,11 @@ resolve_directory() {
   esac
 }
 
-# Advisory: không vào được thư mục thì im lặng (cố ý, xem README).
+# Advisory: if the directory cannot be entered, stay silent (deliberate, see README).
 cd "$(resolve_directory "${fields[1]}")" 2>/dev/null || exit 0
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || exit 0
 
-# Message chỉ lấy từ đối số của chính lệnh `git commit`.
+# The message is taken only from the arguments of the `git commit` command itself.
 message="$(git_commit_message "${commit_arguments[@]}")" || exit 0
 [ -z "$message" ] && exit 0
 
@@ -59,9 +59,9 @@ if ! printf '%s' "$subject" | grep -qE '^fix(\([^)]*\))?!?:'; then
   printf '%s\n' "$message" | grep -qiE '\b(fixes|closes|resolves)[[:space:]]+#[0-9]+' || exit 0
 fi
 
-# File sẽ commit: staged + (commit -a/--all) tracked đã sửa + file mà `git add`
-# trong cùng lệnh sẽ stage (PreToolUse chạy trước khi `git add` kịp stage).
-# Pathspec (thư mục, glob) được git resolve thật, không đoán theo chuỗi.
+# Files to commit: staged + (commit -a/--all) modified tracked + files that `git add`
+# in the same command will stage (PreToolUse runs before `git add` stages them).
+# Pathspecs (directories, globs) are resolved by git itself, not guessed from strings.
 files="$(git diff --cached --name-only 2>/dev/null)" || true
 
 for raw_argument in "${commit_arguments[@]}"; do
@@ -97,7 +97,7 @@ done <<< "$add_invocations"
 test_pattern='(^|/)(tests?|__tests__)/|\.test\.|\.spec\.|_test\.|(^|/)test_'
 printf '%s\n' "$files" | grep -qE -- "$test_pattern" && exit 0
 
-context="Commit fix không kèm file test nào. Theo rules/bug-fix.md, sửa bug cần regression test tái hiện và fail vì đúng lỗi trước khi sửa — thêm test vào commit này. Nếu không tự động hóa được, ghi rõ cách kiểm tra trước/sau khi sửa (bước tái hiện, expected vs actual) trong báo cáo."
+context="Fix commit contains no test file. Per rules/bug-fix.md, a bug fix needs a regression test that reproduces and fails for the exact bug before the fix -- add the test to this commit. If it cannot be automated, state how to check before/after the fix (reproduction steps, expected vs actual) in the report."
 
 jq -n --arg ctx "$context" '{
   hookSpecificOutput: {

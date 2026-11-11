@@ -1,38 +1,38 @@
-# Phân tích chi phí và query nặng
+# Cost and heavy query analysis
 
-## Ba loại kết luận
+## Three kinds of conclusions
 
-- Quan sát: có plan/metrics thực tế, nêu nguồn, tham số và môi trường.
-- Giả thuyết: rủi ro dựa trên query/data model; nêu điều kiện làm rủi ro xảy ra.
-- Chưa xác định: thiếu cardinality, index, plan hoặc workload.
+- Observation: real plan/metrics exist; state the source, parameters and environment.
+- Hypothesis: risk based on the query/data model; state the conditions under which the risk occurs.
+- Undetermined: missing cardinality, index, plan or workload.
 
-Không tính điểm độ phức tạp bằng số JOIN/subquery hay độ dài query. Không suy ra milliseconds từ Big-O hoặc optimizer cost. Cost của engine thường là đơn vị mô hình, không so sánh tùy tiện giữa engine hay cấu hình.
+Never score complexity by JOIN/subquery count or query length. Never infer milliseconds from Big-O or optimizer cost. Engine cost is usually a model unit, not arbitrarily comparable across engines or configurations.
 
-## Độ phức tạp có điều kiện
+## Conditional complexity
 
-Nếu người dùng yêu cầu Big-O, định nghĩa n/m/k và giả định physical operator. Ví dụ scan thường O(n); sort so sánh thường O(k log k); nested-loop không có lookup phù hợp có thể O(n*m); index lookup thường có thành phần O(log n + k), nhưng phụ thuộc loại index, I/O và data layout. Hash join, spill, parallelism và distributed fan-out thay đổi mô hình. Đây là ước lượng thuật toán, không phải dự đoán latency.
+If the user asks for Big-O, define n/m/k and assume physical operators. For example, a scan is usually O(n); a comparison sort usually O(k log k); a nested loop without a suitable lookup can be O(n*m); an index lookup usually has an O(log n + k) component, but depends on index type, I/O and data layout. Hash join, spill, parallelism and distributed fan-out change the model. This is an algorithmic estimate, not a latency prediction.
 
-Với NoSQL, phân tích document/key examined, partition/shard fan-out, payload, network round-trip, read/write capacity, hot partition và consistency. Không gán một Big-O chung cho mọi NoSQL.
+For NoSQL, analyze documents/keys examined, partition/shard fan-out, payload, network round-trips, read/write capacity, hot partitions and consistency. Never assign one Big-O to all NoSQL.
 
-## Dấu hiệu cần điều tra
+## Signs to investigate
 
-- SQL: predicate không sargable, implicit cast, join tăng số dòng, correlated subquery lặp, sort/hash spill, offset sâu, count lớn, fetch dư cột, N+1, lock wait.
-- Document/search: scan nhiều document, filter muộn, lookup/unwind nhân bản, sort không có đường truy cập phù hợp, aggregation lớn, deep pagination, nhiều shard và payload lớn.
-- Key/value/wide-column: keyspace scan không giới hạn, hot key/partition, fan-out, nhiều round-trip, oversized value/collection, tombstone hoặc filtering tốn kém khi engine liên quan.
+- SQL: non-sargable predicates, implicit casts, joins multiplying rows, repeated correlated subqueries, sort/hash spill, deep offsets, large counts, over-fetched columns, N+1, lock waits.
+- Document/search: scanning many documents, late filtering, lookup/unwind duplication, sorts without a suitable access path, large aggregations, deep pagination, many shards and large payloads.
+- Key/value/wide-column: unbounded keyspace scans, hot key/partition, fan-out, many round-trips, oversized values/collections, tombstones or costly filtering where the engine applies.
 
-Scan có thể hợp lý với bảng nhỏ hoặc query đọc phần lớn dữ liệu. Index có thể tốn hơn scan. Covering/composite/partial/expression index tùy engine và phiên bản; kiểm chứng thay vì áp dụng công thức cố định.
+A scan can be reasonable on a small table or a query reading most of the data. An index can cost more than a scan. Covering/composite/partial/expression indexes depend on engine and version; verify instead of applying fixed formulas.
 
-## Xếp hạng
+## Ranking
 
-Nếu có telemetry, nhóm query theo fingerprint để giữ cấu trúc và ẩn literals. Dùng count, latency p50/p95/p99, tổng thời gian, CPU/I/O, rows/docs examined, bytes, waits, spill hoặc capacity. Count × mean latency chỉ là xấp xỉ tổng thời gian thực thi, không phải CPU và không thay thế dữ liệu tổng sẵn có. Query hiếm rất chậm và query nhanh gọi cực nhiều có tác động khác nhau.
+If telemetry exists, group queries by fingerprint to keep structure and hide literals. Use count, latency p50/p95/p99, total time, CPU/I/O, rows/docs examined, bytes, waits, spill or capacity. Count × mean latency is only an approximation of total execution time, not CPU and not a substitute for available aggregate data. A very slow rare query and a fast query called extremely often have different impact.
 
-Nếu chỉ có một query hoặc không có workload, không tuyên bố đã tìm query nặng nhất hệ thống. Nêu phạm vi và mức tin cậy.
+If there is only one query or no workload, never claim to have found the system's heaviest query. State the scope and confidence level.
 
-## Tối ưu và kiểm chứng
+## Optimization and verification
 
-1. Đo baseline với tham số phổ biến và lệch phân bố; ghi row count, cache state, concurrency, cấu hình.
-2. Kiểm tra kết quả tương đương theo kiểu dữ liệu và semantics: set/multiset, duplicate, ordering, null/missing, pagination, timezone, consistency. Không coi thứ tự dòng ổn định khi query không quy định ordering.
-3. Thay từng yếu tố có thể cô lập; đo nhiều lần ở môi trường phù hợp.
-4. So sánh latency phân phối và tài nguyên, cả write overhead/storage khi thêm index.
-5. Với cache/precompute, nêu invalidation, TTL/freshness, failure và consistency; với cursor pagination nêu thay đổi hợp đồng nếu có.
-6. Báo giới hạn dữ liệu mẫu; không ngoại suy chắc chắn lên production.
+1. Measure a baseline with common and skewed parameters; record row count, cache state, concurrency, configuration.
+2. Check equivalent results by data type and semantics: set/multiset, duplicates, ordering, null/missing, pagination, timezone, consistency. Never treat row order as stable when the query does not specify ordering.
+3. Change one isolatable factor at a time; measure multiple times in a suitable environment.
+4. Compare latency distribution and resources, including write overhead/storage when adding indexes.
+5. For cache/precompute, state invalidation, TTL/freshness, failure and consistency; for cursor pagination, state any contract change.
+6. Report the limits of sample data; never extrapolate confidently to production.

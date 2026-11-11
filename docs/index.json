@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "purpose": "Index of documents in docs/ for every agent to consult before reading or writing docs.",
+  "read_first": true,
+  "entries": [
+    {
+      "title": "Documentation index",
+      "path": "docs/index.json",
+      "description": "Index of Markdown documents in docs/. Find documents by title, description and tags; open the detail file via path when its content fits the request.",
+      "tags": ["documentation", "index", "table-of-contents", "search"]
+    },
+    {
+      "title": "Compact all rules and move details into skills",
+      "description": "Repository testcases for thin rules, semantic owners, references and runtime configuration after the refactor; use for agent configuration regression.",
+      "tags": ["agent-rules", "skills", "configuration", "regression"],
+      "path": "docs/repo/compact-rules-into-skills-20261021.md"
+    },
+    {
+      "title": "Debug rule/skill, compact Token line and context-threshold remind-cleanup",
+      "description": "Repository testcases for the bug-fix rule, debugs skill, compact Token line with total and the remind-cleanup hook at the 80% context threshold; use for agent/hook configuration regression.",
+      "tags": ["agent-rules", "skills", "hooks", "report", "regression"],
+      "path": "docs/repo/debug-rule-and-report-hooks-20261021.md"
+    },
+    {
+      "title": "Codex handoff - CLI for Claude coding token usage stats",
+      "description": "Handoff to Codex to build the lumina-agent usage command, reading Claude Code transcripts and logs.jsonl to report token usage by session, turn, subagent and day; use when implementing or reviewing the token CLI.",
+      "tags": ["handoff", "codex", "cli", "token-usage", "claude-code"],
+      "path": "docs/handoffs/codex-token-usage-cli-20261022.md"
+    },
+    {
+      "title": "Optimize rules and review repo structure",
+      "description": "Repository testcases verifying rules consolidated to a single owner, no lost constraints, live anchors and unchanged symlinks/paths; use for agent configuration regression.",
+      "tags": ["agent-rules", "configuration", "regression", "token-optimization"],
+      "path": "docs/repo/optimize-rules-structure-20261022.md"
+    }
+  ],
+  "update_policy": {
+    "entry_schema": {
+      "required_fields": ["title", "description", "tags", "path"],
+      "path": "File path relative to the repository root; used to open the source file.",
+      "tags": "Array of short lowercase keywords, kebab-case preferred; choose by topic, document type and related technology.",
+      "description": "Short description helping AI decide whether to open the detail file.",
+      "detail_file": "Detail Markdown file with title, description, tags in frontmatter and full content in the body."
+    },
+    "before_read_or_write": "Every agent must read the index and find documents by title, description or tags; open path to read the detail file before editing.",
+    "after_write": "Every time a Markdown document in docs/ is created or edited, update title, description, tags and path in the same turn.",
+    "after_structure_change": "Update or delete the entry when a file in docs/ is renamed or deleted.",
+    "avoid_duplication": "Prefer editing the existing detail file; create a new file only when no suitable entry exists."
+  }
+}

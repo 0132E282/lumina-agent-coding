@@ -1,15 +1,11 @@
----
-trigger: model_decision
-description: "Áp dụng khi nhiệm vụ liên quan: 📦 Git — Commit, Push, Pull Request và Conflict"
----
+# Git — authorization and conflict safety
 
-# Git — authorization và conflict safety
+- Absolutely never commit/push/deploy without an explicit command in the current turn; finishing code does not grant Git mutation authority.
+- Meaningful commits; the `commit` workflow defaults to commit all (all valid changes in the repo, except forbidden files), only commits the task's own changes (`commit change`) when the user explicitly chooses; a commit does not grant push authority.
+- Never commit/push secrets, temp/junk/debug files or experimental tests; must review the staged diff and the whole history about to be pushed, never rely on `.gitignore`.
+- Push by feature by default or push everything when the user says so explicitly; both exclude forbidden files.
+- Commit messages must follow Conventional Commits, title at most 75 characters, body preferably stating the reason.
+- Before resolving conflicts or creating/updating a PR: `git fetch` the right remote/branch, settle SHA and merge-base, check conflicts against the real target and read both sides; never blind `git pull` causing merge/rebase beyond the assigned operation; fetch does not mean code is integrated; if fetch fails, report not updated, never use a stale ref as fresh.
+- Resolve per hunk, identify the user/incoming side by SHA/diff and task scope (not by ours/theirs labels, branch name, timestamp, author): parts the user did not edit take incoming, parts edited with conflicts keep the user's version, keep non-conflicting incoming, never choose a whole file; merge only mandatory parts, never pull out-of-scope logic. With uncommitted changes never stash/reset/overwrite, ask; lacking basis or risking logic loss → ask first.
 
-- Tuyệt đối không commit/push/deploy khi chưa có lệnh rõ trong lượt hiện tại; hoàn tất code không cấp quyền Git mutation.
-- Commit có ý nghĩa; workflow `commit` mặc định commit all (toàn bộ thay đổi hợp lệ trong repo, trừ file cấm), chỉ commit riêng thay đổi của task (`commit change`) khi người dùng chọn rõ; commit không tự cấp quyền push.
-- Không commit/push secret, file tạm/rác/debug hoặc test thử nghiệm; rà staged diff và toàn bộ lịch sử sắp push, không dựa vào `.gitignore`. Push theo tính năng mặc định hoặc push hết khi người dùng nói rõ; cả hai loại file cấm.
-- Commit message phải theo Conventional Commits, title tối đa 75 ký tự và body ưu tiên lý do.
-- Trước xử lý conflict hoặc tạo/cập nhật PR: `git fetch` đúng remote/nhánh, chốt SHA và merge-base, kiểm tra conflict với đích thực tế và đọc cả hai phía; không `git pull` mù làm merge/rebase ngoài thao tác được giao; fetch không có nghĩa là đã tích hợp code; fetch thất bại thì báo chưa cập nhật, không dùng ref cũ như mới.
-- Resolve theo từng hunk, xác định phía người dùng/incoming bằng SHA/diff và scope task (không theo nhãn ours/theirs, tên nhánh, timestamp, tác giả): phần người dùng không sửa nhận incoming, phần đã sửa và xung đột giữ bản người dùng, giữ incoming không xung đột, không chọn nguyên file; chỉ gộp phần bắt buộc, không kéo logic ngoài scope. Có thay đổi chưa commit thì không stash/reset/ghi đè mà hỏi; thiếu căn cứ hoặc có nguy cơ mất logic thì hỏi trước.
-
-Quy trình commit/push/PR/conflict và checklist: [`git-workflow`](../skills/git-workflow/SKILL.md); runtime entry point: [`workflow-git`](../skills/workflow-git/SKILL.md).
+Commit/push/PR/conflict process and checklist: [`git-workflow`](../skills/git-workflow/SKILL.md); runtime entry point: [`workflow-git`](../skills/workflow-git/SKILL.md).

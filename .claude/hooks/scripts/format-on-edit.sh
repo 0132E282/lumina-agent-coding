@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# PostToolUse hook: tự động format lại file bằng Prettier ngay sau khi subagent/Claude Code vừa Edit hoặc Write xong.
+# PostToolUse hook: automatically reformat the file with Prettier right after a subagent/Claude Code finishes an Edit or Write.
 #
-# Nhận JSON input từ stdin theo schema của Claude Code hook (PostToolUse):
+# Reads JSON input from stdin per the Claude Code hook schema (PostToolUse):
 #   { "tool_name": "Edit", "tool_input": { "file_path": "..." }, ... }
 #
-# Luôn exit 0 — đây là hook phụ trợ (best-effort), không được phép chặn
-# (block) hành động của agent nếu format lỗi hoặc thiếu `prettier`.
+# Always exit 0 -- auxiliary (best-effort) hook, must not block
+# (block) the agent's action if formatting fails or `prettier` is missing.
 #
-# Cố ý KHÔNG dùng `set -e`: bất kỳ lệnh nào trong script lỗi bất ngờ
-# (jq thiếu, Prettier crash, v.v.) cũng không được làm gián đoạn agent —
-# script phải luôn chạy tới dòng `exit 0` cuối cùng. `trap ERR` là lưới an
-# toàn cuối, phòng khi có lỗi lọt qua các điểm xử lý ở trên.
+# Deliberately NO `set -e`: any command in the script failing unexpectedly
+# (jq missing, Prettier crash, etc.) must not interrupt the agent --
+# the script must always reach the final `exit 0` line. `trap ERR` is the last
+# safety net, in case an error slips past the handling points above.
 
-# ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+# ! Skip if the project already has the same hook (avoid running twice with the user-level copy).
 . "$(dirname "$0")/_dedupe-guard.sh"
 
 set -o pipefail
@@ -29,7 +29,7 @@ case "$file_path" in
   *.js|*.jsx|*.mjs|*.cjs|*.ts|*.tsx|*.json|*.jsonc|*.css|*.scss|*.less|*.html|*.vue|*.md|*.mdx|*.yaml|*.yml|*.graphql)
     ;;
   *)
-    # Loại file Prettier không hỗ trợ -> bỏ qua, không phải lỗi.
+    # File types Prettier does not support -> skip, not an error.
     exit 0
     ;;
 esac

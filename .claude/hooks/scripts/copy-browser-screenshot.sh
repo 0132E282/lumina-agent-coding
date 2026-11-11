@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# PostToolUse hook: tool trình duyệt (Claude in Chrome) lưu ảnh chụp vào thư mục
-# tạm hệ thống; hook copy ảnh đó vào project để bằng chứng không mất khi OS dọn tạm
-# và báo đường dẫn mới qua additionalContext.
+# PostToolUse hook: the browser tool (Claude in Chrome) saves screenshots into the system
+# temp directory; this hook copies the image into the project so the evidence survives OS temp cleanup
+# and reports the new path via additionalContext.
 #
-# Nhận JSON input từ stdin theo schema PostToolUse:
+# Reads JSON input from stdin per the PostToolUse schema:
 #   { "tool_name": "...", "tool_response": ..., "cwd": "..." }
 #
 
@@ -12,9 +12,9 @@
 # Hook nhận: (1) khối image base64 trong tool_response, (2) đường dẫn ảnh dưới thư mục tạm,
 # (3) đường dẫn ảnh trong tool-results của Claude Code; chỉ nhận file thường (không symlink) dưới thư mục tin cậy.
 #
-# Copy, không move; trùng tên thì thêm hậu tố, không ghi đè. Luôn exit 0, không chặn tool.
+# Copy, not move; on a name clash add a suffix, never overwrite. Always exit 0, never blocks the tool.
 
-# ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+# ! Skip if the project already has the same hook (avoid running twice with the user-level copy).
 . "$(dirname "$0")/_dedupe-guard.sh"
 
 set -o pipefail

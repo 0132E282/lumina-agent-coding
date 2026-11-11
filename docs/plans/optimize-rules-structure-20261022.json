@@ -1,0 +1,209 @@
+{
+  "title": "Optimize rules and review repo structure",
+  "description": "Reference when compacting .agents/rules, AGENTS.md, CLAUDE.md under the one-constraint-one-owner principle, or when considering restructuring the .agents/.claude/.codex directories.",
+  "tags": [
+    "agent-rules",
+    "configuration",
+    "refactor",
+    "token-optimization"
+  ],
+  "createdAt": "2026-10-22",
+  "content": {
+    "meta": {
+      "objective": "Shorter rules, fewer tokens, no lost constraints; propose a repo structure that keeps symlinks and installer/hook paths unchanged.",
+      "inScope": ".agents/rules/*.md, AGENTS.md, CLAUDE.md; review of the .agents/.claude/.codex/docs/bin/scripts/tests structure.",
+      "outOfScope": "CONTRACT.md, script/hook/bin/test, moving/renaming files.",
+      "currentState": "Rules + AGENTS + CLAUDE + CONTRACT = 33366 bytes (wc -c); the same constraints repeated in 3-5 places; check-agent-config passes."
+    },
+    "requirements": [
+      {
+        "id": "REQ-001",
+        "description": "Remove duplication/verbosity in rules, move procedures to skills, lose no constraint",
+        "source": "User request via the dispatcher session, plan approved 2026-10-22"
+      },
+      {
+        "id": "REQ-002",
+        "description": "Review and propose the repo structure, keeping relative symlinks and installer/hook paths",
+        "source": "User request via the dispatcher session, plan approved 2026-10-22"
+      }
+    ],
+    "businessRules": [],
+    "acceptanceCriteria": [
+      {
+        "id": "AC-001",
+        "requirements": [
+          "REQ-001"
+        ],
+        "description": "Every removed constraint still exists at its owner (CONTRACT, rule owner or skill); all headings/anchors unchanged",
+        "source": "Approved plan"
+      },
+      {
+        "id": "AC-002",
+        "requirements": [
+          "REQ-001"
+        ],
+        "description": "Total bytes lower than 33366; check-agent-config passes; git diff --check clean; npm test passes",
+        "source": "Approved plan"
+      },
+      {
+        "id": "AC-003",
+        "requirements": [
+          "REQ-002"
+        ],
+        "description": "No symlink/path in bin/lumina-agent.mjs, .claude/settings.json, .codex/hooks.json changes",
+        "source": "Approved plan"
+      }
+    ],
+    "assumptions": [
+      "User decided 2026-10-22: do M1 per the meaning in .claude/commands/git.md (commit all = all valid changes except forbidden files; commit change when the user chooses it explicitly) and O1 (delete settings.snippet.json, hooks README points to settings.json/installer)."
+    ],
+    "openQuestions": [],
+    "blockers": [],
+    "technicalSolution": "Assign owners: scope/change authorization → coding.md#kiss-yagni-và-phạm-vi; UI gate → frontend.md; pre-handoff checks → delivery.md#chất-lượng-và-bằng-chứng; testcase when plan done → docs.md; bug/git/report procedures → skills debugs, git-workflow, report. Elsewhere only link. Structure kept as-is because reversing the agents/commands/hooks symlinks would require editing the installer, checker and tests.",
+    "tasks": [
+      {
+        "id": "TASK-001",
+        "title": "Compact rules R6-R15",
+        "status": "DONE",
+        "priority": "P1",
+        "priorityReason": "Reduce rule tokens loaded each session without losing constraints",
+        "requirements": [
+          "REQ-001"
+        ],
+        "acceptanceCriteria": [
+          "AC-001",
+          "AC-002"
+        ],
+        "inScope": "Compact rules R6-R15",
+        "outOfScope": "Renaming rule files/headings, script/hook/bin/test, symlinks",
+        "dependencies": [],
+        "approach": "Merge duplicate sentences, add missing listings to the owner, drop procedures already in skills",
+        "filesToChange": [
+          ".agents/rules/coding.md",
+          ".agents/rules/delivery.md",
+          ".agents/rules/frontend.md",
+          ".agents/rules/git.md",
+          ".agents/rules/bug-fix.md",
+          ".agents/rules/review.md",
+          ".agents/rules/backend.md",
+          ".agents/rules/docs.md",
+          ".agents/rules/response-style.md"
+        ],
+        "test": "grep each removed constraint at its owner; check-agent-config",
+        "doneWhen": "AC met and check-agent-config, npm test, git diff --check have real results"
+      },
+      {
+        "id": "TASK-002",
+        "title": "Compact AGENTS.md and CLAUDE.md R1-R5, M2",
+        "status": "DONE",
+        "priority": "P1",
+        "priorityReason": "Reduce rule tokens loaded each session without losing constraints",
+        "requirements": [
+          "REQ-001"
+        ],
+        "acceptanceCriteria": [
+          "AC-001",
+          "AC-002"
+        ],
+        "inScope": "Compact AGENTS.md and CLAUDE.md R1-R5, M2",
+        "outOfScope": "Renaming rule files/headings, script/hook/bin/test, symlinks",
+        "dependencies": [],
+        "approach": "Delete bullets duplicating CONTRACT/rules, replace gates with owner links, tighten the hooks paragraph",
+        "filesToChange": [
+          "AGENTS.md",
+          "CLAUDE.md"
+        ],
+        "test": "check-agent-config, npm test",
+        "doneWhen": "AC met and check-agent-config, npm test, git diff --check have real results"
+      },
+      {
+        "id": "TASK-003",
+        "title": "Review repo structure",
+        "status": "DONE",
+        "priority": "P1",
+        "priorityReason": "Reduce rule tokens loaded each session without losing constraints",
+        "requirements": [
+          "REQ-002"
+        ],
+        "acceptanceCriteria": [
+          "AC-003"
+        ],
+        "inScope": "Review repo structure",
+        "outOfScope": "Renaming rule files/headings, script/hook/bin/test, symlinks",
+        "dependencies": [],
+        "approach": "Move no files; record the reason for keeping the current symlink direction and the optional item O1",
+        "filesToChange": [],
+        "test": "git diff does not touch bin/, .claude/settings.json, .codex/hooks.json, symlinks",
+        "doneWhen": "AC met and check-agent-config, npm test, git diff --check have real results"
+      },
+      {
+        "id": "TASK-004",
+        "title": "M1 clarify commit all, O1 delete settings.snippet.json",
+        "status": "DONE",
+        "priority": "P2",
+        "priorityReason": "Remove the contradiction in the git rule and a duplicate config file",
+        "requirements": [
+          "REQ-001",
+          "REQ-002"
+        ],
+        "acceptanceCriteria": [
+          "AC-001",
+          "AC-003"
+        ],
+        "inScope": "rules/git.md, .claude/hooks/README.md, delete .claude/hooks/settings.snippet.json",
+        "outOfScope": "bin/, settings.json, tests",
+        "dependencies": [
+          "TASK-001"
+        ],
+        "approach": "Use the commit all meaning already in .claude/commands/git.md; README points to settings.json and the installer (mergeSettings in bin/lumina-agent.mjs)",
+        "filesToChange": [
+          ".agents/rules/git.md",
+          ".claude/hooks/README.md",
+          ".claude/hooks/settings.snippet.json"
+        ],
+        "test": "grep settings.snippet no longer found outside logs; check-agent-config; npm test",
+        "doneWhen": "AC met and real checks pass"
+      }
+    ],
+    "executionOrder": [
+      "TASK-001",
+      "TASK-002",
+      "TASK-003",
+      "TASK-004"
+    ],
+    "traceability": [
+      {
+        "requirementId": "REQ-001",
+        "acceptanceCriteria": [
+          "AC-001",
+          "AC-002"
+        ],
+        "tasks": [
+          "TASK-001",
+          "TASK-002",
+          "TASK-004"
+        ],
+        "test": "docs/repo/optimize-rules-structure-20261022.md TC-001..TC-003, TC-005",
+        "result": "Pass"
+      },
+      {
+        "requirementId": "REQ-002",
+        "acceptanceCriteria": [
+          "AC-003"
+        ],
+        "tasks": [
+          "TASK-003",
+          "TASK-004"
+        ],
+        "test": "docs/repo/optimize-rules-structure-20261022.md TC-004, TC-005",
+        "result": "Pass"
+      }
+    ],
+    "remainingRisks": [
+      {
+        "description": "An agent reading only AGENTS.md (not loading rules) loses gate details since only links remain",
+        "mitigation": "AGENTS.md requires reading all of .agents/rules before coding; Claude loads rules via the .claude/rules symlink"
+      }
+    ]
+  }
+}

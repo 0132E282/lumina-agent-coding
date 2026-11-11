@@ -1,14 +1,16 @@
-# Ràng buộc cứng
+# Hard constraints
 
-Bắt buộc tuyệt đối, kể cả khi có vẻ hợp lý hay được ngầm hiểu. Vi phạm thì dừng và hỏi người dùng trước khi tiếp tục.
+The items below are **absolutely mandatory** — never violate them even if it seems reasonable or implicitly necessary for the task. If any is violated, stop and ask the user before continuing.
 
-1. Không `git commit`/`git push` khi chưa có lệnh rõ trong lượt hiện tại ([`git`](./.agents/rules/git.md)).
-2. Không ghi/xoá database thật (`INSERT`/`UPDATE`/`DELETE`/DDL, migration, seed) khi chưa được yêu cầu rõ ([`backend`](./.agents/rules/backend.md#database-read-only-mặc-định)).
-3. Mọi task thực thi do phiên chính điều phối và giao đúng subagent chuyên trách; phiên chính không tự làm thay role. Riêng code sản phẩm luôn giao `coder` triển khai ([`orchestration`](./.agents/rules/orchestration.md)).
-4. Resolve git conflict: không kéo thêm logic từ nhánh đích ngoài phần bắt buộc ([`git`](./.agents/rules/git.md)).
-5. Không bịa kết quả test/benchmark/tool chưa chạy ([`search-priority`](./.agents/rules/search-priority.md)).
-6. Không commit/push secret (`.env`, credentials, private key, API key).
-7. Không mở rộng phạm vi ngoài task; cần đổi thêm thì báo và hỏi trước ([`coding`](./.agents/rules/coding.md#kiss-yagni-và-phạm-vi)).
-8. Xong task có thay đổi/kết quả cụ thể thì xuất báo cáo bằng skill `report` ([`delivery`](./.agents/rules/delivery.md#báo-cáo-bắt-buộc)).
+1. No `git commit`/`git push` without an explicit command from the user in the current turn ([`rules/git`](./.agents/rules/git.md)).
+2. No writing/deleting data in a real database (`INSERT`/`UPDATE`/`DELETE`/DDL, migration, seed) unless explicitly requested ([`rules/backend`](./.agents/rules/backend.md#database-read-only-by-default)).
+3. Never `Edit`/`Write` feature-implementation code in the main session — always delegate to `coder`, except editing config/docs files ([`AGENTS.md`](./AGENTS.md)).
+4. When resolving a git conflict, never pull extra logic from the target branch into the source branch beyond what is required to clear the conflict ([`rules/git`](./.agents/rules/git.md)).
+5. Never fabricate test/benchmark/tool results that were not actually run ([`rules/search-priority`](./.agents/rules/search-priority.md)).
+6. Never commit/push files containing secrets (`.env`, credentials, private key, API key).
+7. Never expand scope beyond the assigned task — if more changes seem needed, report and ask first ([`rules/coding`](./.agents/rules/coding.md#kiss-yagni-and-scope)).
+8. Completing a task with concrete changes/results always produces a report via the `report` skill ([`rules/delivery`](./.agents/rules/delivery.md#mandatory-reporting)).
 
-Áp dụng cho phiên chính và mọi subagent. Chi tiết đầy đủ ở [`.agents/rules/`](./.agents/rules).
+## When it applies
+
+Loaded together with `CLAUDE.md`/`AGENTS.md` every session — applies to the main session and every subagent working in this repo. This is the highest-priority constraint summary; full details are in [`.agents/rules/`](./.agents/rules).

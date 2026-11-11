@@ -1,6 +1,6 @@
 ---
 name: design-patterns
-description: "Tra cứu 22 design pattern GoF (Creational/Structural/Behavioral), cách phân biệt các cặp dễ nhầm và danh mục refactor theo code smell (references/refactoring.md). Dùng khi cần chọn hoặc giải thích pattern, hoặc chọn kỹ thuật refactor cho smell cụ thể. Không nhồi pattern khi chưa cần (rules/coding.md)."
+description: "Reference for the 22 GoF design patterns (Creational/Structural/Behavioral), how to tell apart easily confused pairs, and a refactoring catalog by code smell (references/refactoring.md). Use when choosing or explaining a pattern, or choosing a refactoring technique for a specific smell. Never force patterns when not needed (rules/coding.md)."
 license: MIT
 metadata:
   version: "1.1"
@@ -8,42 +8,42 @@ metadata:
 
 # 🧩 Design Patterns (GoF)
 
-Chỉ chọn pattern khi có nhu cầu thay thế/mở rộng thật; ưu tiên composition và KISS/YAGNI theo [`coding-standards`](../coding-standards/SKILL.md).
+Choose a pattern only when real substitution/extension is needed; prefer composition and KISS/YAGNI per [`coding-standards`](../coding-standards/SKILL.md).
 
-Phân loại và mô tả theo Refactoring.Guru — 22 pattern trong danh mục của trang này, không phải toàn bộ pattern tồn tại trong lập trình.
+Classification and descriptions follow Refactoring.Guru — the 22 patterns in that site's catalog, not every pattern that exists in programming.
 
-> ⚠️ **Trước khi áp dụng bất kỳ pattern nào trong skill này**, đọc lại [`rules/coding.md`](../../rules/coding.md#kiss-yagni-và-phạm-vi): chỉ thêm pattern khi nó giải quyết rõ một vấn đề cụ thể đang lặp lại hoặc khó sửa — không đưa pattern vào "phòng khi cần mở rộng" sau này. Không cần đưa đủ 22 pattern vào một dự án.
+> ⚠️ **Before applying any pattern in this skill**, re-read [`rules/coding.md`](../../rules/coding.md#kiss-yagni-and-scope): add a pattern only when it clearly solves a specific recurring or hard-to-change problem — never add patterns "in case of future extension". A project does not need all 22 patterns.
 
-## Tra cứu theo nhóm
+## Lookup by group
 
-| Nhóm | Số pattern | Mục đích chính | Chi tiết |
+| Group | Patterns | Main purpose | Details |
 |---|---|---|---|
-| Creational — khởi tạo | 5 | Kiểm soát cách tạo đối tượng khi việc khởi tạo có nhiều biến thể/cấu hình | [references/creational.md](./references/creational.md) |
-| Structural — cấu trúc | 7 | Kết hợp đối tượng/lớp mà vẫn dễ thay đổi, mở rộng | [references/structural.md](./references/structural.md) |
-| Behavioral — hành vi | 10 | Phân chia trách nhiệm, tổ chức thuật toán, điều phối giao tiếp giữa các đối tượng | [references/behavioral.md](./references/behavioral.md) |
+| Creational | 5 | Control how objects are created when instantiation has many variants/configurations | [references/creational.md](./references/creational.md) |
+| Structural | 7 | Combine objects/classes while staying easy to change and extend | [references/structural.md](./references/structural.md) |
+| Behavioral | 10 | Divide responsibilities, organize algorithms, coordinate communication between objects | [references/behavioral.md](./references/behavioral.md) |
 
-## Pattern dễ nhầm — phân biệt nhanh
+## Easily confused patterns — quick distinction
 
-| Cặp pattern | Cách phân biệt |
+| Pair | How to tell apart |
 |---|---|
-| Factory Method / Abstract Factory | Factory Method cho lớp con quyết định **một** sản phẩm được tạo; Abstract Factory tạo cả **một họ** sản phẩm liên quan. |
-| Strategy / State | Strategy thay **cách thực hiện** nhiệm vụ; State thay **hành vi theo trạng thái** và quy tắc chuyển trạng thái. |
-| Strategy / Template Method | Strategy thay thuật toán qua đối tượng được truyền vào; Template Method giữ khung quy trình và cho lớp con thay một số bước. |
-| Adapter / Facade | Adapter chuyển interface cho tương thích; Facade cung cấp lối gọi đơn giản vào subsystem phức tạp. |
-| Decorator / Proxy | Decorator bổ sung hành vi có thể kết hợp; Proxy kiểm soát việc truy cập đối tượng thật. |
-| Bridge / Adapter | Bridge chủ động tách hai chiều phát triển độc lập từ đầu; Adapter kết nối các interface đã tồn tại nhưng không tương thích. |
+| Factory Method / Abstract Factory | Factory Method lets a subclass decide **one** product to create; Abstract Factory creates a whole **family** of related products. |
+| Strategy / State | Strategy swaps **how a task is done**; State swaps **behavior by state** and the state transition rules. |
+| Strategy / Template Method | Strategy swaps the algorithm via a passed-in object; Template Method keeps the process skeleton and lets subclasses replace some steps. |
+| Adapter / Facade | Adapter converts an interface for compatibility; Facade provides a simple entry point into a complex subsystem. |
+| Decorator / Proxy | Decorator adds composable behavior; Proxy controls access to the real object. |
+| Bridge / Adapter | Bridge deliberately separates two independently evolving dimensions from the start; Adapter connects already-existing incompatible interfaces. |
 
-## Thứ tự học gợi ý (backend)
+## Suggested learning order (backend)
 
-`Strategy (tính giá/discount) → Adapter (tích hợp API ngoài) → Observer (sự kiện) → Chain of Responsibility (pipeline request) → Factory Method/Template Method (import/export) → State (quy trình đơn hàng)`
+`Strategy (pricing/discount) → Adapter (external API integration) → Observer (events) → Chain of Responsibility (request pipeline) → Factory Method/Template Method (import/export) → State (order workflow)`
 
-## Khi áp dụng
+## When to apply
 
-- Đang refactor một đoạn code bị lặp hoặc khó mở rộng, muốn biết có pattern nào đã giải quyết đúng vấn đề này chưa.
-- Cần giải thích một pattern cho người khác, hoặc trong lúc code review.
-- Phân vân giữa hai pattern trông giống nhau — tra bảng "dễ nhầm" ở trên trước khi chọn.
-- **Không** dùng skill này để tự thêm pattern vào code khi task không yêu cầu và chưa có vấn đề thật đang tồn tại — đó là over-engineering (xem [`rules/coding.md`](../../rules/coding.md#kiss-yagni-và-phạm-vi)).
+- Refactoring duplicated or hard-to-extend code and wanting to know whether a pattern already solves this exact problem.
+- Explaining a pattern to others, or during code review.
+- Torn between two similar-looking patterns — check the "easily confused" table above before choosing.
+- **Not** for adding patterns to code on your own when the task does not ask for it and no real problem exists — that is over-engineering (see [`rules/coding.md`](../../rules/coding.md#kiss-yagni-and-scope)).
 
-## Danh mục refactor
+## Refactoring catalog
 
-Tra cứu kỹ thuật refactor theo code smell cụ thể (Extract Method, Decompose Conditional, Introduce Parameter Object...), khi nào nên và không nên áp dụng: [references/refactoring.md](./references/refactoring.md).
+Look up refactoring techniques by specific code smell (Extract Method, Decompose Conditional, Introduce Parameter Object...), when to and not to apply them: [references/refactoring.md](./references/refactoring.md).

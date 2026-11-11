@@ -3,12 +3,12 @@
 # (khoá `emitted` trong .agents/storage/state/state-YYYYMMDD.json). Lệch thì nhắc sửa qua additionalContext,
 # KHÔNG dùng decision/reason (sẽ chặn Stop). Mỗi kiểu lệch chỉ nhắc một lần.
 #
-# Nhận JSON input từ stdin theo schema Stop:
+# Reads JSON input from stdin per the Stop schema:
 #   { "session_id": "...", "transcript_path": "...", "stop_hook_active": false, "last_assistant_message": "..." }
 #
-# Best-effort: thiếu node/parse lỗi thì im lặng. Luôn exit 0 — không bao giờ chặn.
+# Best-effort: missing node/parse error -> silent. Always exit 0 -- never blocks.
 
-# ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+# ! Skip if the project already has the same hook (avoid running twice with the user-level copy).
 . "$(dirname "$0")/_dedupe-guard.sh"
 
 set -o pipefail

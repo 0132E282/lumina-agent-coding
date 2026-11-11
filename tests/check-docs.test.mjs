@@ -23,7 +23,7 @@ function validRepository(context) {
   write(root, 'AGENTS.md', [
     '# Agents',
     '',
-    'See [delivery](./.agents/rules/delivery.md#báo-cáo-bắt-buộc), [backend](.agents/rules/backend.md#backend--contract-nội-dung-và-bảo-mật),',
+    'See [delivery](./.agents/rules/delivery.md#mandatory-reporting), [backend](.agents/rules/backend.md#backend--contract-content-and-security),',
     '[style](.claude/rules/delivery.md#kissyagni), [web](https://example.com/missing.md), [mail](mailto:a@b.c), [abs](/absolute/path/file.ext:3) and [top](#agents).',
     '',
     '`[inline](missing-inline.md)`',
@@ -34,9 +34,9 @@ function validRepository(context) {
     '',
   ].join('\n'));
   for (const name of ['CLAUDE.md', 'CONTRACT.md', 'README.md']) write(root, name, `# ${name}\n`);
-  write(root, '.agents/rules/delivery.md', '# Delivery\n\n## Báo cáo bắt buộc\n\n## KISS/YAGNI\n');
-  write(root, '.agents/rules/backend.md', '# Backend\n\n## Backend — contract, nội dung và bảo mật\n\nBack to [delivery](delivery.md).\n');
-  write(root, '.agents/skills/sample/SKILL.md', '# Sample\n\n[rule](../../rules/delivery.md#báo-cáo-bắt-buộc)\n');
+  write(root, '.agents/rules/delivery.md', '# Delivery\n\n## Mandatory reporting\n\n## KISS/YAGNI\n');
+  write(root, '.agents/rules/backend.md', '# Backend\n\n## Backend — contract, content and security\n\nBack to [delivery](delivery.md).\n');
+  write(root, '.agents/skills/sample/SKILL.md', '# Sample\n\n[rule](../../rules/delivery.md#mandatory-reporting)\n');
   write(root, '.agents/storage/ignored.md', '[ignored](missing-storage.md)\n');
   fs.mkdirSync(path.join(root, '.claude'), { recursive: true });
   fs.symlinkSync('../.agents/rules', path.join(root, '.claude/rules'));
@@ -72,12 +72,12 @@ test('missing link target fails with file, line and target', context => {
   assert.doesNotMatch(result.stderr, /\.claude\/skills/);
 });
 
-test('unknown anchor fails while correct Vietnamese anchor passes', context => {
+test('unknown anchor fails while correct anchor passes', context => {
   const root = validRepository(context);
-  write(root, 'CONTRACT.md', '# Contract\n\n[ok](.agents/rules/delivery.md#báo-cáo-bắt-buộc)\n[bad](.agents/rules/delivery.md#bao-cao-bat-buoc)\n');
+  write(root, 'CONTRACT.md', '# Contract\n\n[ok](.agents/rules/delivery.md#mandatory-reporting)\n[bad](.agents/rules/delivery.md#mandatory-report)\n');
   const result = check(root);
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /CONTRACT\.md:4: missing anchor #bao-cao-bat-buoc in \.agents\/rules\/delivery\.md/);
+  assert.match(result.stderr, /CONTRACT\.md:4: missing anchor #mandatory-report in \.agents\/rules\/delivery\.md/);
   assert.doesNotMatch(result.stderr, /CONTRACT\.md:3/);
 });
 

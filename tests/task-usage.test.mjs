@@ -75,7 +75,7 @@ test('big tool result triggers only above the limit', context => {
   const exact = run(['--transcript', writeTranscript(root, [toolResult('x'.repeat(20000))])]);
   assert.deepEqual(exact.json.waste, []);
   const above = run(['--transcript', writeTranscript(root, [toolResult('x'.repeat(20001))])]);
-  assert.deepEqual(above.json.waste, [{ rule: 'bigToolResult', evidence: '20001 ký tự', count: 1 }]);
+  assert.deepEqual(above.json.waste, [{ rule: 'bigToolResult', evidence: '20001 chars', count: 1 }]);
 });
 
 test('subagent calls trigger at three', context => {
@@ -97,13 +97,13 @@ test('subagent evidence lists the first five labels with truncation and ellipsis
   const events = inputs.map((input, index) => assistant(`l${index}`, smallUsage, [toolUse('Agent', input)]));
   const [item] = run(['--transcript', writeTranscript(workspace(context), events)]).json.waste;
   assert.equal(item.count, 6);
-  assert.equal(item.evidence, `6 lần gọi subagent: Fix 2 stale installer tests | ${'y'.repeat(39)}… | coder | Agent | four | …`);
+  assert.equal(item.evidence, `6 subagent calls: Fix 2 stale installer tests | ${'y'.repeat(39)}… | coder | Agent | four | …`);
 });
 
 test('subagent evidence omits the colon and ellipsis when no call has a label', context => {
   const events = Array.from({ length: 3 }, (_, index) => assistant(`n${index}`, smallUsage, [toolUse('Agent', { prompt: 'p' })]));
   const [item] = run(['--transcript', writeTranscript(workspace(context), events)]).json.waste;
-  assert.equal(item.evidence, '3 lần gọi subagent');
+  assert.equal(item.evidence, '3 subagent calls');
 });
 
 test('cache rule needs ratio exceeded and the minimum tokens', context => {

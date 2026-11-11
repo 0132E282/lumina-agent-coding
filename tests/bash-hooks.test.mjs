@@ -8,7 +8,7 @@ import test from 'node:test';
 
 const repoRoot = fileURLToPath(new URL('..', import.meta.url));
 const scripts = path.join(repoRoot, '.claude/hooks/scripts');
-// Giá trị giả, dựng bằng nối chuỗi để chính file test không khớp pattern secret.
+// Fake value, built by string concatenation so the test file itself does not match the secret pattern.
 const fakeSecret = `AKIA${'A'.repeat(16)}`;
 const fakeAwsKey = 'AKIA' + 'EXAMPLEEXAMPLE12';
 const fakePrivateKeyHeader = '-----BEGIN RSA ' + 'PRIVATE KEY-----';
@@ -35,7 +35,7 @@ function repository(context, branch = 'main') {
   return root;
 }
 
-// Repo chưa có commit nào, chỉ stage sẵn các file được truyền vào.
+// The repo has no commits yet, only the passed files are pre-staged.
 function repositoryWithStagedFiles(context, stagedFiles) {
   const root = temporaryDirectory(context);
   git(root, 'init', '-q');
@@ -79,7 +79,7 @@ function runHook(script, cwd, command, toolName = 'Bash') {
 const decision = (script, cwd, command) => runHook(script, cwd, command)?.permissionDecision ?? null;
 const guardCommit = (command) => decision('commit-msg-guard.sh', repoRoot, command);
 
-// bugfix-test-reminder chỉ nhắc (additionalContext), không bao giờ ra permissionDecision.
+// bugfix-test-reminder only reminds (additionalContext), never emits a permissionDecision.
 function reminder(cwd, command, toolName = 'Bash') {
   const output = runHook('bugfix-test-reminder.sh', cwd, command, toolName);
   if (output === null) return null;
@@ -219,7 +219,7 @@ test('secret-scan inspects the repository and paths given by git -C', context =>
   assert.equal(decision('secret-scan.sh', root, `git -C '${other}' commit -m "chore: x"`), 'ask');
 });
 
-// Giá trị giả dạng .env không nháy; nối chuỗi để file test không khớp pattern.
+// Fake unquoted .env-style value; concatenated so the test file does not match the pattern.
 const fakeStripeKey = 'sk_' + 'live_' + 'FAKE'.repeat(6);
 const fakeGithubToken = 'ghp' + '_' + 'FAKE'.repeat(9);
 const fakeEnvContent = `API_KEY=${fakeStripeKey}\nGITHUB_TOKEN=${fakeGithubToken}\n`;
@@ -407,7 +407,7 @@ test('bugfix-test-reminder: fix commit without staged test file gets an advisory
   const message = reminder(root, 'git commit -m "fix: handle empty cart"');
   assert.match(message, /regression test/);
   assert.match(message, /bug-fix/);
-  assert.match(message, /trước\/sau/);
+  assert.match(message, /before\/after/);
 });
 
 test('bugfix-test-reminder: fix commit with a staged test file stays silent', context => {
@@ -497,7 +497,7 @@ test('S3 bugfix-test-reminder resolves git add directories and globs through git
   assert.match(reminder(root, 'git add docs && git commit -m "fix: cart"'), /regression test/);
 });
 
-// Phân tích lệnh shell dùng chung (_shell-command.sh) qua nhiều hook
+// Shared shell command parsing (_shell-command.sh) across several hooks
 
 test('W3 git -C comes from the executed git command, not heredoc data', context => {
   const feature = repository(context, 'feature');

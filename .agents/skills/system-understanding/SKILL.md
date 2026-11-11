@@ -1,6 +1,6 @@
 ---
 name: system-understanding
-description: "Khảo sát và giải thích hệ thống hiện có trước khi coding, review hoặc tối ưu; lập bản đồ module, request flow, data flow, dependency, boundary, database và tác động liên module mà không tự redesign hay triển khai. Vẽ sơ đồ Mermaid (cấu trúc thư mục, ERD, user/system flow): references/diagrams.md. Chọn bộ tài liệu thiết kế theo loại dự án (Web/Mobile/AI/Desktop/SaaS/E-commerce/API): references/design-sets.md."
+description: "Survey and explain an existing system before coding, review or optimization; map modules, request flow, data flow, dependencies, boundaries, database and cross-module impact without redesigning or implementing. Draw Mermaid diagrams (directory structure, ERD, user/system flow): references/diagrams.md."
 license: MIT
 metadata:
   version: "1.0"
@@ -8,39 +8,35 @@ metadata:
 
 # System Understanding
 
-Xây dựng hiểu biết có căn cứ về hệ thống hiện có trước khi đề xuất thay đổi. Skill này phục vụ khảo sát và bàn giao context; thiết kế HLD/LLD mới thuộc agent `architect`.
+Build grounded understanding of an existing system before proposing changes. This skill serves surveying and context handoff; new HLD/LLD design belongs to agent `architect`.
 
-## Quy trình
+## Process
 
-1. Đọc `AGENTS.md`, `CLAUDE.md`, README, manifest/lockfile và menu tài liệu phù hợp (`docs/index.json`, `docs/plans/index.json`, `docs/testcases/index.json`, `docs/reviews/index.json` nếu có). Mở đúng tài liệu bàn giao (`docs/requirement-analysis.md`, `ARCHITECTURE.md`, `system/`) hoặc plan JSON trong `docs/plans/` khi điều kiện menu cho task khớp.
-2. Xác định stack, entry point, module, service, job, CLI, route và dependency chính bằng file thật; không suy đoán theo tên thư mục.
-3. Truy vết một luồng đại diện từ input → validation/auth → business logic → database/external service → output/side effect.
-4. Ghi boundary và ownership: module nào chịu trách nhiệm, contract nào được dùng, dữ liệu chuẩn nằm ở đâu, tenant/authz và transaction boundary nào áp dụng.
-5. Khi cần sơ đồ, theo [references/diagrams.md](./references/diagrams.md); khi có database, kết hợp [`database`](../database/SKILL.md); khi có bottleneck hoặc dữ liệu lớn, kết hợp [`complexity-performance`](../complexity-performance/SKILL.md).
-6. Phân biệt rõ dữ kiện đã đọc, giả định, điểm chưa biết và tác động dự kiến; trích path/file/dòng khi có thể.
-7. Chỉ ra thay đổi có thể ảnh hưởng module nào, test/CI/docs nào và thứ tự kiểm chứng phù hợp.
+1. Read `AGENTS.md`, `CLAUDE.md`, README, manifest/lockfile and the suitable doc menus (`docs/index.json`, `docs/plans/index.json`, `docs/testcases/index.json`, `docs/reviews/index.json` if present). Open the right handoff docs (`docs/requirement-analysis.md`, `docs/system-design.md`) or plan JSON in `docs/plans/` when the menu conditions match the task.
+2. Identify stack, entry points, modules, services, jobs, CLI, routes and main dependencies from real files; never guess from directory names.
+3. Trace one representative flow from input → validation/auth → business logic → database/external service → output/side effect.
+4. Record boundaries and ownership: which module is responsible, which contract is used, where canonical data lives, which tenant/authz and transaction boundaries apply.
+5. For diagrams follow [references/diagrams.md](./references/diagrams.md); with a database combine [`database`](../database/SKILL.md); with bottlenecks or large data combine [`complexity-performance`](../complexity-performance/SKILL.md).
+6. Clearly separate facts read, assumptions, unknowns and expected impact; cite path/file/line when possible.
+7. State which modules, tests/CI/docs a change may affect and a suitable verification order.
 
-## Kết quả tối thiểu
+## Minimum output
 
-- **Phạm vi**: phần đã khảo sát và phần chưa khảo sát.
-- **Bản đồ thành phần**: module/entry point/dependency và trách nhiệm chính.
-- **Luồng chính**: request/data flow và side effect.
-- **Dữ liệu & contract**: schema/API/event, quyền, transaction và nguồn dữ liệu chuẩn nếu xác định được.
-- **Sơ đồ**: theo [references/diagrams.md](./references/diagrams.md) để vẽ cấu trúc thư mục, ERD hoặc user/system flow theo phạm vi.
-- **Rủi ro/tác động**: coupling, điểm lỗi, query/API fan-out, cache, retry, consistency hoặc vùng chưa có bằng chứng.
-- **Bước tiếp theo**: coding, database review, complexity review, system design hoặc planner; không tự chuyển vai trò ngoài yêu cầu.
+- **Scope**: what was surveyed and what was not.
+- **Component map**: modules/entry points/dependencies and main responsibilities.
+- **Main flow**: request/data flow and side effects.
+- **Data & contract**: schema/API/event, permissions, transactions and canonical data source if determinable.
+- **Diagrams**: per [references/diagrams.md](./references/diagrams.md) for directory structure, ERD or user/system flow by scope.
+- **Risks/impact**: coupling, failure points, query/API fan-out, cache, retry, consistency or areas lacking evidence.
+- **Next step**: coding, database review, complexity review, system design or planner; never switch roles beyond the request.
 
-## Giới hạn
+## Limits
 
-- Không tự code, migrate, đổi schema/index, gọi API production hoặc thay đổi dữ liệu.
-- Không biến một quan sát cục bộ thành kết luận kiến trúc toàn hệ thống nếu chưa truy vết đủ.
-- Không dùng dữ liệu giả để che phần chưa đọc; ghi rõ thiếu file, quyền truy cập hoặc môi trường.
-- Không trùng vai trò với `architect`: nếu cần HLD/LLD, phương án kiến trúc mới hoặc tài liệu thiết kế, bàn giao cho agent đó.
+- Never code, migrate, change schema/index, call production APIs or modify data.
+- Never turn a local observation into a system-wide architectural conclusion without enough tracing.
+- Never use fake data to cover unread parts; state missing files, access or environment.
+- Do not overlap with `architect`: for HLD/LLD, new architecture options or design docs, hand off to that agent.
 
-## Sơ đồ
+## Diagrams
 
-Vẽ sơ đồ có căn cứ (cấu trúc thư mục, ERD database, user/system flow bằng Mermaid), không tự đoán thành phần hay quan hệ: [references/diagrams.md](./references/diagrams.md).
-
-## Bộ tài liệu thiết kế
-
-Chọn Core + bộ riêng theo loại dự án (mặc định Web khi chưa rõ), kèm checklist bàn giao: [references/design-sets.md](./references/design-sets.md).
+Draw grounded diagrams (directory structure, database ERD, user/system flow in Mermaid), never guess components or relations: [references/diagrams.md](./references/diagrams.md).

@@ -113,14 +113,14 @@ test('interactive agent selection defaults all checked and supports toggling', a
   assert.match(output.text, /\[x\] Antigravity/);
   assert.match(output.text, /\[ Install \]/);
   assert.match(output.text, /\[ Cancel \]/);
-  assert.match(output.text, /\[x\] Antigravity[^\n]*\n(?:\u001b\[2K\r[^\n]*\n)*\u001b\[2K\rCtrl\+C để thoát/);
+  assert.match(output.text, /\[x\] Antigravity[^\n]*\n(?:\u001b\[2K\r[^\n]*\n)*\u001b\[2K\rCtrl\+C to exit/);
   input.emit('keypress', ' ', { name: 'space' });
   input.emit('keypress', '', { name: 'down' });
   input.emit('keypress', '', { name: 'down' });
   input.emit('keypress', '', { name: 'return' });
   assert.deepEqual(await selection, ['claude', 'antigravity']);
   assert.doesNotMatch(output.text, /\u001b\[8A\u001b\[2K\r(?:\n\u001b\[2K\r){7}$/);
-  assert.match(stripAnsi(output.text).replaceAll('\r', ''), /Ctrl\+C để thoát[\s\S]*\[ Install \][\s\S]*\[ Cancel \]\n$/);
+  assert.match(stripAnsi(output.text).replaceAll('\r', ''), /Ctrl\+C to exit[\s\S]*\[ Install \][\s\S]*\[ Cancel \]\n$/);
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(input.rawMode, false);
 });
@@ -244,7 +244,7 @@ test('interactive agent selection keeps the final prompt visible after Enter', a
   input.emit('keypress', '', { name: 'return' });
 
   assert.deepEqual(await selection, ['codex', 'claude', 'antigravity']);
-  assert.match(stripAnsi(output.text).replaceAll('\r', ''), /Select agents to install[\s\S]*Ctrl\+C để thoát[\s\S]*\[ Install \][\s\S]*\[ Cancel \]\n$/);
+  assert.match(stripAnsi(output.text).replaceAll('\r', ''), /Select agents to install[\s\S]*Ctrl\+C to exit[\s\S]*\[ Install \][\s\S]*\[ Cancel \]\n$/);
   assert.doesNotMatch(output.text, /\u001b\[8A\u001b\[2K\r(?:\n\u001b\[2K\r){7}$/);
 });
 
@@ -398,7 +398,7 @@ test('empty install preserves relative links and executables; repeat is idempote
   const script = '.agents/skills/git-workflow/scripts/validate-commit-message.sh';
   assert.equal((await fs.stat(path.join(options.target, script))).mode & 0o777, (await fs.stat(path.join(options.source, script))).mode & 0o777);
   assert.match(await fs.readFile(path.join(options.target, 'AGENTS.md'), 'utf8'), /lumina-agent:start/);
-  assert.doesNotMatch(await fs.readFile(path.join(options.target, 'AGENTS.md'), 'utf8'), /Repo cấu hình agent/);
+  assert.doesNotMatch(await fs.readFile(path.join(options.target, 'AGENTS.md'), 'utf8'), /This is an agent configuration repo/);
   assert.equal((await installFromSource(options)).changes, 0);
   for (const name of ['.git', '.agents/storage', 'docs', 'package.json', '.agents/.DS_Store']) {
     await assert.rejects(fs.lstat(path.join(options.target, name)), { code: 'ENOENT' });

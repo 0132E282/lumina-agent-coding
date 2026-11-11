@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# PreToolUse hook: quét `git add`/`git commit` để phát hiện nội dung giống
-# secret/credential (API key, private key, file .env) trước khi được stage
-# hoặc commit — liên hệ rules/backend.md.
+# PreToolUse hook: scan `git add`/`git commit` for content that looks like
+# secrets/credentials (API key, private key, .env file) before it is staged
+# or committed -- see rules/backend.md.
 #
-# Nhận JSON input từ stdin theo schema PreToolUse:
+# Reads JSON input from stdin per the PreToolUse schema:
 #   { "tool_name": "Bash", "tool_input": { "command": "..." }, ... }
 #
-# Chỉ dùng permissionDecision "ask" (không "deny"): heuristic regex có thể
-# false positive (ví dụ file test chứa chuỗi mẫu), nên để người dùng tự xác
-# nhận thay vì chặn cứng.
+# Only uses permissionDecision "ask" (not "deny"): the regex heuristic may
+# give false positives (e.g. a test file containing a sample string), so let the user
+# confirm instead of hard blocking.
 #
-# Best-effort: thiếu jq/git, hoặc không trích được path/diff -> không chặn.
+# Best-effort: missing jq/git, or path/diff cannot be extracted -> do not block.
 
-# ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+# ! Skip if the project already has the same hook (avoid running twice with the user-level copy).
 . "$(dirname "$0")/_dedupe-guard.sh"
 
 set -o pipefail
@@ -37,7 +37,7 @@ SECRET_PATTERNS=(
   '-----BEGIN (RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----'
   'AKIA[0-9A-Z]{16}'
   "(api[_-]?key|secret|token|password)[[:space:]]*[:=][[:space:]]*[\"'][A-Za-z0-9/+_=-]{16,}[\"']"
-  # Gán kiểu .env/shell không nháy: KEY=value, value >= 16 ký tự, không phải `$VAR`.
+  # Unquoted .env/shell assignment: KEY=value, value >= 16 characters, not `$VAR`.
   "^[[:space:]]*(export[[:space:]]+)?[A-Z0-9_]*(API_?KEY|SECRET|TOKEN|PASSWORD|PASSWD)[A-Z0-9_]*=[\"']?[^[:space:]\"'\$]{16,}"
   '(ghp|gho|ghs|ghu|ghr)_[A-Za-z0-9]{20,}'
   'github_pat_[A-Za-z0-9_]{20,}'
@@ -62,14 +62,14 @@ is_env_file() {
   esac
 }
 
-# Thư mục `git -C` không vào được thì không kiểm được -> hỏi lại thay vì bỏ qua.
+# If the `git -C` directory cannot be entered it cannot be checked -> ask again instead of skipping.
 directory_is_usable() {
   [ -z "$1" ] || [ -d "$1" ] && return 0
-  flagged+=("không vào được thư mục git -C '$1' để kiểm tra")
+  flagged+=("cannot enter git -C directory '$1' to check")
   return 1
 }
 
-# Pathspec có thể khớp nhiều file (thư mục, glob, magic `:`), cần liệt kê qua git.
+# A pathspec may match many files (directory, glob, `:` magic), must be listed via git.
 pathspec_needs_listing() {
   case "$1" in
     :*|*'*'*|*'?'*|*'['*) return 0 ;;
@@ -77,8 +77,8 @@ pathspec_needs_listing() {
   [ -d "$2" ]
 }
 
-# Kiểm tên .env và nội dung các file (path tương đối từ `$1`, NUL-separated ở
-# stdin); grep chạy theo lô qua xargs, không spawn một tiến trình mỗi file.
+# Check .env names and file contents (paths relative to `$1`, NUL-separated on
+# stdin); grep runs in batches via xargs, not one process spawned per file.
 check_listed_files() {
   local base="$1" name
   local -a existing=()
@@ -88,13 +88,13 @@ check_listed_files() {
   done
   [ "${#existing[@]}" -eq 0 ] && return 0
   while IFS= read -r name; do
-    [ -n "$name" ] && flagged+=("$name (khớp pattern secret)")
+    [ -n "$name" ] && flagged+=("$name (matches secret pattern)")
   done < <(cd "$base" && printf '%s\0' "${existing[@]}" | xargs -0 grep -lIE -- "$SECRET_PATTERN" 2>/dev/null)
   return 0
 }
 
-# File mà `git add` sẽ stage: tracked đã sửa (+ untracked chưa ignore, hoặc cả
-# ignored khi `-f`), path tính từ gốc repo.
+# Files `git add` will stage: modified tracked (+ untracked not ignored, or even
+# ignored with `-f`), paths relative to the repo root.
 list_add_candidates() {
   local directory="$1" tracked_only="$2" include_ignored="$3"
   shift 3
@@ -107,7 +107,7 @@ list_add_candidates() {
   git -C "${directory:-.}" ls-files -z --full-name "${selection[@]}" -- "$@" 2>/dev/null
 }
 
-# Thêm cảnh báo khi diff (dòng thêm) khớp pattern hoặc tên file là .env.
+# Add a warning when the diff (added lines) matches a pattern or the file name is .env.
 check_diff() {
   local directory="$1" label="$2" name diff_text
   shift 2
@@ -116,7 +116,7 @@ check_diff() {
   done < <(git -C "${directory:-.}" diff --name-only -z "$@" 2>/dev/null)
   diff_text="$(git -C "${directory:-.}" diff --no-color --no-ext-diff "$@" 2>/dev/null)" || true
   if [ -n "$diff_text" ] && printf '%s\n' "$diff_text" | grep -E '^\+' | sed 's/^+//' | grep -qE -- "$SECRET_PATTERN"; then
-    flagged+=("$label (khớp pattern secret)")
+    flagged+=("$label (matches secret pattern)")
   fi
   return 0
 }
@@ -161,13 +161,13 @@ while IFS= read -r invocation; do
       *) [ -n "$add_directory" ] && path_on_disk="$add_directory/$p" ;;
     esac
     if [ -f "$path_on_disk" ] && grep -qE -- "$SECRET_PATTERN" "$path_on_disk" 2>/dev/null; then
-      flagged+=("$p (khớp pattern secret)")
+      flagged+=("$p (matches secret pattern)")
     fi
     if pathspec_needs_listing "$p" "$path_on_disk"; then
       listed_pathspecs+=("$p")
     fi
   done
-  # `git add -A`/`-u` không pathspec stage toàn bộ repo.
+  # `git add -A`/`-u` without a pathspec stages the whole repo.
   if [ "$pathspec_count" -eq 0 ] && [ "$((stages_everything + tracked_only))" -gt 0 ]; then
     listed_pathspecs=(':/')
   fi
@@ -197,7 +197,7 @@ while IFS= read -r invocation; do
       --message|--file|--author|--date|--reuse-message|--reedit-message|--fixup|--squash|--template|--cleanup|--trailer|--pathspec-from-file) skip_next=1 ;;
       --*) ;;
       -*)
-        # Cụm cờ ngắn: `-am msg`; m/F/C/c/t nhận giá trị (dính liền hoặc đối số sau).
+        # Short flag cluster: `-am msg`; m/F/C/c/t take a value (attached or next argument).
         for ((position = 1; position < ${#argument}; position++)); do
           flag="${argument:position:1}"
           case "$flag" in
@@ -211,7 +211,7 @@ while IFS= read -r invocation; do
     esac
   done
   check_diff "$commit_directory" "staged changes" --cached
-  # `-a` hoặc pathspec commit cả thay đổi tracked chưa stage.
+  # `-a` or a pathspec commits tracked changes not yet staged.
   if [ "$includes_tracked_changes" -eq 1 ]; then
     check_diff "$commit_directory" "tracked changes (commit -a)" HEAD
   elif [ "${#commit_pathspecs[@]}" -gt 0 ]; then
@@ -222,7 +222,7 @@ done <<< "$commit_invocations"
 [ "${#flagged[@]}" -eq 0 ] && exit 0
 
 flagged_list="$(printf '%s; ' "${flagged[@]}")"
-reason="Phát hiện nội dung giống secret/credential hoặc không kiểm tra được: ${flagged_list%; }. Xác nhận lại với người dùng trước khi tiếp tục (rules/backend.md)."
+reason="Detected content that looks like secrets/credentials or could not be checked: ${flagged_list%; }. Confirm with the user again before continuing (rules/backend.md)."
 jq -n --arg reason "$reason" '{
   hookSpecificOutput: {
     hookEventName: "PreToolUse",

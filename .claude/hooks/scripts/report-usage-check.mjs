@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Helper của report-usage-check.sh: so dòng `Token:` của báo cáo với số hook đã chèn.
-// Usage: node report-usage-check.mjs <logRoot>  (Stop payload qua stdin). Luôn exit 0.
+// Helper for report-usage-check.sh: compare the report's `Token:` line with the numbers the hook inserted.
+// Usage: node report-usage-check.mjs <logRoot>  (Stop payload via stdin). Always exit 0.
 import * as fs from 'node:fs';
 import { formatCompactNumber } from './compact-number.mjs';
 import { getSessionValue, pushSessionValues } from './_hook-storage.mjs';
@@ -9,8 +9,8 @@ const NUMBER = String.raw`(\d+(?:\.\d+)?[kKmM](?![\p{L}\d])|\d{1,3}(?:[.,  ]\d{
 const FIELDS = [
   ['input', 'input'],
   ['output', 'output'],
-  ['cacheRead', 'cache\\s+đọc'],
-  ['cacheCreate', 'cache\\s+tạo'],
+  ['cacheRead', 'cache\\s+read'],
+  ['cacheCreate', 'cache\\s+create'],
 ];
 
 function readFinalMessage(payload) {
@@ -46,12 +46,12 @@ function parseReportedNumbers(message) {
     if (!match) return null;
     numbers[name] = parseReportedValue(match[1]);
   }
-  const totalMatch = new RegExp(`tổng\\s*:?\\s*${NUMBER}`, 'iu').exec(tokenLine);
+  const totalMatch = new RegExp(`total\\s*:?\\s*${NUMBER}`, 'iu').exec(tokenLine);
   if (totalMatch) numbers.total = parseReportedValue(totalMatch[1]);
   return numbers;
 }
 
-// Số rút gọn giữ dạng chuỗi chuẩn hoá (k thường, M hoa) để so đúng với formatCompactNumber; số thô đổi về Number.
+// Shortened numbers stay as normalized strings (lowercase k, uppercase M) to compare exactly with formatCompactNumber; raw numbers become Number.
 function parseReportedValue(text) {
   const compact = /^(\d+(?:\.\d+)?)([kKmM])$/.exec(text);
   if (compact) return `${compact[1]}${compact[2].toLowerCase() === 'k' ? 'k' : 'M'}`;
@@ -62,7 +62,7 @@ const matchesEmitted = (reportedValue, emittedValue) => (typeof reportedValue ==
   ? reportedValue === formatCompactNumber(emittedValue)
   : reportedValue === emittedValue);
 
-const describe = (numbers, format = String) => `input ${format(numbers.input)} | output ${format(numbers.output)} | cache đọc ${format(numbers.cacheRead)} | cache tạo ${format(numbers.cacheCreate)}${numbers.total === undefined ? '' : ` | tổng ${format(numbers.total)}`}`;
+const describe = (numbers, format = String) => `input ${format(numbers.input)} | output ${format(numbers.output)} | cache read ${format(numbers.cacheRead)} | cache create ${format(numbers.cacheCreate)}${numbers.total === undefined ? '' : ` | total ${format(numbers.total)}`}`;
 const describeCompact = numbers => describe(numbers, formatCompactNumber);
 
 function main() {
@@ -77,7 +77,7 @@ function main() {
 
   const emitted = getSessionValue(logRoot, sessionId, 'emitted');
   const hasEmitted = emitted && FIELDS.every(([name]) => Number.isFinite(emitted[name]));
-  // Tổng là tuỳ chọn trong báo cáo; emitted cũ chưa có total thì cộng từ 4 trường.
+  // Total is optional in the report; an older emitted without total sums the 4 fields.
   if (hasEmitted && !Number.isFinite(emitted.total)) {
     emitted.total = FIELDS.reduce((sum, [name]) => sum + emitted[name], 0);
   }
@@ -89,13 +89,13 @@ function main() {
   if (pushSessionValues(logRoot, sessionId, 'usageChecked', [signature]) === 0) return;
 
   const message = hasEmitted
-    ? `⚠️ Dòng Token trong báo cáo không khớp số hook đã chèn (báo cáo: ${describe(reported)}; hook: ${describeCompact(emitted)}). Sửa lại bằng đúng số hook: ${describeCompact(emitted)}.`
-    : '⚠️ Báo cáo có dòng Token nhưng hook chưa chèn số nào ở phiên này; gọi lại skill report để lấy số thật hoặc bỏ dòng Token.';
+    ? `⚠️ The Token line in the report does not match the numbers the hook inserted (report: ${describe(reported)}; hook: ${describeCompact(emitted)}). Fix it with the exact hook numbers: ${describeCompact(emitted)}.`
+    : '⚠️ The report has a Token line but the hook inserted no numbers in this session; call skill report again to get the real numbers or drop the Token line.';
   process.stdout.write(`${JSON.stringify({ hookSpecificOutput: { hookEventName: 'Stop', additionalContext: message } })}\n`);
 }
 
 try {
   main();
 } catch {
-  // Best-effort: payload/state hỏng thì im lặng, không chặn Stop.
+  // Best-effort: on a bad payload/state stay silent, do not block Stop.
 }

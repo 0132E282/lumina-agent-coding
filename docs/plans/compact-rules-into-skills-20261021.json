@@ -1,0 +1,351 @@
+{
+  "title": "Compact all rules and move details into skills",
+  "description": "Plan for compacting all of .agents/rules while preserving semantics and syncing every reference in the repository.",
+  "tags": ["agent-rules", "skills", "configuration", "refactor"],
+  "createdAt": "2026-10-21",
+  "content": {
+    "meta": {
+      "objective": "Compact every .agents/rules/*.md so a rule keeps only its applicability condition, core constraints and links to detailed sources; move procedures, checklists, examples and detailed formats to the appropriate skill or role without changing behavior.",
+      "inScope": "All rules in .agents/rules; skills, roles, workflows, hook documentation, root instructions, contract, README, config scripts/tests and every affected reference; create/update plan documents and index.",
+      "outOfScope": "No change to product behavior or CLI, no new policy design, no loosening/tightening of constraints, no dependency installs, no commit/push/deploy, no editing of dirty changes beyond mandatory references, and no implementing the plan content during the planning turn.",
+      "currentState": "Surveyed the 18 existing rules, the whole .agents/skills tree, Claude/Codex roles, hook docs/scripts, AGENTS.md, CLAUDE.md, CONTRACT.md, README.md, scripts/check-agent-config.py, package scripts and references via rg. Worktree is dirty: the git-rule merge touches .agents/rules/git.md, CONTRACT.md, git-workflow and hooks; database/dependency audit are also being edited; bin/lumina-agent.mjs and tests/lumina-agent.test.mjs have user changes to protect. docs/plans did not exist before this plan."
+    },
+    "requirements": [
+      {
+        "id": "REQ-001",
+        "description": "Compact all .agents/rules/*.md across the whole repository.",
+        "source": "Direct user request: the whole repo."
+      },
+      {
+        "id": "REQ-002",
+        "description": "After compaction a rule keeps only the applicability condition, core constraints/policy and pointers to the skill or role owning the details.",
+        "source": "Direct user request: compact the unimportant parts of rules and turn them into skills."
+      },
+      {
+        "id": "REQ-003",
+        "description": "Move procedures, checklists, examples and detailed formats to the corresponding skill or point to the existing source; create a new skill only when no suitable owner exists.",
+        "source": "User request and the shared source convention in AGENTS.md."
+      },
+      {
+        "id": "REQ-004",
+        "description": "Sync every related reference and adapter across the repo so there are no wrong links, duplicated content or conflicting guidance.",
+        "source": "AGENTS.md sections Sources and rules, Maintaining configuration and docs-sync."
+      },
+      {
+        "id": "REQ-005",
+        "description": "Protect all existing dirty changes, especially bin/lumina-agent.mjs and tests/lumina-agent.test.mjs; do not commit or push.",
+        "source": "Scope assigned by the dispatcher agent and git status at survey time."
+      }
+    ],
+    "businessRules": [
+      {
+        "id": "BR-001",
+        "description": "Semantics before and after must be equivalent: do not add, remove, loosen or tighten behavior; every moved passage must keep one canonical source with a clear trigger.",
+        "source": "Confirmed user request and CONTRACT.md."
+      },
+      {
+        "id": "BR-002",
+        "description": "Edit only the shared source in .agents; .claude/rules and .codex/rules are symlinks, do not edit copies.",
+        "source": "AGENTS.md section Sources and rules."
+      },
+      {
+        "id": "BR-003",
+        "description": "Any change to a dirty file must keep the user's hunks and merge against current content, not restore deleted files or overwrite older versions.",
+        "source": "Implementation/simplicity rules and verified git status."
+      },
+      {
+        "id": "BR-004",
+        "description": "Rule/skill/docs/config tasks do not need complexity-performance; report in the setup/template format File, Description, Trigger condition.",
+        "source": "AGENTS.md section Sources and rules."
+      }
+    ],
+    "acceptanceCriteria": [
+      {
+        "id": "AC-001",
+        "requirements": ["REQ-001", "REQ-002", "BR-001"],
+        "description": "All 18 rules are classified and compacted; each file keeps trigger/scope, core policy and needed pointers, with no code examples, checklists or long procedures outside the policy layer.",
+        "source": "User request and .agents/rules inventory."
+      },
+      {
+        "id": "AC-002",
+        "requirements": ["REQ-003", "BR-001"],
+        "description": "All detail removed from a rule exists with its full meaning in the designated skill/role owner; no semantics were merely deleted.",
+        "source": "Requirement to preserve semantics."
+      },
+      {
+        "id": "AC-003",
+        "requirements": ["REQ-004", "BR-002"],
+        "description": "All relative links and textual references to new rules/skills/roles resolve; no reference to old files or to parts moved to the wrong owner remains.",
+        "source": "AGENTS.md and the current symlink structure."
+      },
+      {
+        "id": "AC-004",
+        "requirements": ["REQ-004"],
+        "description": "AGENTS.md, CLAUDE.md, CONTRACT.md, README.md, agent docs, workflow/skill docs and hook docs/scripts correctly reflect the thin rule + detailed skill model without repeating unnecessary detail.",
+        "source": "docs-sync and the repo-wide requirement."
+      },
+      {
+        "id": "AC-005",
+        "requirements": ["REQ-005", "BR-003"],
+        "description": "The final diff does not lose or overwrite existing dirty changes; bin/lumina-agent.mjs and tests/lumina-agent.test.mjs are touched only for mandatory references with each hunk traceable, otherwise left unchanged.",
+        "source": "Git status and the assigned protection scope."
+      },
+      {
+        "id": "AC-006",
+        "requirements": ["REQ-001", "REQ-003", "REQ-004"],
+        "description": "Config checks, existing syntax/tests, link/reference scan, newline check and git diff --check finish with real evidence; pre-existing failures are separated, no fake Pass.",
+        "source": "AGENTS.md Hooks and format, quality-assurance and package scripts."
+      }
+    ],
+    "assumptions": [
+      "No HLD/LLD needed since this is a config-documentation refactor with no runtime architecture change.",
+      "Prefer extending existing skills/roles; create the coding-standards skill only if the cross-cutting details of coding-principles/comments/type-safety have no single owner without causing duplication.",
+      "Session-wide behavioral rules such as response-style, search-priority and simplicity remain rules; only remove examples or move detailed operations, do not force all content into skills.",
+      "git.md is currently the dirty result of the immediately preceding request and is the baseline to merge into, not to be replaced by the two deleted rules."
+    ],
+    "openQuestions": [],
+    "blockers": [],
+    "technicalSolution": "Follow the thin policy layer + operational owner model. Before editing, snapshot each rule into a semantic inventory with trigger, invariant, procedure, checklist, example, output format and every inbound/outbound reference. For each passage: mandatory invariant/authorization/safety/default stays in the rule; procedure/checklist/example/format moves to the skill or role owning the task; purely illustrative content is dropped from the rule after confirming it carries no constraint of its own. Standard mapping: backend→coding-backend (+database/review-web-security when relevant); frontend→coding-frontend (+clone-website/html-to-component); black-box-feature-testing→testcase/testing-strategy/workflow-test and qa-tester-agent; coding-principles/comments/type-safety→coding-backend/coding-frontend/testing-strategy/refactoring-catalog, or a new coding-standards skill if a single cross-cutting owner is needed; data-safety/database-read-only→database/coding-backend/review-web-security; docs-sync/documentation-reading-and-toc→docs (+testcase/workflow-plan for dedicated artifacts); git→git-workflow/workflow-git and hook docs; implementation→workflow-implement/coding-agent; mandatory-report→report/workflow-report; plan-format→workflow-plan/planner-agent/docs template; quality-assurance→testing-strategy/testcase/workflow-test/workflow-review; search-priority→researcher-agent/system-understanding but keep the no-fabrication/local-first core in the rule; simplicity→workflow-implement/refactoring/design skills but keep the scope authorization core in the rule; response-style keeps its core in the rule and moves report-specific format to report. Do not rename/delete a rule while it is still a public target; prefer stable paths to reduce reference migration. After moving, scan the whole repo to fix genuinely wrong links/wording, not files just because they have still-valid links. No data/API/migration. Roll back per cluster with scoped diffs; absolutely never reset the worktree and never restore commit-discipline.md or pull-request-conflict.md, which were merged into git.md.",
+    "tasks": [
+      {
+        "id": "TASK-001",
+        "title": "Fix the semantics matrix and owner for the 18 rules",
+        "status": "DONE",
+        "priority": "P0",
+        "priorityReason": "Prevent loss or change of meaning before moving content widely.",
+        "requirements": ["REQ-001", "REQ-002", "REQ-003", "BR-001", "BR-003"],
+        "acceptanceCriteria": ["AC-001", "AC-002", "AC-005"],
+        "inScope": "Compare each passage in the 18 rules against the skill/role owner and record keep/move/deduplicate decisions; snapshot relevant dirty hunks as baseline.",
+        "outOfScope": "Do not edit rules/skills in the inventory task; do not restore the deleted Git rule files.",
+        "dependencies": [],
+        "approach": "1. Save git status/diff per path. 2. For each rule, classify trigger/invariant/procedure/checklist/example/format. 3. Compare against existing owners and mark content to add before shrinking the rule. 4. Allow creating coding-standards only if existing owners would lose triggers or duplicate semantics. 5. Record dirty hunks to preserve, especially git/database/dependency/hook/bin/tests.",
+        "filesToChange": [
+          {
+            "path": "docs/plans/compact-rules-into-skills-20261021.json",
+            "changes": "Use the mapping in technicalSolution as the traceability source; if the implementation inventory finds a different owner, update the plan before editing content and keep REQ/AC unchanged."
+          }
+        ],
+        "test": "Count all 18 .agents/rules/*.md files; each rule has an owner/pointer, a list of retained invariants and a list of moved details; compare the git diff baseline so dirty changes are not mistaken for new changes.",
+        "doneWhen": "18/18 rules have a traceable decision and every related dirty file has a merge/preserve strategy."
+      },
+      {
+        "id": "TASK-002",
+        "title": "Move Git, implementation, plan and report details to workflow owners",
+        "status": "DONE",
+        "priority": "P0",
+        "priorityReason": "These rules orchestrate every working step and have dirty changes that must be merged first.",
+        "requirements": ["REQ-001", "REQ-002", "REQ-003", "REQ-005", "BR-001", "BR-003"],
+        "acceptanceCriteria": ["AC-001", "AC-002", "AC-005"],
+        "inScope": "Compact git.md, implementation.md, mandatory-report.md, plan-format.md; move checklists/schema/procedures to the corresponding skill/workflow/role/template; preserve the current Git merge batch.",
+        "outOfScope": "No Git mutation, no change to default commit-all, no change to the plan/report schema or authorization gate.",
+        "dependencies": ["TASK-001"],
+        "approach": "Update owners first, then shrink the rules. Keep the explicit authorization/conflict invariant in the git rule; commit/push/PR procedure in git-workflow. Keep delegation/scope/finish gates in implementation; details in workflow-implement/coding-agent. Keep the mandatory report invariant; format in report. Keep the plan handoff invariant; full schema in workflow-plan/planner/template.",
+        "filesToChange": [
+          {"path": ".agents/rules/git.md", "changes": "Keep authorization, commit/push/conflict invariants and pointers; drop checklists/procedures that already have an owner without losing the current dirty content."},
+          {"path": ".agents/skills/git-workflow/SKILL.md", "changes": "Receive all detailed Git procedures/checklists and remain the canonical source for commit/push/PR/conflict."},
+          {"path": ".agents/skills/workflow-git/SKILL.md", "changes": "Point to and coordinate git-workflow/the thin rule, without maintaining a parallel procedure."},
+          {"path": ".agents/rules/implementation.md", "changes": "Keep scope authorization, delegation and completion gates; move the operating sequence to workflow/role."},
+          {"path": ".agents/skills/workflow-implement/SKILL.md", "changes": "Receive the detailed implementation procedure and pointers to coding-agent/the verification owner."},
+          {"path": ".claude/agents/coding-agent.md", "changes": "Receive/sync detailed implementation role content if it currently lives exclusively in the implementation rule."},
+          {"path": ".codex/agents/coding-agent.toml", "changes": "Sync the adapter if the source role changes embedded semantics; do not edit metadata outside scope."},
+          {"path": ".agents/rules/mandatory-report.md", "changes": "Keep only the mandatory condition, the states that must not be reported DONE and a report pointer."},
+          {"path": ".agents/skills/report/SKILL.md", "changes": "Receive detailed timing, selection and format/report procedure."},
+          {"path": ".agents/skills/workflow-report/SKILL.md", "changes": "Keep a thin entry point pointing to report, without repeating policy."},
+          {"path": ".agents/rules/plan-format.md", "changes": "Keep only the artifact/index/schema owner contract and pointers."},
+          {"path": ".agents/skills/workflow-plan/SKILL.md", "changes": "Receive the plan saving flow, index, schema/task requirements and detailed handoff."},
+          {"path": ".claude/agents/planner-agent.md", "changes": "Sync the role source with the detailed plan schema/procedure, removing unnecessary back-dependencies on long rules."},
+          {"path": ".codex/agents/planner-agent.toml", "changes": "Sync the planner adapter if source role content is mirrored."},
+          {"path": ".agents/skills/docs/assets/implementation-plan-template.json", "changes": "Keep the full schema template as the machine-readable source for plans."},
+          {"path": ".claude/hooks/README.md", "changes": "Update the Git/report description/pointers if the target section moved from the rule to a skill."},
+          {"path": ".claude/hooks/scripts/commit-msg-guard.sh", "changes": "Update comments/references only when needed; keep the current dirty logic."},
+          {"path": ".agents/skills/git-workflow/scripts/validate-commit-message.sh", "changes": "Update comments/references only when needed; keep the current dirty validator."}
+        ],
+        "test": "Compare the before/after semantic matrix for the four clusters; rg finds no detailed guidance contradicting the source; validate the JSON template and TOML adapters; confirm git status shows no commit/push and deleted Git rules remain deleted.",
+        "doneWhen": "The four cluster rules are thin, all details exist at the owner, adapters/references are valid and dirty Git work is not overwritten."
+      },
+      {
+        "id": "TASK-003",
+        "title": "Compact the coding, frontend/backend and data safety rules",
+        "status": "DONE",
+        "priority": "P0",
+        "priorityReason": "This group holds many widely referenced technical constraints that easily change meaning if only examples are removed.",
+        "requirements": ["REQ-001", "REQ-002", "REQ-003", "BR-001"],
+        "acceptanceCriteria": ["AC-001", "AC-002"],
+        "inScope": "backend.md, frontend.md, coding-principles.md, comments.md, type-safety.md, data-safety.md, database-read-only.md, simplicity.md and the technical owner skills.",
+        "outOfScope": "No change to coding conventions, security posture, DB read-only default, UI gate or adding abstractions to product code.",
+        "dependencies": ["TASK-001"],
+        "approach": "Add owner skills per the semantic matrix first; shrink rules to trigger and invariants. Keep scope/YAGNI authorization in simplicity. If creating coding-standards, it only gathers cross-stack procedures/examples and coding-backend/frontend/testing/refactoring point to it; no new rules or behavior.",
+        "filesToChange": [
+          {"path": ".agents/rules/backend.md", "changes": "Keep backend boundary/security/contract invariants and pointers to coding-backend/database/security."},
+          {"path": ".agents/skills/coding-backend/SKILL.md", "changes": "Receive backend procedures/checklists and detailed query/cache/upload/API verification."},
+          {"path": ".agents/rules/frontend.md", "changes": "Keep UI scope/baseline/final evidence and accessibility/data boundary invariants; pointer to coding-frontend."},
+          {"path": ".agents/skills/coding-frontend/SKILL.md", "changes": "Receive frontend procedures/checklists, responsive/accessibility/render/network verification."},
+          {"path": ".agents/rules/coding-principles.md", "changes": "Keep DRY/SRP/fail-fast/readability invariants, drop explanations/examples once the owner has everything."},
+          {"path": ".agents/rules/comments.md", "changes": "Keep default/no stale-comment invariants and pointer; move label/example/length procedure to the coding owner."},
+          {"path": ".agents/rules/type-safety.md", "changes": "Keep the ban on any/type workarounds and the reuse/domain ownership core; move examples/checklists to the coding owner."},
+          {"path": ".agents/rules/simplicity.md", "changes": "Keep the scope authorization/KISS/YAGNI core; drop examples and move operational guidance to implementation/refactor/design owners."},
+          {"path": ".agents/skills/refactoring-catalog/SKILL.md", "changes": "Receive suitable refactor/DRY/comment/readability details."},
+          {"path": ".agents/skills/design-patterns/SKILL.md", "changes": "Receive composition/abstraction guidance where suitable, without changing the trigger."},
+          {"path": ".agents/skills/testing-strategy/SKILL.md", "changes": "Receive coding convention details for tests/helpers if currently in the general rule."},
+          {"path": ".agents/skills/html-to-component/SKILL.md", "changes": "Update the DRY/type/frontend pointer/details if the owner changes."},
+          {"path": ".agents/rules/data-safety.md", "changes": "Keep authorization/transaction/side-effect invariants; move examples/procedures to database/backend/security."},
+          {"path": ".agents/rules/database-read-only.md", "changes": "Keep the read-only default and explicit execution authorization; move engine/procedure to the database skill, preserving the current dirty edit."},
+          {"path": ".agents/skills/database/SKILL.md", "changes": "Receive the transaction/read-only/migration detail procedure per engine."},
+          {"path": ".agents/skills/review-web-security/SKILL.md", "changes": "Receive the related detailed authorization/data exposure checklist."},
+          {"path": ".agents/skills/dependency-audit/SKILL.md", "changes": "Update the database/git analogy/reference only if rule wording changes; keep dirty changes."},
+          {"path": ".agents/skills/coding-standards/SKILL.md", "changes": "Create conditionally after TASK-001 if a cross-cutting owner is needed for the procedures/examples of coding-principles/comments/type-safety; do not create if existing skills cover them."}
+        ],
+        "test": "Semantic diff per invariant; scan keywords any, authorization, transaction, Rule of Three, comment labels, UI evidence to prove each still has an owner; config checker accepts the new skill if created; no product-code diff.",
+        "doneWhen": "The nine technical rules are thin, every detailed constraint is reachable from a pointer and no technical policy changes."
+      },
+      {
+        "id": "TASK-004",
+        "title": "Compact the documentation, testing, search and response rules",
+        "status": "DONE",
+        "priority": "P1",
+        "priorityReason": "Finish the remaining rules and remove duplicate formats/checklists across rule, skill and role.",
+        "requirements": ["REQ-001", "REQ-002", "REQ-003", "BR-001"],
+        "acceptanceCriteria": ["AC-001", "AC-002"],
+        "inScope": "black-box-feature-testing.md, docs-sync.md, documentation-reading-and-toc.md, quality-assurance.md, search-priority.md, response-style.md and the corresponding owners.",
+        "outOfScope": "No change to the testcase/docs index schema, no change to Pass/Fail criteria, no running business tests or web research.",
+        "dependencies": ["TASK-001", "TASK-002"],
+        "approach": "Put scheduler/case accounting in the testing skills/QA role; registry/TOC/schema procedures in docs; QA commands/checklists in testing/workflow skills; research procedures in researcher/system-understanding; report-specific response format in report. Keep the core of no-fabrication, evidence, concise response and test truthfulness in the rules.",
+        "filesToChange": [
+          {"path": ".agents/rules/black-box-feature-testing.md", "changes": "Keep black-box and complete-accounting invariants; move scheduler/checklist/report detail to the test owner."},
+          {"path": ".agents/skills/testcase/SKILL.md", "changes": "Receive technique, scheduler, accounting and artifact detail for black-box cases."},
+          {"path": ".agents/skills/testing-strategy/SKILL.md", "changes": "Receive execution grouping/concurrency/dependency guidance."},
+          {"path": ".agents/skills/workflow-test/SKILL.md", "changes": "Receive the workflow for saving/running/concluding tests by scope."},
+          {"path": ".claude/agents/qa-tester-agent.md", "changes": "Sync the role with the test owner, avoiding repeating long rules while keeping full responsibilities."},
+          {"path": ".codex/agents/qa-tester-agent.toml", "changes": "Sync the adapter if the mirrored part of the role source changes."},
+          {"path": ".agents/rules/quality-assurance.md", "changes": "Keep evidence/no fabricated pass, proportional checks and out-of-scope defect gates; move commands/checklists to skills."},
+          {"path": ".agents/skills/workflow-review/SKILL.md", "changes": "Receive the related detailed review/static/diff checklist."},
+          {"path": ".agents/rules/docs-sync.md", "changes": "Keep docs-in-DoD and sync-owner invariants; move artifact procedure to docs/testcase."},
+          {"path": ".agents/rules/documentation-reading-and-toc.md", "changes": "Keep the registry-first/index contract core; move schema/TOC procedure to the docs skill."},
+          {"path": ".agents/skills/docs/SKILL.md", "changes": "Receive the full registry, TOC, sync, AI-readable/human-readable and artifact routing procedure."},
+          {"path": ".agents/rules/search-priority.md", "changes": "Keep the local-first, citation/no-fabrication core; drop code examples and point to research owners."},
+          {"path": ".claude/agents/researcher-agent.md", "changes": "Receive/keep the source search procedure and fact/assumption/open question classification."},
+          {"path": ".codex/agents/researcher-agent.toml", "changes": "Sync the adapter if the mirrored part of the role source changes."},
+          {"path": ".agents/skills/system-understanding/SKILL.md", "changes": "Receive the suitable local repository discovery procedure."},
+          {"path": ".agents/rules/response-style.md", "changes": "Keep the concise/context fidelity/open-question invariant; move specialized examples/format to report."},
+          {"path": ".agents/skills/report/SKILL.md", "changes": "Receive the remaining question/report formatting detail."}
+        ],
+        "test": "Compare docs/testcase schemas before/after; count full case accounting semantics; scan no-fabrication/citation/Pass-Fail/TOC/index constraints; JSON artifacts still parse.",
+        "doneWhen": "The remaining six rules are thin and every procedure/format/checklist still exists at the right owner."
+      },
+      {
+        "id": "TASK-005",
+        "title": "Sync references repo-wide and verify configuration",
+        "status": "DONE",
+        "priority": "P0",
+        "priorityReason": "The change is complete only when all runtime adapters and documents still lead to a valid canonical source.",
+        "requirements": ["REQ-004", "REQ-005", "BR-002", "BR-003", "BR-004"],
+        "acceptanceCriteria": ["AC-003", "AC-004", "AC-005", "AC-006"],
+        "inScope": "Scan and fix affected references/wording; update root docs/contract when needed; run all config checks and existing repo tests; review the diff against scope.",
+        "outOfScope": "Do not fix unrelated failures, do not format/rewrite files outside scope, no commit/push, do not edit bin/tests unless the rule change requires new installer/test behavior.",
+        "dependencies": ["TASK-002", "TASK-003", "TASK-004"],
+        "approach": "1. rg inbound/outbound rule references and check relative links. 2. Sync root instructions/contract/README only in sentences describing ownership/trigger that became wrong. 3. Run the checker, syntax/tests, newline and diff checks. 4. Compare the final diff with the dirty hunk baseline and the semantic matrix. 5. Report Not Run/Fail honestly and fix only errors caused by the current diff.",
+        "filesToChange": [
+          {"path": "AGENTS.md", "changes": "Update the description of the thin rule/skill owner model or pointers only if the post-refactor state makes the current sentence wrong."},
+          {"path": "CLAUDE.md", "changes": "Sync affected source/skill/workflow wording, keeping runtime-specific hook behavior."},
+          {"path": "CONTRACT.md", "changes": "Keep the eight hard constraints; minimally update pointers/wording when the owner changes, preserving the dirty Git merge."},
+          {"path": "README.md", "changes": "Sync the description of installed rules/skills or maintenance instructions if needed."},
+          {"path": ".claude/hooks/README.md", "changes": "Confirm every rule/skill pointer of the hooks is at the right owner."},
+          {"path": "scripts/check-agent-config.py", "changes": "Change only if needed to check the new structure; prefer using the existing checker as is."},
+          {"path": "bin/lumina-agent.mjs", "changes": "Protect dirty changes; edit only if a reference/hardcoded inventory truly requires it and with a separate traceable hunk."},
+          {"path": "tests/lumina-agent.test.mjs", "changes": "Protect dirty changes; edit only if install config behavior must change, add no tests outside scope."},
+          {"path": "docs/plans/index.json", "changes": "Add a four-field entry for this plan."}
+        ],
+        "test": "Run python3 scripts/check-agent-config.py; npm run check; npm test; parse every changed JSON/TOML/YAML with the existing checker; rg old rule names/old anchors and check relative links; node .agents/hooks/scripts/ensure-final-newline.mjs --check on all changed text files if the script exists, otherwise check the last byte; git diff --check; git status --short; git diff and git diff --cached to confirm no out-of-scope/secret content and dirty hunks are kept.",
+        "doneWhen": "References resolve, checks have real evidence, the diff has only allowed changes, plan/index are valid, bin/tests lose no hunks and there is no commit/push."
+      }
+    ],
+    "executionOrder": ["TASK-001", "TASK-002", "TASK-003", "TASK-004", "TASK-005"],
+    "traceability": [
+      {
+        "requirementId": "REQ-001",
+        "acceptanceCriteria": ["AC-001", "AC-006"],
+        "tasks": ["TASK-001", "TASK-002", "TASK-003", "TASK-004", "TASK-005"],
+        "test": "Inventory of all 18 rules, semantic diff and final rule scan/checks.",
+        "result": "Passed — inventory of all 18 rules; rules now 8–21 lines, keeping invariants and owner pointers; config/test/diff checks pass."
+      },
+      {
+        "requirementId": "REQ-002",
+        "acceptanceCriteria": ["AC-001"],
+        "tasks": ["TASK-001", "TASK-002", "TASK-003", "TASK-004"],
+        "test": "Each rule keeps only trigger/core invariants/pointers; no long procedures/checklists/examples remain.",
+        "result": "Passed — all 18 rules dropped long procedures/checklists/examples; cross-stack details moved to coding-standards and existing skill/role owners."
+      },
+      {
+        "requirementId": "REQ-003",
+        "acceptanceCriteria": ["AC-002", "AC-006"],
+        "tasks": ["TASK-001", "TASK-002", "TASK-003", "TASK-004", "TASK-005"],
+        "test": "Trace each moved passage to the skill/role owner and scan constraint keywords/schema.",
+        "result": "Passed — keyword/reference scan confirms Git, scope/report/plan, type/comment, UI/DB/test/docs/search semantics remain at the owner."
+      },
+      {
+        "requirementId": "REQ-004",
+        "acceptanceCriteria": ["AC-003", "AC-004", "AC-006"],
+        "tasks": ["TASK-002", "TASK-003", "TASK-004", "TASK-005"],
+        "test": "Reference scan, link resolution, config checker, syntax/test and root docs comparison.",
+        "result": "Passed — config checker, JSON validation, npm check/test, stale-reference scan, newline and diff checks pass."
+      },
+      {
+        "requirementId": "REQ-005",
+        "acceptanceCriteria": ["AC-005", "AC-006"],
+        "tasks": ["TASK-001", "TASK-002", "TASK-005"],
+        "test": "Compare baseline/final git diff for every dirty path; confirm bin/tests and Git merge hunks are intact; git status shows no commit/push side effect.",
+        "result": "Passed — baseline dirty Git/database/dependency/hook/bin/tests preserved; no commit/push."
+      },
+      {
+        "requirementId": "BR-001",
+        "acceptanceCriteria": ["AC-001", "AC-002"],
+        "tasks": ["TASK-001", "TASK-002", "TASK-003", "TASK-004"],
+        "test": "Semantic matrix before/after has no lost or new invariant.",
+        "result": "Passed — semantic mapping keeps authorization/safety/default in the rule and procedure at the skill/role owner."
+      },
+      {
+        "requirementId": "BR-002",
+        "acceptanceCriteria": ["AC-003"],
+        "tasks": ["TASK-005"],
+        "test": "scripts/check-agent-config.py confirms .claude/.codex symlinks point to the shared source.",
+        "result": "Passed — scripts/check-agent-config.py confirms the shared source, symlinks and Codex adapters are valid."
+      },
+      {
+        "requirementId": "BR-003",
+        "acceptanceCriteria": ["AC-005"],
+        "tasks": ["TASK-001", "TASK-002", "TASK-005"],
+        "test": "Baseline/final dirty diff comparison.",
+        "result": "Passed — final status/diff keeps the initial dirty hunks and the in-progress Git rule merge."
+      },
+      {
+        "requirementId": "BR-004",
+        "acceptanceCriteria": ["AC-006"],
+        "tasks": ["TASK-005"],
+        "test": "Final report uses config-task File/Description/Trigger condition format and does not claim Big O.",
+        "result": "Passed — changes are only rule/skill/docs/config; the report needs no Big O."
+      }
+    ],
+    "remainingRisks": [
+      {
+        "description": "Over-shrinking rules may stop skills from auto-triggering, leaving constraints no longer loaded session-wide.",
+        "mitigation": "Keep every authorization/safety/default invariant in the rule; skills own only procedure/checklist/example and rules have clear pointers/triggers."
+      },
+      {
+        "description": "Details duplicated across rule, skill and role may drift in wording after moving.",
+        "mitigation": "Pick a single owner per the mapping, turn other sources into pointers, then scan the semantics-defining sentences before/after."
+      },
+      {
+        "description": "The dirty worktree may be overwritten, especially the Git merge batch and bin/tests changes outside the task.",
+        "mitigation": "Snapshot the baseline diff per path, edit in small hunks, no reset/checkout, do not restore deleted files and a final diff comparison is mandatory."
+      },
+      {
+        "description": "Creating an unnecessary coding-standards skill may increase the number of sources and contradict the goal of brevity.",
+        "mitigation": "Create it only after the inventory if no existing owner exists; if created, other skills point to it instead of copying content."
+      },
+      {
+        "description": "Repo tests may fail from pre-existing dirty changes or the environment, not the documentation refactor.",
+        "mitigation": "Run real checks, save output, separate baseline errors from diff-caused errors and do not fix errors outside scope."
+      }
+    ]
+  }
+}

@@ -1,15 +1,10 @@
----
-trigger: model_decision
-description: "Áp dụng khi trả lời tin nhắn của người dùng"
----
+# Answer concisely and on point
 
-# Trả lời ngắn gọn và đúng trọng tâm
+- Use plain words, answer only the question/scope and distinguish project context from non-project content.
+- Never add rules/files or expand results unrequested.
+- Open the answer with the result or decision, then the reason; do not retell steps taken when the user only asks for the result.
+- Answer in the user's language; keep file names, commands, error codes and technical terms as-is.
+- If unverified, say it is unverified.
+- Reference code as `file:line`; copy only short snippets enough to understand.
 
-- Dùng từ dễ hiểu, chỉ trả lời đúng câu hỏi/phạm vi và phân biệt context project với nội dung ngoài project.
-- Không tự thêm rule/file hoặc mở rộng kết quả khi chưa được yêu cầu.
-- Câu trả lời mở đầu bằng kết quả hoặc quyết định, sau đó mới đến lý do; không kể lại các bước đã làm khi người dùng chỉ hỏi kết quả.
-- Trả lời bằng ngôn ngữ người dùng đang dùng; giữ nguyên tên file, lệnh, mã lỗi và thuật ngữ kỹ thuật.
-- Chưa kiểm chứng thì nói rõ là chưa kiểm chứng.
-- Tham chiếu code bằng `file:dòng`; chỉ chép đoạn code ngắn đủ để hiểu.
-
-Đặt câu hỏi và báo cáo có format riêng: [`report`](../skills/report/SKILL.md).
+Questions and reports have their own format: [`report`](../skills/report/SKILL.md).

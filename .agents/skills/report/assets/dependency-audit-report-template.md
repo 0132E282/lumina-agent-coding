@@ -1,21 +1,21 @@
-# Mẫu báo cáo dependency audit
+# Dependency audit report template
 
-Dùng sau khi skill `dependency-audit` chạy audit read-only. Dạng text, không bảng; chỉ liệt kê lệnh để người dùng tự chạy, không tự upgrade.
+Use after skill `dependency-audit` ran a read-only audit. Text, no tables; only list commands for the user to run, never upgrade.
 
 `------------------------`
 
 Package: `pkg-name`
-Severity: critical | high | medium | low (theo tool)
-Version: `x.y.z` → `x.y.z` (fix tối thiểu)
-Loại thay đổi: patch | minor | major
+Severity: critical | high | medium | low (per tool)
+Version: `x.y.z` → `x.y.z` (minimal fix)
+Change type: patch | minor | major
 
-- Lệnh đề xuất: `npm install pkg@x.y.z`
-- Rủi ro breaking (nếu fix nhảy major): [thay đổi cần test lại]
+- Suggested command: `npm install pkg@x.y.z`
+- Breaking risk (if the fix jumps major): [changes needing retest]
 
 `------------------------`
 
-**Ecosystem / Tool đã chạy**: [npm/composer/pip/cargo/go] — `[lệnh audit]`
+**Ecosystem / Tool run**: [npm/composer/pip/cargo/go] — `[audit command]`
 
-**Không audit được**: [package/ecosystem thiếu tool, hoặc `Không có`; không bịa kết quả]
+**Could not audit**: [packages/ecosystems missing a tool, or `None`; never invent results]
 
-**Đánh giá**: [kết luận, thứ tự nâng cấp đề xuất]
+**Assessment**: [conclusion, suggested upgrade order]

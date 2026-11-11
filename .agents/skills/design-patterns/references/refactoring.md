@@ -1,32 +1,32 @@
 # 🔨 Refactoring Catalog
 
-Khi refactor, áp dụng Rule of Three, SRP, comment/readability và KISS/YAGNI từ [`coding-standards`](../../coding-standards/SKILL.md); không dùng catalog để mở rộng scope.
+When refactoring, apply Rule of Three, SRP, comment/readability and KISS/YAGNI from [`coding-standards`](../../coding-standards/SKILL.md); never use the catalog to expand scope.
 
-Khác [`design-patterns`](../SKILL.md) (tạo cấu trúc mới cho nhu cầu mở rộng), skill này **cải tiến code đang có** mà không đổi hành vi quan sát được — input/output giữ nguyên, chỉ đổi cách tổ chức bên trong.
+Unlike [`design-patterns`](../SKILL.md) (creating new structure for extension needs), this skill **improves existing code** without changing observable behavior — input/output stay the same, only the internal organization changes.
 
-## Nguyên tắc bắt buộc
+## Mandatory principles
 
-- Không đổi hành vi — output khác đi là sửa bug/thêm tính năng, không phải refactor.
-- Phải có test bao phủ trước khi refactor ([`rules/delivery`](../../../rules/delivery.md#chất-lượng-và-bằng-chứng)); thiếu test → viết test chốt hành vi hiện tại trước (dùng [`testing`](../../testing/references/unit-testing.md)).
-- Từng bước nhỏ, chạy lại test sau mỗi bước — không dồn nhiều kỹ thuật vào một lần sửa lớn.
-- Rule of Three ([`rules/coding`](../../../rules/coding.md#nguyên-tắc-code)): smell lặp 2 lần có thể chấp nhận, lần 3 mới refactor.
-- Giữ phạm vi ([`rules/coding`](../../../rules/coding.md#kiss-yagni-và-phạm-vi)): chỉ refactor phần cần thiết cho task đã giao.
+- Never change behavior — a different output is a bug fix/new feature, not a refactor.
+- Tests must cover the code before refactoring ([`rules/delivery`](../../../rules/delivery.md#quality-and-evidence)); missing tests -> first write tests pinning current behavior (use [`testing`](../../testing/references/unit-testing.md)).
+- Small steps, rerun tests after each step — never pile many techniques into one big change.
+- Rule of Three ([`rules/coding`](../../../rules/coding.md#coding-principles)): a smell repeated twice is tolerable; refactor on the third.
+- Keep scope ([`rules/coding`](../../../rules/coding.md#kiss-yagni-and-scope)): refactor only what the assigned task needs.
 
-## Code smell → kỹ thuật refactor
+## Code smell → refactoring technique
 
-| Code smell | Kỹ thuật |
+| Code smell | Technique |
 |---|---|
-| Hàm quá dài, làm nhiều việc (tên có "và": `validateAndSave`) | **Extract Method/Function** |
-| Biểu thức điều kiện/tính toán phức tạp khó đọc | **Extract Variable** |
-| `if/else` lồng sâu nhiều tầng | **Decompose Conditional** / Guard Clauses (early return, [`rules/coding`](../../../rules/coding.md#nguyên-tắc-code)) |
-| `switch`/`if-else` theo loại đối tượng, lặp ở **≥3 nơi** | **Replace Conditional with Polymorphism** — 1 nơi duy nhất thì giữ `if` ([`rules/coding`](../../../rules/coding.md#kiss-yagni-và-phạm-vi)) |
-| Số/chuỗi "ma thuật" lặp lại không rõ nghĩa | **Replace Magic Number/String with Symbolic Constant** |
-| Hàm nhận quá nhiều tham số cùng mô tả một khái niệm | **Introduce Parameter Object** (`street, city, zip` → `Address`) |
-| Data clump — cùng nhóm field + hàm xử lý lặp ở nhiều chỗ | **Extract Class** ([`rules/coding`](../../../rules/coding.md#nguyên-tắc-code)) |
-| Biến tạm chỉ dùng gọi lại một biểu thức một lần | **Replace Temp with Query** — cẩn trọng nếu biểu thức là query nặng (DB/network) |
-| Comment giải thích "đoạn này làm gì" | **Extract Method + đặt tên rõ** thay comment ([`rules/coding`](../../../rules/coding.md#comment-có-kỷ-luật)) |
+| Function too long, doing many things (name has "and": `validateAndSave`) | **Extract Method/Function** |
+| Complex conditional/computation expression hard to read | **Extract Variable** |
+| Deeply nested `if/else` | **Decompose Conditional** / Guard Clauses (early return, [`rules/coding`](../../../rules/coding.md#coding-principles)) |
+| `switch`/`if-else` by object type, repeated in **≥3 places** | **Replace Conditional with Polymorphism** — only one place, keep the `if` ([`rules/coding`](../../../rules/coding.md#kiss-yagni-and-scope)) |
+| Repeated "magic" numbers/strings with unclear meaning | **Replace Magic Number/String with Symbolic Constant** |
+| Function takes too many parameters describing one concept | **Introduce Parameter Object** (`street, city, zip` → `Address`) |
+| Data clump — same group of fields + handling functions repeated in many places | **Extract Class** ([`rules/coding`](../../../rules/coding.md#coding-principles)) |
+| Temp variable only used to call back an expression once | **Replace Temp with Query** — be careful if the expression is a heavy query (DB/network) |
+| Comment explaining "what this block does" | **Extract Method + clear name** instead of a comment ([`rules/coding`](../../../rules/coding.md#disciplined-comments)) |
 
-## Khi áp dụng
+## When to apply
 
-- Thấy code smell cụ thể ở bảng trên — tra để chọn đúng kỹ thuật, xác nhận đã có test bao phủ trước khi refactor.
-- Không dùng để refactor lan ra ngoài phạm vi task ([`rules/coding`](../../../rules/coding.md#kiss-yagni-và-phạm-vi)), hoặc khi vấn đề cần pattern kiến trúc mới (→ [`design-patterns`](../SKILL.md)).
+- You see a specific code smell from the table above — look up to choose the right technique, confirm tests cover it before refactoring.
+- Not for refactors spilling beyond the task scope ([`rules/coding`](../../../rules/coding.md#kiss-yagni-and-scope)), or when the problem needs a new architectural pattern (→ [`design-patterns`](../SKILL.md)).

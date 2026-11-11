@@ -1,15 +1,15 @@
 ---
 name: ui-styles
-description: "Phong cách thiết kế UI: minimalist editorial, industrial brutalist, hoặc nâng cấp giao diện hiện có không phá chức năng. Dùng khi cần chọn phong cách cho UI mới hoặc redesign; yêu cầu người dùng, accessibility và design system hiện có được ưu tiên hơn."
+description: "UI design styles: minimalist editorial, industrial brutalist, or upgrading an existing UI without breaking functionality. Use when choosing a style for new UI or redesign; user requirements, accessibility and the existing design system take priority."
 license: MIT
 metadata:
   version: "1.0"
 ---
 
-# Phong cách UI
+# UI styles
 
-Chọn đúng phong cách theo nhu cầu, chỉ mở phần cần dùng; yêu cầu người dùng, accessibility và design system hiện có luôn được ưu tiên hơn phong cách:
+Pick the right style for the need, open only what is needed; user requirements, accessibility and the existing design system always take priority over style:
 
-- Admin/dashboard tối giản, editorial, tông đơn sắc ấm: [references/minimalist.md](./references/minimalist.md)
-- Dashboard nhiều dữ liệu, phong cách công nghiệp/terminal, lưới cứng: [references/industrial-brutalist.md](./references/industrial-brutalist.md)
-- Nâng cấp giao diện hiện có mà không phá chức năng: [references/redesign-existing.md](./references/redesign-existing.md)
+- Minimalist admin/dashboard, editorial, warm monochrome tone: [references/minimalist.md](./references/minimalist.md)
+- Data-heavy dashboard, industrial/terminal style, rigid grid: [references/industrial-brutalist.md](./references/industrial-brutalist.md)
+- Upgrade an existing UI without breaking functionality: [references/redesign-existing.md](./references/redesign-existing.md)

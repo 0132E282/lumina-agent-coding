@@ -1,6 +1,6 @@
-# Quy tắc khi nguồn là screenshot hoặc ảnh
+# Rules when the source is a screenshot or image
 
-- Đọc ảnh như đặc tả thị giác: xác định bounding region, alignment, khoảng cách, tỷ lệ, thứ bậc chữ và trạng thái đang hiển thị trước khi code.
-- Chỉ tái tạo những gì có bằng chứng. Không suy ra menu, animation, hover state, API data hoặc mobile layout nếu ảnh không thể hiện và người dùng chưa yêu cầu.
-- Nếu chữ hoặc asset không đọc được, hỏi hoặc dùng nội dung đã có trong project; không bịa copy có ý nghĩa nghiệp vụ.
-- Dùng asset local hoặc asset được người dùng cung cấp nếu có. Không tải hoặc nhúng asset bên ngoài khi chưa được cho phép.
+- Read the image as a visual spec: identify bounding regions, alignment, spacing, proportions, type hierarchy and the displayed state before coding.
+- Reproduce only what has evidence. Do not infer menus, animations, hover states, API data or mobile layout if the image does not show them and the user has not asked.
+- If text or an asset is unreadable, ask or use content already in the project; never invent copy with business meaning.
+- Use local assets or user-supplied assets if available. Do not download or embed external assets without permission.

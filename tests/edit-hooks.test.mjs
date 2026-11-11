@@ -9,10 +9,10 @@ import test, { after } from 'node:test';
 const repoRoot = fileURLToPath(new URL('..', import.meta.url));
 const scripts = path.join(repoRoot, '.claude/hooks/scripts');
 const scriptsViaSymlink = path.join(repoRoot, '.agents/hooks/scripts');
-// PATH tối giản: chỉ thư mục fake + hệ thống (jq/git/bash nằm ở /usr/bin, /bin) để không chạm linter thật.
+// Minimal PATH: only the fake directory + system (jq/git/bash live in /usr/bin, /bin) so no real linter is touched.
 const systemPath = '/usr/bin:/bin';
 
-// macOS quét mỗi file thực thi mới ở lần chạy đầu (~100-400ms), nên fake được tạo một lần và dùng chung qua symlink.
+// macOS scans each new executable on first run (~100-400ms), so the fake is created once and shared via symlink.
 const fakeRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'edit-hooks-fakes-')));
 after(() => fs.rmSync(fakeRoot, { recursive: true, force: true }));
 
@@ -125,7 +125,7 @@ test('format-on-edit exits 0 silently even when prettier fails', context => {
 
 // ---------- lint-on-edit.sh ----------
 
-// Fake npx: chỉ nhận tool có trong $FAKE_NPX_TOOLS; `--version` thành công, lệnh lint in $FAKE_OUTPUT.
+// Fake npx: only accepts tools listed in $FAKE_NPX_TOOLS; `--version` succeeds, the lint command prints $FAKE_OUTPUT.
 const FAKE_NPX = [
   'case " $FAKE_NPX_TOOLS " in *" $2 "*) ;; *) exit 1 ;; esac',
   'printf "npx %s\\n" "$*" >> "$FAKE_CALLS"',
@@ -134,7 +134,7 @@ const FAKE_NPX = [
   'exit 1',
 ].join('\n');
 const fakeLinter = name => `printf "${name} %s\\n" "$*" >> "$FAKE_CALLS"\nprintf "%s\\n" "$FAKE_OUTPUT"\nexit 1`;
-// Mỗi tool một thư mục riêng để PATH chọn đúng tập tool có mặt trong từng test.
+// One directory per tool so PATH selects exactly the set of tools present in each test.
 for (const tool of ['npx', 'ruff', 'flake8', 'phpstan']) writeExecutable(fakeRoot, `bin-${tool}/${tool}`, tool === 'npx' ? FAKE_NPX : fakeLinter(tool));
 const fakeVendorPhpstan = writeExecutable(fakeRoot, 'vendor-phpstan', fakeLinter('vendor-phpstan'));
 
@@ -255,7 +255,7 @@ test('lint-on-edit stays silent for unsupported extensions, missing files and mi
   assert.deepEqual(readCalls(project.calls), []);
 });
 
-// Regression: grep 'error|warning' từng khớp cả "Found 0 errors"/"no errors" nên lint sạch vẫn bị báo.
+// Regression: grep 'error|warning' used to match "Found 0 errors"/"no errors" too, so clean lint was still reported.
 test('lint-on-edit stays silent when linter output only says "Found 0 errors" / "no errors"', context => {
   for (const output of ['Found 0 errors.', 'Found 0 errors. Watching for file changes.', '0 errors', 'no errors', '[OK] No errors', '0 problems', '0 errors, 0 warnings']) {
     const project = lintProject(context, { tools: ['ruff'], output });

@@ -25,7 +25,7 @@ const instructionBlock = `${startMarker}
 ## Lumina agent framework
 
 - Keep project-specific instructions; Lumina content adds workflow and does not change stack/UI/contract.
-- Read [CONTRACT.md](./CONTRACT.md) before working; before coding read all rules in [.agents/rules/](./.agents/rules/), apply only the relevant parts.
+- Read [CONTRACT.md](./CONTRACT.md) before working; before coding read only the rule files in [.agents/rules/](./.agents/rules/) relevant to the task (e.g. git, frontend, backend), not all of them.
 - Skills use the shared source [.agents/skills/](./.agents/skills/). Claude uses commands directly /review, /git, /cleanup; for planning use Plan mode combined with the workflow-plan skill. Codex uses $workflow-..., Antigravity uses /workflow-... per the actual runtime.
 - When implementing, follow common rules and delegate to the coder role; read the full role docs in [.claude/agents/](./.claude/agents/) before executing. Codex adapters are in [.codex/agents/](./.codex/agents/).
 - On task completion with concrete results: use the report skill; for data-dependent code use complexity-performance before reporting. Real databases are read-only by default.
@@ -277,7 +277,7 @@ export async function installFromSource({ source, target, dryRun = false, global
   for (const relative of allEntries.keys()) {
     if (!roots.some(root => relative === root || relative.startsWith(`${root}/`))) allEntries.delete(relative);
   }
-  // ! Global mode bỏ .claude/rules — Claude tự nạp ~/.claude/rules, trùng với .claude/rules của project (rule bị nạp hai lần).
+  // ! Global mode skips .claude/rules -- Claude loads ~/.claude/rules itself, duplicating the project's .claude/rules (rules loaded twice).
   if (global) allEntries.delete('.claude/rules');
   // ! Global mode đặt CONTRACT.md ở ~/.agents/ (dùng chung Claude/Codex), không ghi ~/CONTRACT.md.
   const contractEntry = allEntries.get('CONTRACT.md');
@@ -585,7 +585,7 @@ export function promptAgents(input = process.stdin, output = process.stdout, { g
     choices: available.map(runtime => ({ value: runtime, label: runtimeLabels[runtime], selected: true })),
     title: 'Select agents to install',
     description: `↑/↓ move · Space toggle · Enter confirm${note}`,
-    footer: 'Ctrl+C để thoát',
+    footer: 'Ctrl+C to exit',
     actions: [
       { label: 'Install' },
       { label: 'Cancel', cancel: true },

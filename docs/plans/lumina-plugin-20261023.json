@@ -1,0 +1,242 @@
+{
+  "title": "Package Lumina as a Claude Code and Codex plugin",
+  "description": "[CANCELLED 2026-10-24] Reference when building, changing or releasing the lumina plugin at plugins/lumina (skills, agents, commands, hooks, rules, workflow loaded via SessionStart) and the marketplace for Claude Code/Codex.",
+  "tags": [
+    "plugin",
+    "claude-code",
+    "codex",
+    "marketplace",
+    "hooks",
+    "workflow",
+    "cancelled"
+  ],
+  "createdAt": "2026-10-23",
+  "content": {
+    "meta": {
+      "objective": "Install Lumina via a plugin marketplace for Claude Code and Codex; a session using the plugin auto-loads the workflow, CONTRACT and rules.",
+      "inScope": "plugins/lumina (auto-generated from source), scripts/build-plugin.mjs, scripts/plugin/WORKFLOW.md, scripts/plugin/session-context.sh, 2 marketplace files, npm scripts, CI step, README section.",
+      "outOfScope": "Behavior of the bin/lumina-agent.mjs CLI; content of existing rules/skills/agents/hook scripts; new test files (use existing checks); Codex agents (.codex/agents) in the plugin since Codex plugins do not support them; rtk hook in the plugin; handling duplicate hooks when both the global CLI and the plugin are installed.",
+      "currentState": "Lumina is installed only via npx lumina-agent install. Format checked 2026-10-23: https://code.claude.com/docs/en/plugins-reference, https://code.claude.com/docs/en/plugins/marketplace-reference, https://developers.openai.com/codex/plugins/build. Have claude 2.1.308, codex-cli 0.163.0. The CLI only copies the roots at bin/lumina-agent.mjs:14-21, 252-258 (no .agents/plugins). Relative links in skills/agents/commands resolve from the .agents root (../../rules, ../skills)."
+    },
+    "requirements": [
+      {
+        "id": "REQ-001",
+        "description": "Lumina plugin for Claude Code and Codex at plugins/lumina, including skills, agents, commands, hooks and rules; keep the CLI in parallel",
+        "source": "User decided via question 2026-10-23"
+      },
+      {
+        "id": "REQ-002",
+        "description": "The plugin loads the workflow (analyze → plan → coder → test → review → git) at session start",
+        "source": "User chose \"Plugin loads pipeline\" 2026-10-23"
+      },
+      {
+        "id": "REQ-003",
+        "description": "Do not write unnecessary miscellaneous tests",
+        "source": "User 2026-10-23"
+      }
+    ],
+    "businessRules": [],
+    "acceptanceCriteria": [
+      {
+        "id": "AC-001",
+        "requirements": [
+          "REQ-001"
+        ],
+        "description": "claude plugin validate plugins/lumina and claude plugin validate . have no errors; warnings recorded verbatim",
+        "source": "Plan 2026-10-23"
+      },
+      {
+        "id": "AC-002",
+        "requirements": [
+          "REQ-001"
+        ],
+        "description": "npm run check:plugin passes right after build and fails when source changes without a rebuild; plugins/lumina contains no symlink, hooks no longer contain git rev-parse/.agents/hooks/rtk",
+        "source": "Plan 2026-10-23"
+      },
+      {
+        "id": "AC-003",
+        "requirements": [
+          "REQ-002"
+        ],
+        "description": "A claude --plugin-dir plugins/lumina session in a directory without Lumina receives WORKFLOW + CONTRACT in context and sees lumina:* skills/agents/commands",
+        "source": "Plan 2026-10-23"
+      },
+      {
+        "id": "AC-004",
+        "requirements": [
+          "REQ-001",
+          "REQ-002"
+        ],
+        "description": "In a project with the CLI installed, plugin hooks exit on their own via _dedupe-guard.sh and session-context prints nothing",
+        "source": "Plan 2026-10-23"
+      },
+      {
+        "id": "AC-005",
+        "requirements": [
+          "REQ-001",
+          "REQ-003"
+        ],
+        "description": "npm test, npm run check, python3 scripts/check-agent-config.py, git diff --check pass; no new test files; CLI behavior unchanged",
+        "source": "Plan 2026-10-23"
+      }
+    ],
+    "assumptions": [
+      "Codex exports CLAUDE_PLUGIN_ROOT for plugin hooks (OpenAI docs), so hook commands share this variable.",
+      "Drop the rtk hook from the plugin because the user already has `rtk hook claude` in ~/.claude/settings.json."
+    ],
+    "openQuestions": [],
+    "blockers": [
+      "Plan cancelled at user request on 2026-10-24; not implemented. The empty directories plugins/, scripts/plugin/, .agents/plugins/ were deleted."
+    ],
+    "technicalSolution": "plugins/lumina mirrors the .agents structure: agents/ (from .claude/agents), commands/ (from .claude/commands), skills/ (from .agents/skills), rules/ (from .agents/rules), hooks/scripts/ (from .claude/hooks/scripts), CONTRACT.md (change link ./.agents/rules → ./rules), WORKFLOW.md. scripts/build-plugin.mjs deletes then regenerates output, real copies (no symlinks; exclude .DS_Store/storage/__pycache__ per the excluded() rule at bin/lumina-agent.mjs:51, copy the logic rather than import), rewrite hook `$(git rev-parse --show-toplevel)/.agents/hooks/scripts/<x>` → `\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/<x>\"` (regex like repositoryRelativeHook at bin/lumina-agent.mjs:137), drop the rtk hook, add SessionStart session-context.sh; generate .claude-plugin/plugin.json, .codex-plugin/plugin.json (skills ./skills/, hooks ./hooks/codex-hooks.json, interface), hooks/hooks.json (from .claude/settings.json), hooks/codex-hooks.json (from .codex/hooks.json); metadata from package.json; `--check` compares output with source. session-context.sh prints WORKFLOW.md + CONTRACT.md + absolute paths of rules/*.md, exits silently when the project has AGENTS.md + .agents/rules. WORKFLOW.md summarizes the pipeline from CLAUDE.md and the AGENTS.md skill table, with Claude `/cmd` and Codex `$workflow-*` notation, adding no new rules. Marketplace: .claude-plugin/marketplace.json (Claude) and .agents/plugins/marketplace.json (Codex, with policy + category).",
+    "tasks": [
+      {
+        "id": "TASK-001",
+        "title": "Build script, plugin-specific sources, plugins/lumina output and marketplace",
+        "status": "TODO",
+        "priority": "P1",
+        "priorityReason": "Foundation for the remaining tasks",
+        "requirements": [
+          "REQ-001",
+          "REQ-002"
+        ],
+        "acceptanceCriteria": [
+          "AC-001",
+          "AC-002",
+          "AC-003",
+          "AC-004"
+        ],
+        "inScope": "scripts/build-plugin.mjs (with --check), scripts/plugin/WORKFLOW.md, scripts/plugin/session-context.sh, npm scripts build:plugin and check:plugin, run the build to generate plugins/lumina, 2 marketplace files",
+        "outOfScope": "Editing sources of rules/skills/agents/hook scripts; changing bin/lumina-agent.mjs; writing test files",
+        "dependencies": [],
+        "approach": "Assign to coder per technicalSolution; verify with existing commands and claude plugin validate.",
+        "filesToChange": [
+          "scripts/build-plugin.mjs",
+          "scripts/plugin/WORKFLOW.md",
+          "scripts/plugin/session-context.sh",
+          "package.json",
+          "plugins/lumina/",
+          ".claude-plugin/marketplace.json",
+          ".agents/plugins/marketplace.json"
+        ],
+        "test": "npm run build:plugin; npm run check:plugin (pass, then temporarily edit 1 source file → fail, revert); find plugins/lumina -type l empty; grep finds no git rev-parse/rtk in hooks; claude plugin validate plugins/lumina and .; run session-context.sh in a temp dir (has output) and in this repo (empty)",
+        "doneWhen": "AC-001, AC-002, AC-004 have real command output"
+      },
+      {
+        "id": "TASK-002",
+        "title": "Plugin link check and CI",
+        "status": "TODO",
+        "priority": "P1",
+        "priorityReason": "Keep plugin output in sync with source on merge",
+        "requirements": [
+          "REQ-001",
+          "REQ-003"
+        ],
+        "acceptanceCriteria": [
+          "AC-002",
+          "AC-005"
+        ],
+        "inScope": "Add plugins to SCANNED_DIRECTORIES in scripts/check_docs.py; add an npm run check:plugin step to .github/workflows/agent-config.yml",
+        "outOfScope": "New test files; editing old tests",
+        "dependencies": [
+          "TASK-001"
+        ],
+        "approach": "Reuse existing checks",
+        "filesToChange": [
+          "scripts/check_docs.py",
+          ".github/workflows/agent-config.yml"
+        ],
+        "test": "python3 scripts/check-agent-config.py; npm test; npm run check",
+        "doneWhen": "The commands above pass"
+      },
+      {
+        "id": "TASK-003",
+        "title": "README and repo testcase",
+        "status": "TODO",
+        "priority": "P2",
+        "priorityReason": "Docs are part of the Definition of Done",
+        "requirements": [
+          "REQ-001",
+          "REQ-002"
+        ],
+        "acceptanceCriteria": [
+          "AC-005"
+        ],
+        "inScope": "Plugin install section in README (/plugin marketplace add, codex plugin marketplace add, npm run build:plugin when editing sources, note about duplicate hooks when the global CLI is also installed); Not Run repo testcase at docs/repo (local, no push) + index",
+        "outOfScope": "Rewriting the README",
+        "dependencies": [
+          "TASK-001"
+        ],
+        "approach": "Main session edits docs; testcase per .agents/skills/docs/assets/repo-testcase-template.md",
+        "filesToChange": [
+          "README.md",
+          "docs/repo/lumina-plugin-20261023.md",
+          "docs/repo/index.json",
+          "docs/index.json"
+        ],
+        "test": "python3 scripts/check-agent-config.py",
+        "doneWhen": "Config check passes"
+      }
+    ],
+    "executionOrder": [
+      "TASK-001",
+      "TASK-002",
+      "TASK-003"
+    ],
+    "traceability": [
+      {
+        "requirementId": "REQ-001",
+        "acceptanceCriteria": [
+          "AC-001",
+          "AC-002",
+          "AC-004",
+          "AC-005"
+        ],
+        "tasks": [
+          "TASK-001",
+          "TASK-002",
+          "TASK-003"
+        ],
+        "test": "claude plugin validate; npm run check:plugin; npm test; check-agent-config",
+        "result": "Not Run"
+      },
+      {
+        "requirementId": "REQ-002",
+        "acceptanceCriteria": [
+          "AC-003",
+          "AC-004"
+        ],
+        "tasks": [
+          "TASK-001"
+        ],
+        "test": "Smoke test claude --plugin-dir plugins/lumina in a temp dir; session-context.sh in a repo with the CLI installed",
+        "result": "Not Run"
+      },
+      {
+        "requirementId": "REQ-003",
+        "acceptanceCriteria": [
+          "AC-005"
+        ],
+        "tasks": [
+          "TASK-002"
+        ],
+        "test": "git status shows no new files in tests/",
+        "result": "Not Run"
+      }
+    ],
+    "remainingRisks": [
+      {
+        "description": "Not verified that Codex puts SessionStart stdout into context",
+        "mitigation": "Check manually when possible; if not, record the limitation"
+      },
+      {
+        "description": "Installing both the global CLI and the plugin may run hooks twice (_dedupe-guard.sh only compares against the project)",
+        "mitigation": "README note; out of scope"
+      },
+      {
+        "description": "plugins/lumina is a large copy in the repo, easy to drift from source",
+        "mitigation": "check:plugin in CI"
+      }
+    ]
+  }
+}

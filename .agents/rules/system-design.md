@@ -1,9 +1,9 @@
-# Thiết kế hệ thống — chọn đúng tài liệu và luôn bám theo
+# System design — pick the right documents and follow them
 
-- Tài liệu chính `ARCHITECTURE.md` và `DESIGN.md` ở gốc repo; bản chi tiết chia theo loại (database, api, frontend...) trong `system/` và `design/`, ngoài `docs/`.
-- Chọn tài liệu theo loại dự án và độ phức tạp thật (mặc định frontend web); loại khác (mobile, AI, desktop, SaaS, e-commerce, backend, hạ tầng) chỉ thêm khi dự án thuộc loại đó. Không viết đủ bộ, bỏ mục không áp dụng kèm lý do.
-- Sơ đồ Mermaid chỉ khi có ≥3 thành phần/bước, từ cấu trúc đã xác minh. Design pattern chỉ khi có vấn đề cụ thể, ghi lý do ([`coding`](./coding.md#kiss-yagni-và-phạm-vi)).
-- Lập plan, điều phối và coding luôn đọc các thiết kế này; mỗi task dẫn phần thiết kế nó thực hiện. Chưa có thiết kế thì ghi rõ, không bịa; code lệch thiết kế thì dừng và hỏi.
-- Bám design system và UI hiện có; không tự redesign hay đổi UI library. Phần thiếu căn cứ ghi là giả định hoặc câu hỏi mở.
+- Main documents `ARCHITECTURE.md` and `DESIGN.md` at the repo root; detailed versions split by type (database, api, frontend...) in `system/` and `design/`, outside `docs/`.
+- Choose documents by real project type and complexity (default: web frontend); other types (mobile, AI, desktop, SaaS, e-commerce, backend, infrastructure) only when the project is of that type. Never write the full set; drop inapplicable sections with a reason.
+- Mermaid diagrams only with ≥3 components/steps, from verified structure. Design patterns only for a concrete problem, with the reason ([`coding`](./coding.md#kiss-yagni-and-scope)).
+- Planning, orchestration and coding always read these designs; each task cites the design part it implements. No design yet: say so, never invent; code that deviates from the design: stop and ask.
+- Follow the existing design system and UI; never redesign or swap the UI library on your own. Parts without basis are recorded as assumptions or open questions.
 
-Vai trò: [`architect`](../agents/architect.md) viết kiến trúc, [`designer`](../agents/designer.md) viết giao diện. Sơ đồ: [`diagrams`](../skills/system-understanding/references/diagrams.md); bộ theo loại dự án và checklist: [`design-sets`](../skills/system-understanding/references/design-sets.md).
+Roles: [`architect`](../agents/architect.md) writes architecture, [`designer`](../agents/designer.md) writes UI. Diagrams: [`diagrams`](../skills/system-understanding/references/diagrams.md); sets per project type and checklist: [`design-sets`](../skills/system-understanding/references/design-sets.md).

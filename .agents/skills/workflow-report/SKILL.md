@@ -1,8 +1,8 @@
 ---
 name: workflow-report
-description: "Dùng khi gọi $workflow-report hoặc /report để xuất lại kết quả đã có."
+description: "Use when calling $workflow-report or /report to re-output existing results."
 ---
 
 # workflow-report
 
-Đọc skill [`report`](../report/SKILL.md) và rule [`mandatory-report`](../../rules/delivery.md#báo-cáo-bắt-buộc), format kết quả/thay đổi đã có theo loại báo cáo đúng. Báo cáo là bước bắt buộc khi task có kết quả, không chờ command report; skill này chỉ là cách gọi riêng khi cần xuất lại kết quả đã có, không thực hiện review mới. Claude dùng `/report`, Codex dùng `$workflow-report`. Code có xử lý runtime thì dùng complexity-performance trước report; config/docs/template thuần túy bỏ dòng Big O. Không bịa kiểm chứng.
+Read skill [`report`](../report/SKILL.md) and rule [`mandatory-report`](../../rules/delivery.md#mandatory-reporting), format existing results/changes per the right report type. Reporting is a mandatory step when a task has results, not waiting for a report command; this skill is only a separate way to invoke it when existing results need re-output, performing no new review. Claude uses `/report`, Codex uses `$workflow-report`. Code with runtime processing uses complexity-performance before the report; pure config/docs/template drops the Big O line. Never invent verification.

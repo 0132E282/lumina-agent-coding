@@ -1,16 +1,11 @@
----
-trigger: model_decision
-description: "Áp dụng khi tìm kiếm, nghiên cứu hoặc đưa ra dữ kiện"
----
+# Local-first and no fabrication
 
-# Local-first và không bịa
+- Search in order: open file/diff → code/tests in repo → `CLAUDE.md`, `docs/`, README → official external sources; stop at the layer that suffices to answer.
+- External sources: prefer the MCP connected to the right system (GitHub: PR/CI/issue; Supabase: schema/log/advisor; Vercel: deploy/runtime log; Figma: design; docs MCP like Microsoft Learn) before web search, only when the local layer is insufficient. Use read operations only unless explicitly asked (database per [`backend`](./backend.md#database-read-only-by-default)); never put secrets/PII in parameters; if MCP errors/not connected, say so, never guess results.
+- Important facts must have a file path or URL for verification.
+- If not found, say so; distinguish verified facts, assumptions and open questions, never present assumptions as facts.
+- Information that may have changed (versions, prices, API, models, CVE) must be checked against official sources; never answer from memory, and record the check date.
+- Before asserting a file/function/flag still exists, recheck in the repo; old memory is only a hint.
+- Conflicting sources: state both and which wins (running code > docs); never choose silently.
 
-- Tìm theo thứ tự: file đang mở/diff → code/test trong repo → `CLAUDE.md`, `docs/`, README → nguồn chính thức bên ngoài; dừng ở tầng đủ trả lời.
-- Nguồn ngoài: ưu tiên MCP đang kết nối đúng hệ thống (GitHub: PR/CI/issue; Supabase: schema/log/advisor; Vercel: deploy/runtime log; Figma: design; docs MCP như Microsoft Learn) trước web search, chỉ khi tầng local chưa đủ. Chỉ dùng thao tác đọc trừ khi được yêu cầu rõ (database theo [`backend`](./backend.md#database-read-only-mặc-định)); không đưa secret/PII vào tham số; MCP lỗi/chưa kết nối thì báo rõ, không đoán kết quả.
-- Dữ kiện quan trọng phải có file path hoặc URL để kiểm chứng.
-- Không tìm thấy thì nói rõ; phân biệt dữ kiện đã xác minh, giả định và câu hỏi mở, không trình bày giả định như sự thật.
-- Thông tin có thể đã đổi (phiên bản, giá, API, model, CVE) phải kiểm bằng nguồn chính thức; không trả lời từ trí nhớ và ghi ngày kiểm.
-- Trước khi khẳng định một file/hàm/flag còn tồn tại, kiểm lại trong repo; ghi nhớ cũ chỉ là gợi ý.
-- Nguồn mâu thuẫn thì nêu cả hai và nguồn nào thắng (code chạy thật > tài liệu); không chọn ngầm.
-
-Quy trình discovery và tổng hợp nguồn: [`system-understanding`](../skills/system-understanding/SKILL.md) và [`researcher`](../agents/researcher.md).
+Discovery and source-synthesis process: [`system-understanding`](../skills/system-understanding/SKILL.md) and [`researcher`](../agents/researcher.md).

@@ -8,7 +8,7 @@ import { getSessionValue, setSessionValue, todayLogFile } from './_hook-storage.
 
 const REQUEST_LIMIT = 200;
 const FILE_TOOLS = new Set(['Edit', 'Write', 'NotebookEdit']);
-// Tin nhắn type "user" nhưng không phải người dùng gõ: lệnh local, output `!`, thông báo subagent, ngắt lượt.
+// Messages of type "user" that the user did not type: local commands, `!` output, subagent notifications, turn interrupts.
 const NON_PROMPT_PREFIXES = [
   '<task-notification>',
   '<local-command-',
@@ -42,7 +42,7 @@ function isMainSession(event) {
   return event?.isSidechain !== true && event?.parent_tool_use_id == null;
 }
 
-// Trả về text prompt nếu dòng là prompt thật của người dùng, ngược lại null.
+// Return the prompt text if the line is a real user prompt, otherwise null.
 function promptText(event) {
   if (event?.type !== 'user' || !isMainSession(event)) return null;
   if (event.isMeta === true || event.isCompactSummary === true) return null;
@@ -97,8 +97,8 @@ function isFinishedSubagent(result, subagentDirectory) {
   }
 }
 
-// * Token subagent lấy từ transcript riêng <session>/subagents/agent-<id>.jsonl; totalTokens trên tool result
-// * chỉ là context của request cuối, không phải tổng tiêu thụ, nên không dùng.
+// * Subagent tokens come from the separate transcript <session>/subagents/agent-<id>.jsonl; totalTokens on the tool result
+// * is only the context of the last request, not total consumption, so it is not used.
 function measureSubagents(results, transcriptPath, measure, criteria) {
   const subagentDirectory = path.join(path.dirname(transcriptPath), path.basename(transcriptPath, '.jsonl'), 'subagents');
   const sum = { input: 0, output: 0, cacheRead: 0, cacheCreate: 0 };

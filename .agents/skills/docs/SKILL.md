@@ -1,6 +1,6 @@
 ---
 name: docs
-description: "Viết hoặc đồng bộ tài liệu dự án (README.md, CLAUDE.md, docs/): đồng bộ khi đã có tài liệu (đối chiếu codebase, sửa phần lỗi thời) hoặc viết mới khi chưa có. Mặc định AI-readable. Dùng khi cần tạo hoặc cập nhật tài liệu; sơ đồ dùng system-understanding; không tự thiết kế HLD/LLD."
+description: "Write or sync project docs (README.md, CLAUDE.md, docs/): sync when docs exist (compare with the codebase, fix outdated parts) or write new when none exist. AI-readable by default. Use when creating or updating docs; diagrams use system-understanding; never designs HLD/LLD on its own."
 license: MIT
 metadata:
   version: '1.4'
@@ -8,47 +8,47 @@ metadata:
 
 # 🔄 Docs
 
-Viết mới hoặc đồng bộ README, hướng dẫn project và `docs/`; đối chiếu mọi nội dung với nguồn thật ([`search-priority`](../../rules/search-priority.md)). Tuân thủ schema và luồng catalog trong [`docs-sync`](../../rules/docs.md#đồng-bộ-tài-liệu) và [`documentation-reading-and-toc`](../../rules/docs.md#registry-tài-liệu). Không thiết kế HLD/LLD; bàn giao cho [`architect`](../../agents/architect.md). Khi cần sơ đồ hiện trạng, dùng [`system-understanding`](../system-understanding/references/diagrams.md).
+Write new or sync README, project guidance and `docs/`; verify all content against real sources ([`search-priority`](../../rules/search-priority.md)). Follow the schema and catalog flow in [`docs-sync`](../../rules/docs.md#docs-sync) and [`documentation-reading-and-toc`](../../rules/docs.md#docs-registry). Never design HLD/LLD; hand off to [`architect`](../../agents/architect.md). When a current-state diagram is needed, use [`system-understanding`](../system-understanding/references/diagrams.md).
 
-## Mục lục
+## Contents
 
-- [Đọc tài liệu theo đối tượng](#đọc-tài-liệu-theo-đối-tượng)
-- [Chế độ 1 — Đồng bộ](#chế-độ-1--đồng-bộ-đã-có-tài-liệu)
-- [Chế độ 2 — Viết mới](#chế-độ-2--viết-mới-chưa-có-gì-để-đối-chiếu)
-- [Template theo loại tài liệu](#template-theo-loại-tài-liệu)
+- [Reading docs by audience](#reading-docs-by-audience)
+- [Mode 1 — Sync](#mode-1--sync-docs-exist)
+- [Mode 2 — Write new](#mode-2--write-new-nothing-to-compare-against)
+- [Templates by document type](#templates-by-document-type)
 
-## Đọc tài liệu theo đối tượng
+## Reading docs by audience
 
-Mặc định viết **AI-readable** (ngắn, heading ổn định, facts/path/contract/kết quả kiểm chứng; không lặp lại sơ đồ bằng prose); chỉ chuyển **human-readable** khi người dùng yêu cầu. Quy tắc chi tiết và cách dùng sơ đồ Mermaid để giảm tải đọc hiểu: [references/writing-style.md](./references/writing-style.md).
+Write **AI-readable** by default (short, stable headings, facts/paths/contracts/verification results; never repeat a diagram in prose); switch to **human-readable** only when the user asks. Detailed rules and how to use Mermaid diagrams to reduce reading load: [references/writing-style.md](./references/writing-style.md).
 
-## Chế độ 1 — Đồng bộ (đã có tài liệu)
+## Mode 1 — Sync (docs exist)
 
-Phạm vi mặc định: `README.md`, `CLAUDE.md` (nếu có), `docs/**/*.md` (nếu có). Người dùng có thể giới hạn vào một file cụ thể.
+Default scope: `README.md`, `CLAUDE.md` (if present), `docs/**/*.md` (if present). The user may limit it to a specific file.
 
-1. Trích "claim" kiểm chứng được: đường dẫn, tên agent/skill/command/hook, số lượng/liệt kê, mô tả hành vi cụ thể.
-2. Đối chiếu từng claim với thực tế: đường dẫn → `Glob`; tên agent/skill/command → danh sách thật trong `.claude/agents|skills|commands/` (đọc frontmatter, không suy diễn); mô tả hành vi → đọc đúng file nguồn để so khớp.
-3. Phân loại: **sai rõ ràng** (file không còn tồn tại, tên đổi, số liệu sai) → sửa ngay theo thực tế vừa đọc; **không chắc** (mơ hồ, không kiểm chứng trực tiếp được) → không tự xóa, đưa vào "cần hỏi thêm" (giống cách [`workspace-auditor`](../../agents/workspace-auditor.md) xử lý phần không chắc).
-4. Sửa trực tiếp phần đã xác nhận sai, giữ văn phong/cấu trúc tài liệu — không viết lại toàn bộ file, không tự thêm tính năng/mục mới ngoài việc sửa đúng-sai ([`rules/coding`](../../rules/coding.md#kiss-yagni-và-phạm-vi)).
-5. Báo cáo theo `change-report-template.md` của skill [`report`](../report/SKILL.md): mỗi chỗ sửa ghi _trước → sau_ + bằng chứng, cộng danh sách "cần hỏi thêm" nếu có.
+1. Extract verifiable "claims": paths, agent/skill/command/hook names, counts/listings, specific behavior descriptions.
+2. Check each claim against reality: paths → `Glob`; agent/skill/command names → the real list in `.claude/agents|skills|commands/` (read the frontmatter, never infer); behavior descriptions → read the exact source file to match.
+3. Classify: **clearly wrong** (file no longer exists, renamed, wrong numbers) → fix immediately per the reality just read; **unsure** (ambiguous, not directly verifiable) → never delete on your own, put into "needs more info" (same as how [`workspace-auditor`](../../agents/workspace-auditor.md) handles uncertain items).
+4. Directly fix the parts confirmed wrong, keeping the doc's tone/structure — never rewrite the whole file, never add features/new sections beyond fixing right vs wrong ([`rules/coding`](../../rules/coding.md#kiss-yagni-and-scope)).
+5. Report per `change-report-template.md` of the [`report`](../report/SKILL.md) skill: each fix records _before → after_ + evidence, plus a "needs more info" list if any.
 
-Khi task đổi API và repository có Postman collection/tài liệu Postman liên quan, cập nhật request và ví dụ hiện hữu ở đó cùng lượt. Tìm và chỉnh collection/request phù hợp trước; không tạo collection, request hoặc file mới trùng nội dung khi đang làm lại tài liệu. Chỉ thêm mục mới nếu chưa có mục tương ứng và task yêu cầu.
+When a task changes an API and the repository has a related Postman collection/docs, update the existing requests and examples there in the same turn. Find and adjust the suitable collection/request first; never create a duplicate collection, request or new file when redoing docs. Add a new entry only if none exists and the task requires it.
 
-## Chế độ 2 — Viết mới (chưa có gì để đối chiếu)
+## Mode 2 — Write new (nothing to compare against)
 
-Dùng khi project/module/feature chưa có CLAUDE.md/README, cần viết lần đầu — tương tự lệnh `/init` có sẵn nhưng **gọn và tối ưu hơn**: chỉ ghi điều thực sự cần để làm việc hiệu quả trong repo, không liệt kê toàn bộ cấu trúc file hay lặp lại thông tin Glob/Grep tự tra được.
+Use when a project/module/feature has no CLAUDE.md/README and it must be written first — similar to the built-in `/init` but **leaner and better optimized**: record only what is truly needed to work effectively in the repo, never list the whole file structure or repeat what Glob/Grep can look up.
 
-1. Xác định stack/ngôn ngữ chính từ file manifest thật (`package.json`, `composer.json`, `pyproject.toml`, `go.mod`...) — không đoán theo tên thư mục.
-2. Đọc lệnh dev/build/test/lint **thật đang dùng** (scripts trong manifest, `Makefile`, CI config) — chỉ ghi lệnh đã xác minh tồn tại, không bịa lệnh "thường gặp" của stack đó.
-3. Đọc vài file mẫu đại diện (không phải toàn bộ codebase) để rút convention thật đang áp dụng — quy ước đặt tên, cấu trúc module lặp lại, test pattern — không áp khung convention chung của stack khi code thật làm khác.
-4. Viết theo cấu trúc gọn, mỗi mục một đoạn ngắn, bỏ mục không áp dụng kèm lý do thay vì để trống:
-   - **Mục đích dự án** (1–2 câu).
-   - **Cấu trúc thư mục chính** — chỉ cấp cao mang ý nghĩa điều hướng, không liệt kê từng file.
-   - **Lệnh thường dùng** (dev/build/test/lint) — chỉ lệnh đã xác minh chạy được.
-   - **Convention quan trọng cần biết trước khi sửa code** — quy ước/rule bắt buộc nếu có, pattern lặp lại thật đang dùng.
-5. Không tự thiết kế kiến trúc hệ thống (HLD/LLD) — phần đó thuộc agent [`architect`](../../agents/architect.md). Nếu chỉ cần minh họa cấu trúc/flow đã có trong codebase, dùng [`system-understanding`](../system-understanding/references/diagrams.md).
+1. Identify the main stack/language from real manifest files (`package.json`, `composer.json`, `pyproject.toml`, `go.mod`...) — never guess from directory names.
+2. Read the **real** dev/build/test/lint commands in use (manifest scripts, `Makefile`, CI config) — record only commands verified to exist, never invent "common" commands for that stack.
+3. Read a few representative sample files (not the whole codebase) to extract the conventions actually applied — naming, repeated module structure, test patterns — never impose the stack's generic convention when the real code does it differently.
+4. Write in a lean structure, one short paragraph per section, drop inapplicable sections with a reason instead of leaving them empty:
+   - **Project purpose** (1–2 sentences).
+   - **Main directory structure** — only high-level, navigation-meaningful, not every file.
+   - **Common commands** (dev/build/test/lint) — only commands verified runnable.
+   - **Important conventions to know before changing code** — mandatory conventions/rules if any, patterns actually repeated.
+5. Never design system architecture (HLD/LLD) — that belongs to agent [`architect`](../../agents/architect.md). If only existing structure/flow in the codebase needs illustrating, use [`system-understanding`](../system-understanding/references/diagrams.md).
 
-## Template theo loại tài liệu
+## Templates by document type
 
-Đọc registry và file hiện hữu theo rule ở đầu skill trước khi chọn template; template chỉ là khung điền từ nguồn đã xác minh. Cách dùng chi tiết từng loại, schema, quy tắc cập nhật menu và kiểm tra trước bàn giao: [references/templates.md](./references/templates.md).
+Read the registry and existing files per the rule at the top of the skill before choosing a template; a template is only a frame to fill from verified sources. Detailed use of each type, schemas, menu update rules and pre-handoff checks: [references/templates.md](./references/templates.md).
 
-- [Tài liệu Markdown](assets/document-template.md) · [Testcase cấp repo](assets/repo-testcase-template.md) · [Testcase theo feature](assets/feature-testcase-template.json) · [Implementation plan](assets/implementation-plan-template.json) · [Menu JSON](assets/menu-template.json)
+- [Markdown document](assets/document-template.md) · [Repo-level testcase](assets/repo-testcase-template.md) · [Per-feature testcase](assets/feature-testcase-template.json) · [Implementation plan](assets/implementation-plan-template.json) · [Menu JSON](assets/menu-template.json)

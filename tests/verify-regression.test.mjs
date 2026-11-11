@@ -93,7 +93,7 @@ test('test that passes on base does not reproduce the bug -> exit 1', context =>
   const result = verify(setup, 'node', 'tests/unrelated.test.mjs');
   assert.equal(result.status, 1);
   assert.match(result.stdout, /base \w+: PASS/);
-  assert.match(result.stdout, /không tái hiện lỗi/);
+  assert.match(result.stdout, /test does not reproduce the bug/);
   assertCleaned(setup);
 });
 
@@ -112,7 +112,7 @@ test('no new or changed test file -> exit 2', context => {
   write(setup.repository, 'src/sum.mjs', fixedSum);
   const result = verify(setup, 'node', '-e', '0');
   assert.equal(result.status, 2);
-  assert.match(result.stdout + result.stderr, /không có regression test/i);
+  assert.match(result.stdout + result.stderr, /no regression test/i);
   assertCleaned(setup);
 });
 

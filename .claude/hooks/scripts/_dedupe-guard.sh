@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Chỉ được `source` ở đầu mỗi hook, không đăng ký trong settings.json.
-# ! Bản user-level thoát êm nếu project đã có cùng script, tránh hook chạy 2 lần trên một event.
+# Only `source`d at the top of each hook; not registered in settings.json.
+# ! The user-level copy exits quietly if the project already has the same script, so a hook never runs twice per event.
 
 hook_scripts_dir="$(cd "$(dirname "$0")" 2>/dev/null && pwd -P)"
 project_scripts_dir="$(cd "${CLAUDE_PROJECT_DIR:-$PWD}/.claude/hooks/scripts" 2>/dev/null && pwd -P)"

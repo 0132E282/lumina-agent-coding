@@ -1,10 +1,10 @@
-# Pipeline tự động hóa tài nguyên, CSS và media
+# Pipeline automating assets, CSS and media
 
-Khi người dùng yêu cầu clone từ URL và cần tài nguyên local, dùng pipeline dưới đây. Đây là cơ chế hỗ trợ tạo clone; nghiệm thu cuối vẫn là đối chiếu UI thực tế. Áp dụng mục [Ràng buộc fidelity](../SKILL.md#ràng-buộc-fidelity) trong SKILL.md.
+When the user asks to clone from a URL and needs local assets, use the pipeline below. It is a helper for building the clone; final acceptance is still comparing the real UI. Apply the [Fidelity constraints](../SKILL.md#fidelity-constraints) section in SKILL.md.
 
-### Bước 0 — Inventory nguồn (trước khi code)
+### Step 0 — Source inventory (before coding)
 
-Trước khi tải asset hoặc viết code, tạo inventory read-only bằng [`scripts/inspect-source.py`](../scripts/inspect-source.py) — không tải asset, chỉ liệt kê route, stylesheet, script, ảnh, font và link quan sát được:
+Before downloading assets or writing code, create a read-only inventory with [`scripts/inspect-source.py`](../scripts/inspect-source.py) — downloads no assets, only lists observed routes, stylesheets, scripts, images, fonts and links:
 
 ```bash
 python3 .agents/skills/clone-website/scripts/inspect-source.py \
@@ -12,11 +12,11 @@ python3 .agents/skills/clone-website/scripts/inspect-source.py \
   --output clone-source.json
 ```
 
-Khi nguồn là URL và người dùng yêu cầu clone, subagent phải tự chạy bước inventory này trước khi sang Bước 1; không chờ người dùng nhắc lại.
+When the source is a URL and the user asks to clone, the subagent must run this inventory step itself before Step 1; do not wait for the user to remind you.
 
-### Bước 1 — Extract và download asset
+### Step 1 — Extract and download assets
 
-Chạy [`scripts/extract-assets.py`](../scripts/extract-assets.py) với output riêng của clone:
+Run [`scripts/extract-assets.py`](../scripts/extract-assets.py) with the clone's own output:
 
 ```bash
 python3 .agents/skills/clone-website/scripts/extract-assets.py \
@@ -24,13 +24,13 @@ python3 .agents/skills/clone-website/scripts/extract-assets.py \
   --output .agents/storage/assets
 ```
 
-Script tạo `.agents/storage/assets/temp/{images,videos,fonts,other}` và `mapping.json` (giữ `originUrl`, `localPath`, `kind`, `status`, kích thước, content type, lý do skip/fail). Quét HTML, inline `url()` và `url()` trong CSS đã tải; mặc định cùng-origin, timeout 30s, 50 MiB/file. `--allow-external` chỉ khi host ngoài đã được cho phép; `.m3u8` luôn ghi `skipped`, không tự tải.
+The script creates `.agents/storage/assets/temp/{images,videos,fonts,other}` and `mapping.json` (keeps `originUrl`, `localPath`, `kind`, `status`, size, content type, skip/fail reason). Scans HTML, inline `url()` and `url()` in downloaded CSS; defaults to same-origin, 30s timeout, 50 MiB/file. `--allow-external` only when the external host is allowed; `.m3u8` is always recorded as `skipped`, never downloaded.
 
-URL đã được giao để clone → tải tài nguyên cùng origin nằm trong phạm vi công việc, không cần hỏi lại; chỉ dừng/báo blocker khi vượt authentication/CAPTCHA/paywall hoặc cần host ngoài/stream chưa được phép (xem [Ràng buộc fidelity](../SKILL.md#ràng-buộc-fidelity)).
+URL assigned for cloning -> downloading same-origin resources is within scope, no need to ask again; stop/report a blocker only when hitting authentication/CAPTCHA/paywall or needing an external host/stream not yet allowed (see [Fidelity constraints](../SKILL.md#fidelity-constraints)).
 
-### Bước 2 — Process CSS
+### Step 2 — Process CSS
 
-Với từng stylesheet đã được inventory, chạy [`scripts/process-css.py`](../scripts/process-css.py):
+For each inventoried stylesheet, run [`scripts/process-css.py`](../scripts/process-css.py):
 
 ```bash
 python3 .agents/skills/clone-website/scripts/process-css.py \
@@ -39,11 +39,11 @@ python3 .agents/skills/clone-website/scripts/process-css.py \
   --output src/layout/site.processed.css
 ```
 
-Script chỉ thay URL đã có trạng thái `downloaded`, giữ nguyên selector/thứ tự CSS và thêm newline cuối file. Không dùng mapping để giả lập asset failed/skipped. Giữ file CSS processed trong layout/asset structure của clone, không ghi đè CSS nguồn.
+The script only replaces URLs with status `downloaded`, keeps selectors/CSS order intact and adds a final newline. Never use the mapping to fake failed/skipped assets. Keep the processed CSS file in the clone's layout/asset structure; do not overwrite the source CSS.
 
-### Bước 3 — Inject layout và media
+### Step 3 — Inject layout and media
 
-Sau khi CSS đã được xử lý, chạy [`scripts/inject-layout.py`](../scripts/inject-layout.py) với layout output riêng:
+After CSS is processed, run [`scripts/inject-layout.py`](../scripts/inject-layout.py) with its own layout output:
 
 ```bash
 python3 .agents/skills/clone-website/scripts/inject-layout.py \
@@ -53,11 +53,11 @@ python3 .agents/skills/clone-website/scripts/inject-layout.py \
   --output public/clone-layout.html
 ```
 
-Script inject một stylesheet duy nhất vào `<head>` (idempotent), rewrite `src`/`poster` của `img`, `video`, `audio`, `source`, `track` khi mapping đã xác minh và không thay đổi layout nguồn. `iframe`, stream, media cross-origin hoặc thuộc tính DOM không được script nhận diện phải được kiểm tra thủ công và ghi trong bàn giao.
+The script injects a single stylesheet into `<head>` (idempotent), rewrites `src`/`poster` of `img`, `video`, `audio`, `source`, `track` when the mapping is verified, and does not change the source layout. `iframe`, streams, cross-origin media or DOM attributes the script does not recognize must be checked manually and recorded in the handoff.
 
-### Bước 4 — Verify cấu trúc sau khi code
+### Step 4 — Verify structure after coding
 
-Sau khi có HTML clone, kiểm tra inventory cấu trúc bằng [`scripts/compare-html.py`](../scripts/compare-html.py). Kết quả này chỉ là kiểm tra cấu trúc (so khớp thẻ/section/độ dài text); pixel fidelity vẫn phải đối chiếu cùng viewport bằng screenshot/tool phù hợp:
+Once the clone HTML exists, check the structure inventory with [`scripts/compare-html.py`](../scripts/compare-html.py). This is only a structural check (matching tags/sections/text length); pixel fidelity must still be compared at the same viewport with screenshots/a suitable tool:
 
 ```bash
 python3 .agents/skills/clone-website/scripts/compare-html.py \
@@ -65,7 +65,7 @@ python3 .agents/skills/clone-website/scripts/compare-html.py \
   cloned.html
 ```
 
-### Cấu trúc storage mặc định
+### Default storage structure
 
 ```text
 .agents/storage/assets/
@@ -74,4 +74,4 @@ python3 .agents/skills/clone-website/scripts/compare-html.py \
 └── processed/
 ```
 
-`temp/` và `mapping.json` là tài nguyên tạm (đã trong `.gitignore` của `.agents/storage/`), không commit. Asset dùng thật trong clone đặt ở `public/`/thư mục asset của project, không ở `.agents/storage/`. Cần tài liệu thiết kế: copy [`assets/pixel-perfect-spec.md`](../assets/pixel-perfect-spec.md) vào `design/` (ngoài `docs/`, không đưa vào registry), thay `TBD` bằng giá trị đo được.
+`temp/` and `mapping.json` are temporary resources (already in `.agents/storage/`'s `.gitignore`), never committed. Assets actually used in the clone go in `public/`/the project's asset dir, not `.agents/storage/`. For design docs: copy [`assets/pixel-perfect-spec.md`](../assets/pixel-perfect-spec.md) into `docs/design/`, replace `TBD` with measured values, update the docs registry per repo rules.

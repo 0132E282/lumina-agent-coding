@@ -1,17 +1,17 @@
-# Mẫu bàn giao nội bộ (subagent → agent điều phối)
+# Internal handoff template (subagent → orchestrator)
 
-Subagent dùng mẫu này thay cho báo cáo người dùng; agent điều phối gộp vào một báo cáo cuối. Text ngắn, không bảng, không kể quá trình, không lặp checklist đã đạt.
+Subagents use this instead of a user report; the orchestrator merges into one final report. Short text, no tables, no process narration, no repeated passed checklist.
 
 `------------------------`
 
-**Kết quả**: một câu — xong | xong một phần | blocked (lý do)
+**Result**: one sentence — done | partly done | blocked (reason)
 
-**File đổi**:
-- `path/to/file.ext` (thêm | sửa | xoá): thay đổi chính, một dòng
+**Files changed**:
+- `path/to/file.ext` (added | modified | deleted): main change, one line
 
-**Check đã chạy**:
-- `lệnh` → kết quả thật (vd `npm test` 251/251 pass); check chưa chạy ghi `Chưa chạy` + lý do
+**Checks run**:
+- `command` → real result (e.g. `npm test` 251/251 pass); unrun checks write `Not run` + reason
 
-**Chưa làm / ❌**: mục chưa đạt, blocker, phần chưa xác minh; `Không có` khi phù hợp
+**Not done / ❌**: unmet items, blockers, unverified parts; `None` when appropriate
 
-**Ngoài scope**: lỗi/đề xuất phát hiện thêm (vị trí, tác động), chưa sửa; `Không có` khi phù hợp
+**Out of scope**: extra bugs/suggestions found (location, impact), not fixed; `None` when appropriate

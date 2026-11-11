@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# PreToolUse hook: ghi audit trail cho MỌI tool call của Claude Code/subagent
-# — ai/khi nào/làm gì, phục vụ truy vết theo rules/backend.md.
+# PreToolUse hook: write an audit trail for EVERY tool call of Claude Code/subagents
+# -- who/when/what, for traceability per rules/backend.md.
 #
-# Nhận JSON input từ stdin theo schema PreToolUse:
+# Reads JSON input from stdin per the PreToolUse schema:
 #   { "session_id": "...", "tool_name": "...", "tool_input": {...}, "cwd": "..." }
 #
-# Luôn exit 0 — hook phụ trợ, không được chặn tool call nếu ghi log lỗi.
-# Cố ý KHÔNG dùng `set -e`/`set -u`, có `trap ERR` làm lưới an toàn cuối —
-# audit log là best-effort, không đánh đổi bằng việc làm gián đoạn agent.
+# Always exit 0 -- auxiliary hook, must not block a tool call if logging fails.
+# Deliberately NO `set -e`/`set -u`, with a `trap ERR` as the last safety net --
+# the audit log is best-effort, never traded for interrupting the agent.
 
-# ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+# ! Skip if the project already has the same hook (avoid running twice with the user-level copy).
 . "$(dirname "$0")/_dedupe-guard.sh"
 
 set -o pipefail
@@ -45,11 +45,11 @@ fi
 timestamp="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 session_id="$(printf '%s' "$input" | jq -r '.session_id // "unknown"' 2>/dev/null)"
 cwd="$(printf '%s' "$input" | jq -r '.cwd // ""' 2>/dev/null)"
-# Claude Code chỉ gửi agent_id khi tool chạy trong subagent; phiên chính không có field này.
+# Claude Code only sends agent_id when the tool runs in a subagent; the main session has no such field.
 agent_id="$(printf '%s' "$input" | jq -r '.agent_id // ""' 2>/dev/null)"
 
-# Che secret hay gặp trong Bash command (heuristic, giữ key, thay giá trị bằng ***).
-# Chạy TRƯỚC khi cắt 200 ký tự để secret nằm vắt qua vị trí cắt không lộ một phần.
+# Mask common secrets in Bash commands (heuristic, keep the key, replace the value with ***).
+# Runs BEFORE the 200-char cut so a secret straddling the cut point is not partly exposed.
 redact_secrets_filter="$(cat <<'JQ'
 def redact_secrets:
   gsub("(?<k>[a-z][a-z0-9+.-]*://[^/\\s:@]+:)[^/\\s@]+@"; "\(.k)***@"; "gi")
@@ -65,8 +65,8 @@ def redact_secrets:
 JQ
 )"
 
-# Tóm tắt tool_input theo loại tool — KHÔNG ghi nguyên nội dung file (Write/Edit)
-# vào log để tránh log phình to và rò rỉ nội dung nhạy cảm.
+# Summarize tool_input by tool type -- do NOT log the full file content (Write/Edit)
+# to keep the log small and avoid leaking sensitive content.
 summary="$(printf '%s' "$input" | jq -c "$redact_secrets_filter"'
   .tool_input as $i
   | if ($i.file_path // "") != "" then {file_path: $i.file_path}

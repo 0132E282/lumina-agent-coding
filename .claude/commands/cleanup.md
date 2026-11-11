@@ -1,10 +1,10 @@
 ---
-description: Làm gọn context agent, giữ mục tiêu/quyết định/tiến độ để tiếp tục đúng phạm vi
+description: Condense agent context, keeping goal/decisions/progress to continue within scope
 ---
 
-Làm gọn thông tin đang dùng của agent để tránh lan man và tiếp tục đúng task. Không quét/xóa file workspace, Git history, cấu hình, memory lâu dài hoặc deliverable. Dọn file tạm vẫn là chức năng riêng của skill `cleanup-temp-files`, không được kích hoạt bởi command này.
+Condense the agent's working information to avoid rambling and continue the right task. Do not scan/delete workspace files, Git history, config, long-term memory or deliverables. Temp-file cleanup remains the separate job of the `cleanup-temp-files` skill and is not triggered by this command.
 
-1. Tóm tắt một lần context còn hiệu lực: mục tiêu/phạm vi, quyết định và quyền người dùng đã chốt, file/handoff chuẩn, việc đã làm + bằng chứng kiểm chứng, thay đổi đang dở, blocker/câu hỏi cần trả lời và bước tiếp theo. Giữ yêu cầu chưa hoàn tất; không làm mất task hoặc phê duyệt sau khi làm gọn.
-2. Bỏ khỏi phần context làm việc các phương án đã bỏ, thông tin lỗi thời, log/dump lặp và suy đoán không liên quan. Dùng path nguồn thay vì chép nguyên file; không đưa secret vào bản tóm tắt, không tự tạo file handoff nếu chưa được yêu cầu lưu.
-3. Nếu runtime có cơ chế compact context thực tế và cho phép sử dụng, dùng cơ chế đó với bản tóm tắt; nếu không, trả bản tóm tắt trong chat và dùng nó cho bước tiếp theo. Không tuyên bố đã xóa lịch sử/token/memory hay reset phiên khi chưa có tool thực hiện. Khi người dùng muốn phiên trắng hoàn toàn, cung cấp tóm tắt bàn giao rồi dùng khả năng mở phiên mới của runtime theo yêu cầu; không giả lập thao tác UI.
-4. Báo trạng thái thật: đã rút gọn context hay chỉ tạo tóm tắt, mục tiêu/bước tiếp theo giữ lại. Không tự mở rộng task, chạy lại các bước đã kiểm chứng hoặc hỏi lại quyết định còn hiệu lực.
+1. Summarize once the context still in effect: goal/scope, decisions and user permissions settled, canonical files/handoffs, work done + verification evidence, in-progress changes, blockers/questions to answer and next step. Keep unfinished requests; never lose tasks or approvals after condensing.
+2. Drop from the working context abandoned options, outdated info, repeated logs/dumps and irrelevant speculation. Use source paths instead of copying whole files; no secrets in the summary, do not create a handoff file unless asked to save.
+3. If the runtime has a real context-compact mechanism and allows its use, use it with the summary; otherwise return the summary in chat and use it for the next step. Never claim history/tokens/memory were deleted or the session reset without a tool that does so. When the user wants a fully blank session, provide the handoff summary then use the runtime's new-session ability on request; do not simulate UI actions.
+4. Report the real state: context was condensed or only a summary was created, goal/next step kept. Do not expand the task, rerun verified steps or re-ask decisions still in effect.

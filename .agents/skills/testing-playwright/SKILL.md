@@ -13,7 +13,7 @@ Bổ sung cho [`testing`](../testing/SKILL.md) và [`workflow-test`](../workflow
 ## Điều kiện
 
 1. Kiểm tra project đã có Playwright (`@playwright/test` trong `package.json`, `npx playwright --version` resolve được) và trình duyệt đã cài. Chưa có thì dừng, báo thiếu gì và giao `setup` hoặc hỏi người dùng; không tự `npm install` hay tải trình duyệt khi chưa được yêu cầu.
-2. App cần test phải chạy được (dev server hoặc URL staging do người dùng cung cấp). Không test trên production khi chưa được cho phép; database thật chỉ đọc ([`backend`](../../rules/backend.md#database-read-only-mặc-định)).
+2. App cần test phải chạy được (dev server hoặc URL staging do người dùng cung cấp). Không test trên production khi chưa được cho phép; database thật chỉ đọc ([`backend`](../../rules/backend.md#database-read-only-by-default)).
 3. Dùng config và thư mục test sẵn có của project; không tạo cấu trúc mới khi chưa cần.
 
 ## Test UI / E2E
@@ -27,7 +27,7 @@ Bổ sung cho [`testing`](../testing/SKILL.md) và [`workflow-test`](../workflow
 ## Test API
 
 - Dùng `request` fixture của Playwright cho API thuần; luồng UI gọi API thì kiểm bằng `page.waitForResponse`.
-- Báo đầy đủ **mọi API đã test**: từng endpoint, tham số, request và response thật (status, body), kết quả `Đúng | Sai` theo [`testcase` mục 7.2](../testing/references/testcase.md#72-bằng-chứng-và-kết-quả-api); API chưa chạy ghi `Chưa chạy`, không bịa response; không ghi token/secret vào evidence.
+- Báo đầy đủ **mọi API đã test**: từng endpoint, tham số, request và response thật (status, body), kết quả `Đúng | Sai` theo [`testcase` mục 7.2](../testing/references/testcase.md#72-evidence-and-api-results); API chưa chạy ghi `Chưa chạy`, không bịa response; không ghi token/secret vào evidence.
 
 ## Chạy và báo kết quả
 

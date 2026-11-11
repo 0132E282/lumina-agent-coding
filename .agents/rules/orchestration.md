@@ -1,16 +1,16 @@
 ---
 trigger: always
-description: "Bắt buộc phiên chính điều phối task thực thi và giao đúng subagent chuyên trách"
+description: "The main session must orchestrate execution tasks and hand each to the right specialist subagent"
 ---
 
-# Orchestration — main session điều phối
+# Orchestration — main session coordinates
 
-- Với mọi yêu cầu có **task thực thi** (tạo/sửa artifact, phân tích có đầu ra, lập plan, setup, code, debug, test, review, thiết kế, audit, Git hoặc thao tác hệ thống), phiên chính phải điều phối và giao từng task cho đúng subagent chuyên trách theo [`AGENTS.md`](../../AGENTS.md#choosing-skills-by-task); không tạo agent trung gian chỉ để dispatch. Ngoại lệ duy nhất: [`dispatcher`](../agents/dispatcher.md) chạy làm phiên chính (Claude Code: `claude --agent dispatcher`; Codex: adapter `.codex/agents/dispatcher.toml`) để tự điều phối theo quy trình Development, Bug Fixing, UI, Deployment hoặc Rollback trong `dispatcher.md`; chạy như subagent thì chỉ trả agent kế tiếp kèm prompt giao việc.
-- Câu trả lời hoặc tra cứu thuần túy không tạo artifact, không thay đổi trạng thái và không cần role chuyên trách thì phiên chính trả lời trực tiếp, không tạo subagent hình thức.
-- Phiên chính chốt scope, owner, file/artifact, dependency, acceptance criteria và checks trong prompt giao việc; mỗi task có đúng một owner. Task không phụ thuộc và không trùng file mới chạy song song; task có dependency hoặc trùng file chạy tuần tự.
-- Mọi task viết/sửa/refactor code phải giao `coder`; khi scope, quyền và bằng chứng đã đủ, coder triển khai và kiểm chứng ngay trong task được giao, không chỉ phân tích hoặc trả phần code cho phiên chính.
-- Trước khi lập plan hoặc giao task coding, đọc thiết kế theo [`system-design`](./system-design.md) và ghi mục liên quan vào prompt giao việc.
-- Input mới trong lúc agent chạy: phiên chính tự xác định task/agent/file bị ảnh hưởng. Có liên quan thì gửi ngay cho agent đó và giữ cùng context; không liên quan thì tạo task/agent đúng role riêng, chỉ chờ khi có dependency bắt buộc.
-- Sau handoff, phiên chính (hoặc `dispatcher` khi làm phiên chính) kiểm tra đủ artifact, acceptance criteria, checks và giới hạn; thiếu phần thuộc scope thì gửi lại đúng agent hoàn tất, đủ thì tự chuyển bàn giao cho agent liên quan kế tiếp. Phiên chính thường có thể gọi `dispatcher` như subagent để chọn agent kế tiếp và soạn prompt, rồi tự duyệt và dispatch. Phiên chính tự chạy lại check bắt buộc trước khi báo cáo.
+- For every request with an **execution task** (create/edit an artifact, analysis with output, plan, setup, code, debug, test, review, design, audit, Git or system operation), the main session coordinates and hands each task to the right specialist subagent per [`AGENTS.md`](../../AGENTS.md#choosing-skills-by-task); never create an intermediate agent just to dispatch. Only exception: [`dispatcher`](../agents/dispatcher.md) runs as the main session (Claude Code: `claude --agent dispatcher`; Codex: adapter `.codex/agents/dispatcher.toml`) to orchestrate by the Development, Bug Fixing, UI, Deployment or Rollback workflows in `dispatcher.md`; run as a subagent it only returns the next agent with the handoff prompt.
+- A pure answer or lookup that creates no artifact, changes no state and needs no specialist role is answered directly by the main session; no formality subagent.
+- The main session fixes scope, owner, file/artifact, dependency, acceptance criteria and checks in the handoff prompt; each task has exactly one owner. Tasks run in parallel only when independent and not sharing files; dependent or file-overlapping tasks run sequentially.
+- Every task that writes/edits/refactors code goes to `coder`; with scope, authority and evidence settled, coder implements and verifies within the assigned task, not only analyzes or hands the code back to the main session.
+- Before planning or handing off a coding task, read the design per [`system-design`](./system-design.md) and put the relevant section in the handoff prompt.
+- New input while an agent runs: the main session decides which task/agent/file it affects. Related → send it to that agent now and keep the same context; unrelated → create a separate task/agent with the right role, wait only on a hard dependency.
+- After a handoff, the main session (or `dispatcher` when it is the main session) checks artifacts, acceptance criteria, checks and limits; missing in-scope parts go back to the same agent, complete work is passed on to the next relevant agent. The main session may call `dispatcher` as a subagent to pick the next agent and draft the prompt, then review and dispatch itself. The main session reruns mandatory checks before reporting.
 
-Triển khai: [`delivery`](./delivery.md#triển-khai-theo-yêu-cầu). Mẫu bàn giao: [`handoff`](../skills/report/assets/subagent-handoff-template.md).
+Delivery: [`delivery`](./delivery.md#implementation-on-request). Handoff template: [`handoff`](../skills/report/assets/subagent-handoff-template.md).

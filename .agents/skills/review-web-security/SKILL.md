@@ -1,6 +1,6 @@
 ---
 name: review-web-security
-description: "Review bảo mật website, backend, frontend, API, database và cấu hình triển khai, có bằng chứng, điều kiện khai thác, mức ảnh hưởng, bản sửa và test hồi quy. Dùng khi yêu cầu security review, audit, tìm lỗ hổng, kiểm tra xác thực/phân quyền/upload/thanh toán. Không chạy kiểm thử phá hoại hay quét ngoài phạm vi."
+description: "Security review of websites, backend, frontend, API, database and deployment config, with evidence, exploit conditions, impact, fix and regression test. Use for security review, audit, vulnerability hunting, auth/permission/upload/payment checks. Does not run destructive tests or scan outside scope."
 license: MIT
 metadata:
   version: "1.2"
@@ -8,112 +8,112 @@ metadata:
 
 # Review Web Security
 
-## Mục tiêu
+## Goal
 
-Phát hiện lỗ hổng thực tế, ưu tiên theo rủi ro, đưa cách sửa kiểm chứng được. Checklist là bản đồ kiểm tra, không phải danh sách lỗi đã tồn tại; không tuyên bố ứng dụng an toàn tuyệt đối hoặc checklist bao phủ mọi lỗ hổng.
+Find real vulnerabilities, prioritize by risk and give verifiable fixes. Use the checklist as an inspection map, not as a claim that every item is an existing bug. Never claim the app is absolutely safe or that the checklist covers every vulnerability.
 
-## Nguyên tắc làm việc
+## Working principles
 
-- Đọc hướng dẫn dự án và xác định phạm vi người dùng yêu cầu trước khi làm việc.
-- Review code và cấu hình được cung cấp; chỉ thử nghiệm trên môi trường thuộc phạm vi được cho phép. Dùng dữ liệu giả và tài khoản thử nghiệm; không chạy kiểm thử phá hoại hoặc gây tải lên production.
-- Nếu chỉ được yêu cầu review, báo cáo và đề xuất patch. Nếu được yêu cầu sửa, thực hiện thay đổi nhỏ nhất xử lý nguyên nhân gốc và chạy kiểm thử phù hợp ([`rules/coding.md`](../../rules/coding.md#kiss-yagni-và-phạm-vi)).
-- Không in giá trị secret, token, mật khẩu hoặc dữ liệu cá nhân. Che giá trị nhạy cảm trong bằng chứng; nếu secret bị lộ, đề xuất thu hồi/xoay vòng, không chỉ xóa khỏi code.
-- Mỗi finding chỉ có `Kết quả: Đúng | Sai` theo [`rules/review`](../../rules/review.md); đề xuất tăng cường không phải lỗi thì ghi riêng. Thiếu một header không tự động là lỗi nghiêm trọng.
-- Không suy luận rằng UUID, URL khó đoán, frontend validation, CORS, ORM hoặc framework tự động bảo vệ toàn bộ ứng dụng.
-- Không chạy công cụ quét hay cài dependency mới khi không cần; không sửa toàn bộ kiến trúc để xử lý một lỗi cục bộ.
-- Xác minh khuyến nghị phụ thuộc phiên bản bằng tài liệu chính thức ([`rules/search-priority.md`](../../rules/search-priority.md)); không bịa CVE, CWE, CVSS, phiên bản hoặc kết quả scanner.
+- Read project guidance and confirm the user's requested scope before starting.
+- Review the code and config provided; test only in environments within the allowed scope. Use fake data and test accounts; never run destructive tests or load tests on production.
+- If only asked to review, report and propose patches. If asked to fix, make the smallest change addressing the root cause and run suitable tests ([`rules/coding.md`](../../rules/coding.md#kiss-yagni-and-scope)).
+- Never print secret values, tokens, passwords or personal data. Mask sensitive values in evidence; if a secret leaked, recommend revoke/rotate, not just removal from code.
+- Each finding has only `Result: Correct | Incorrect` per [`rules/review`](../../rules/review.md); hardening suggestions that are not bugs are listed separately. A missing header is not automatically a severe bug.
+- Never assume UUIDs, hard-to-guess URLs, frontend validation, CORS, ORM or the framework automatically protect the whole app.
+- Do not run scanners or install new dependencies unless needed. Do not rework the whole architecture to fix a local bug.
+- Verify version-dependent recommendations with official docs ([`rules/search-priority.md`](../../rules/search-priority.md)). Never invent CVE, CWE, CVSS, versions or scanner results.
 
-## Quy trình
+## Process
 
-### 1. Lập bản đồ ứng dụng
+### 1. Map the application
 
-Xác định stack và phiên bản từ manifest/lockfile; đọc route, middleware, controller, service, policy, serializer, component frontend, schema và cấu hình triển khai liên quan.
+Identify stack and versions from manifest/lockfile; read relevant routes, middleware, controllers, services, policies, serializers, frontend components, schema and deployment config.
 
-Ghi lại:
-- Điểm vào: HTTP, GraphQL, WebSocket, webhook, upload, import, queue, scheduled job.
-- Danh tính: guest, user, admin, service account; tenant, role và quyền.
-- Dữ liệu quan trọng: tài khoản, hồ sơ cá nhân, tài liệu riêng tư, thanh toán, secret.
-- Ranh giới tin cậy: browser → API → database/storage/queue → dịch vụ bên ngoài.
-- Luồng nhạy cảm: login, reset password, đổi email, CRUD, bulk action, export, thanh toán.
+Record:
+- Entry points: HTTP, GraphQL, WebSocket, webhook, upload, import, queue, scheduled job.
+- Identities: guest, user, admin, service account; tenant, role and permissions.
+- Critical data: accounts, personal profiles, private documents, payments, secrets.
+- Trust boundaries: browser → API → database/storage/queue → external services.
+- Sensitive flows: login, reset password, change email, CRUD, bulk action, export, payment.
 
-### 2. Truy vết và xác minh
+### 2. Trace and verify
 
-Với từng luồng áp dụng:
-1. Theo dõi input từ nguồn vào đến nơi truy vấn, ghi dữ liệu, render, thực thi hoặc gửi ra ngoài.
-2. Kiểm tra xác thực, quyền chức năng, quyền đối tượng, quyền field, tenant và trạng thái nghiệp vụ.
-3. Đọc helper/middleware/policy thực sự được gọi trước khi kết luận thiếu bảo vệ.
-4. Kiểm tra đường đi phụ: bulk, export, download, restore, preview, API cũ, queue và webhook.
-5. Thu thập vị trí code, điều kiện tiền đề và đường đi khả thi. Xác minh bằng kiểm thử nhỏ trên môi trường an toàn nếu có.
-6. Không kiểm chứng được thì không đưa vào finding; ghi dữ kiện còn thiếu và cách xác minh ở phần giới hạn.
+For each applicable flow:
+1. Follow input from source to where it is queried, written, rendered, executed or sent out.
+2. Check authentication, function permission, object permission, field permission, tenant and business state.
+3. Read the helper/middleware/policy actually invoked before concluding protection is missing.
+4. Check side paths: bulk, export, download, restore, preview, legacy API, queue and webhook.
+5. Collect code location, preconditions and feasible path. Verify with a small test in a safe environment if available.
+6. If it cannot be verified, do not make it a finding; record the missing facts and how to verify in the limits section.
 
-### 3. Phân loại và ưu tiên
+### 3. Classify and prioritize
 
-Đánh giá mức độ từ khả năng tiếp cận, đặc quyền cần có, tương tác nạn nhân, dữ liệu ảnh hưởng, phạm vi tenant và tác động thực tế.
+Rate severity from reachability, required privilege, victim interaction, affected data, tenant scope and real impact.
 
-- Critical: tác động rất lớn với đường khai thác khả thi, như chiếm quyền hệ thống hoặc truy cập hàng loạt dữ liệu quan trọng.
-- High: chiếm tài khoản, vượt quyền đáng kể, truy cập dữ liệu nhạy cảm hoặc thao túng tài chính trong điều kiện thực tế.
-- Medium: ảnh hưởng giới hạn hoặc cần điều kiện bổ sung đáng kể.
-- Low: ảnh hưởng nhỏ; ghi riêng các đề xuất tăng cường chưa chứng minh khả năng khai thác.
+- Critical: very high impact with a feasible exploit path, such as system takeover or mass access to critical data.
+- High: account takeover, significant privilege escalation, sensitive data access or financial manipulation under realistic conditions.
+- Medium: limited impact or needs significant extra conditions.
+- Low: minor impact; list hardening suggestions without proven exploitability separately.
 
-Không gán severity chỉ dựa trên tên lỗi. Chỉ đưa CVSS khi có đủ dữ kiện và giải thích vector.
+Never assign severity from the bug name alone. Include CVSS only with enough facts and explain the vector.
 
-### 4. Sửa và kiểm thử
+### 4. Fix and test
 
-- Sửa tại ranh giới tin cậy và điểm thực thi; xử lý mọi đường đi cùng nguyên nhân.
-- Dùng cơ chế chuẩn của framework, thư viện duy trì tốt và cấu hình phù hợp phiên bản.
-- Thêm kiểm thử hồi quy có ý nghĩa: thao tác hợp lệ vẫn thành công, thao tác vượt quyền/độc hại bị từ chối và không gây side effect ([`rules/delivery.md`](../../rules/delivery.md#chất-lượng-và-bằng-chứng)).
-- Kiểm tra user khác, tenant khác, guest, role thấp, field cấm và endpoint phụ khi liên quan.
-- Với race condition và replay, kiểm tra tính nguyên tử, idempotency và request đồng thời khi môi trường cho phép.
-- Báo rõ kiểm thử đã chạy, kết quả, phần chưa chạy và rủi ro còn lại.
+- Fix at trust boundaries and enforcement points; handle every path with the same cause.
+- Use standard framework mechanisms, well-maintained libraries and version-appropriate config.
+- Add meaningful regression tests: valid operations still succeed, out-of-permission/malicious operations are rejected without side effects ([`rules/delivery.md`](../../rules/delivery.md#quality-and-evidence)).
+- Check other user, other tenant, guest, low role, forbidden fields and side endpoints when relevant.
+- For race conditions and replay, check atomicity, idempotency and concurrent requests when the environment allows.
+- State clearly which tests ran, results, what was not run and remaining risks.
 
-## Checklist bảo mật
+## Security checklist
 
-12 nhóm — đọc chi tiết từng mục (đánh dấu `Đạt`/`Lỗi xác nhận`/`Không áp dụng` kèm bằng chứng) tại [`references/checklist.md`](./references/checklist.md):
+12 groups — read each item in detail (mark `Pass`/`Confirmed bug`/`Not applicable` with evidence) at [`references/checklist.md`](./references/checklist.md):
 
-| Nhóm | Phạm vi |
+| Group | Scope |
 |---|---|
-| A | Xác thực và tài khoản |
-| B | Session, cookie và CSRF |
-| C | Phân quyền và cách ly dữ liệu |
-| D | Injection và xử lý input backend |
-| E | Frontend và trình duyệt |
-| F | HTTP, API và tích hợp |
-| G | File và nội dung upload |
-| H | Nghiệp vụ và thanh toán ([`rules/backend`](../../rules/backend.md#an-toàn-dữ-liệu)) |
-| I | Database, dữ liệu và mật mã |
-| J | Cache, tài nguyên và availability |
-| K | Hạ tầng và cấu hình |
-| L | Supply chain, CI/CD và giám sát |
+| A | Authentication and accounts |
+| B | Session, cookie and CSRF |
+| C | Authorization and data isolation |
+| D | Injection and backend input handling |
+| E | Frontend and browser |
+| F | HTTP, API and integrations |
+| G | Files and uploaded content |
+| H | Business logic and payments ([`rules/backend`](../../rules/backend.md#data-safety)) |
+| I | Database, data and cryptography |
+| J | Cache, resources and availability |
+| K | Infrastructure and configuration |
+| L | Supply chain, CI/CD and monitoring |
 
-## Stack cụ thể
+## Stack specifics
 
-Review Laravel/React → đọc [`references/stack-notes.md`](./references/stack-notes.md) (route→policy trace, mass assignment, Sanctum, `VITE_*`...). Stack khác thì áp dụng checklist chung ở trên, không suy diễn theo convention Laravel/React.
+Reviewing Laravel/React → read [`references/stack-notes.md`](./references/stack-notes.md) (route→policy trace, mass assignment, Sanctum, `VITE_*`...). For other stacks apply the general checklist above, never infer Laravel/React conventions.
 
-## Định dạng báo cáo
+## Report format
 
-Mở đầu bằng số lỗi xác nhận, mức độ cao nhất và giới hạn phạm vi. Sắp xếp findings theo rủi ro, không theo thứ tự đọc file.
+Open with confirmed bug count, highest severity and scope limits. Sort findings by risk, not file-read order.
 
-Với mỗi finding, cung cấp:
-1. ID, tiêu đề và severity.
-2. Kết quả: `Đúng` hoặc `Sai`.
-3. Vị trí file/dòng hoặc route; đoạn code tối thiểu, che dữ liệu nhạy cảm.
-4. Nguyên nhân gốc và luồng dữ liệu/quyền bị vi phạm.
-5. Điều kiện tiền đề và kịch bản tái hiện tối thiểu trong môi trường thử nghiệm.
-6. Tác động thực tế và phạm vi dữ liệu/tài khoản/tenant.
-7. Cách sửa cụ thể hoặc patch nếu được yêu cầu.
-8. Kiểm thử hồi quy: trường hợp hợp lệ, bị từ chối và side effect cần tránh.
-9. CWE/OWASP mapping nếu xác minh được, không dùng mapping thay bằng chứng.
+Each finding provides:
+1. ID, title and severity.
+2. Result: `Correct` or `Incorrect`.
+3. File/line or route location; minimal code snippet, sensitive data masked.
+4. Root cause and the violated data/permission flow.
+5. Preconditions and minimal reproduction scenario in a test environment.
+6. Real impact and scope of data/accounts/tenants.
+7. Concrete fix or patch if requested.
+8. Regression test: valid case, rejected case and side effects to avoid.
+9. CWE/OWASP mapping if verifiable; never use mapping in place of evidence.
 
-Kết thúc bằng kiểm thử đã thực hiện, các phần chưa truy cập/chưa kiểm thử (gồm điểm chưa đủ dữ kiện để kết luận) và thứ tự xử lý. Nếu không có lỗi xác nhận, ghi "Chưa phát hiện lỗi trong phạm vi đã kiểm tra", không ghi "Không có lỗ hổng".
+End with tests performed, parts not accessed/not tested (including points lacking facts to conclude) and handling order. If no confirmed bug, write "No bug found in the checked scope", never "No vulnerabilities".
 
-Nếu project có skill [`report`](../report/SKILL.md), dùng đúng template [`assets/security-review-report-template.md`](../report/assets/security-review-report-template.md) của skill đó để trình bày kết quả — không dùng template review chung (thiếu field confidence/điều kiện khai thác/CWE) và không tự bịa format khác.
+If the project has skill [`report`](../report/SKILL.md), use that skill's exact template [`assets/security-review-report-template.md`](../report/assets/security-review-report-template.md) to present results — not the generic review template (missing confidence/exploit conditions/CWE fields) and never an invented format.
 
-## Tài liệu tham chiếu
+## References
 
-Nguồn chính thức để xác minh quy tắc, phiên bản, cách sửa:
+Use official sources to verify rules, versions and fixes when needed:
 - OWASP ASVS: https://owasp.org/projects/asvs
 - OWASP Top 10: https://owasp.org/projects/top-ten
 - OWASP API Security: https://owasp.org/projects/api-security-project
 - OWASP Cheat Sheet Series: https://cheatsheetseries.owasp.org/
 - CWE: https://cwe.mitre.org/
-- Tài liệu chính thức của framework, runtime và nhà cung cấp liên quan.
+- Official docs of the relevant framework, runtime and vendors.

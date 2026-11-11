@@ -1,0 +1,14 @@
+[
+  {
+    "title": "Compact all rules and move details into skills",
+    "description": "Reference when compacting all of .agents/rules, moving procedures/checklists/examples to skills and syncing references without changing semantics.",
+    "tags": ["agent-rules", "skills", "configuration", "refactor"],
+    "path": "docs/plans/compact-rules-into-skills-20261021.json"
+  },
+  {
+    "title": "Optimize rules and review repo structure",
+    "description": "Reference when compacting .agents/rules, AGENTS.md, CLAUDE.md under the one-constraint-one-owner principle, or when considering restructuring the .agents/.claude/.codex directories.",
+    "tags": ["agent-rules", "configuration", "refactor", "token-optimization"],
+    "path": "docs/plans/optimize-rules-structure-20261022.json"
+  }
+]

@@ -1,8 +1,8 @@
 [
   {
-    "title": "<Tiêu đề tài liệu>",
-    "description": "<Khi nào AI nên mở file chi tiết>",
+    "title": "<Document title>",
+    "description": "<When the AI should open the detail file>",
     "tags": ["<tag-kebab-case>"],
-    "path": "docs/<thư-mục>/<tên-file-đã-xác-minh>"
+    "path": "docs/<directory>/<verified-file-name>"
   }
 ]

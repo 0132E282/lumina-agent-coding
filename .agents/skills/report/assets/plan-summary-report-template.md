@@ -1,28 +1,29 @@
-# Mẫu báo cáo kế hoạch
+# Plan report template
 
-Dùng ngay sau khi `planner` ghi xong plan JSON trong `docs/plans/`, trước khi chờ duyệt. Dạng text, không bảng, không code fence, không `Description`; không chép lại nguyên văn plan.
+Use right after `planner` writes the plan JSON in `docs/plans/`, before awaiting approval. Text, no tables, no code fence, no `Description`; do not copy the plan verbatim.
 
-- Mỗi task một mục, mở đầu bằng dòng phân cách; đơn giản: tên nêu làm gì, `Chứng minh` là bằng chứng có `file:dòng`, `Làm` là một câu việc cụ thể. Không bullet dài.
-- `Status` dùng đúng `TODO | IN_PROGRESS | BLOCKED | DONE`.
-- Task có UI: thêm `URL:` (route) và `Ảnh chứng:` khi đã có. Task có API: thêm `API:` khi đã chạy thật.
+- One section per task, opened by a separator line; bullets state the work.
+- `Status` uses exactly `TODO | IN_PROGRESS | BLOCKED | DONE`.
+- UI task: add `URL:` (route) and `Evidence image:` when available. API task: add `API:` when actually run.
 
 `------------------------`
 
-Task: TASK-001 — Làm gì (nêu rõ kết quả)
+Task: TASK-001 — Name stating the outcome
 Status: TODO
 File: path/to/file.ext
-Chứng minh: bằng chứng ngắn tại `file:dòng` cho thấy cần làm
-Làm: một câu việc cụ thể
+
+- Work item 1
+- Work item 2
 
 `------------------------`
 
-**Tổng quan**: REQ [N] | Task [N] (P0 [n], P1 [n], P2 [n]) | Câu hỏi mở [N] | Rủi ro [N]. Plan: `docs/plans/<title-slug>-<yyyyMMdd>.json`.
+**Overview**: REQ [N] | Task [N] (P0 [n], P1 [n], P2 [n]) | Open questions [N] | Risks [N]. Plan: `docs/plans/<title-slug>-<yyyyMMdd>.json`.
 
-**Câu hỏi mở** (bỏ nếu không có; mỗi câu một mục theo [report](../SKILL.md#câu-hỏi-mở)):
+**Open questions** (omit if none; one section per question per [report](../SKILL.md#open-questions)):
 
-Câu hỏi 1: [nội dung]
-Đề xuất: [mặc định, hoặc "Cần người dùng quyết"]
+Question 1: [content]
+Proposal: [default, or "User must decide"]
 
-**Rủi ro chính**: [rủi ro + cách giảm, hoặc `Không có`]
+**Main risks**: [risk + mitigation, or `None`]
 
-**Bước tiếp theo**: Chờ người dùng chốt câu hỏi mở và duyệt plan; sau đó giao `coder` theo `executionOrder`.
+**Next step**: Wait for the user to settle open questions and approve the plan; then assign `coder` per `executionOrder`.

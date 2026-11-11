@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# PostToolUse hook: chạy static analysis (linter/type-checker) ngay sau khi
-# Edit/Write một file, báo lỗi lại cho Claude Code qua additionalContext —
-# liên hệ rules/delivery.md (static analysis trước khi báo
-# hoàn thành). Thuần cố vấn (advisory): KHÔNG block, vì tool đã chạy xong.
+# PostToolUse hook: run static analysis (linter/type-checker) right after
+# Edit/Write on a file, report errors back to Claude Code via additionalContext --
+# see rules/delivery.md (static analysis before reporting
+# completion). Advisory only: does NOT block, because the tool already finished.
 #
-# Nhận JSON input từ stdin theo schema PostToolUse:
+# Reads JSON input from stdin per the PostToolUse schema:
 #   { "tool_name": "Edit", "tool_input": { "file_path": "..." }, ... }
 #
-# Best-effort: thiếu jq, không có linter tương ứng, hoặc file không thuộc
-# loại được hỗ trợ -> bỏ qua êm.
+# Best-effort: missing jq, no matching linter, or file not of a
+# supported type -> skip quietly.
 
-# ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+# ! Skip if the project already has the same hook (avoid running twice with the user-level copy).
 . "$(dirname "$0")/_dedupe-guard.sh"
 
 set -o pipefail
@@ -59,12 +59,12 @@ case "$file_path" in
 esac
 
 [ -z "$lint_output" ] && exit 0
-# Một số tool exit 0 kèm output "no errors"/"found 0 errors" -> bỏ các cụm đếm 0 đó
-# trước khi tìm error|warning, để chỉ báo khi còn chẩn đoán thật.
+# Some tools exit 0 with output "no errors"/"found 0 errors" -> strip those zero-count phrases
+# before looking for error|warning, so we only report when real diagnostics remain.
 diagnostic_output="$(printf '%s' "$lint_output" | tr '[:upper:]' '[:lower:]' | sed -E 's/(^|[^0-9])0 (errors?|warnings?|problems?)/\1/g; s/no (errors?|warnings?)/ /g')"
 printf '%s' "$diagnostic_output" | grep -qE 'error|warning' || exit 0
 
-context="Static analysis trên ${file_path} báo vấn đề:
+context="Static analysis on ${file_path} reported issues:
 ${lint_output}"
 
 jq -n --arg ctx "$context" '{

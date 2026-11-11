@@ -1,47 +1,47 @@
 ---
 name: database
-description: "Chuyển yêu cầu nghiệp vụ thành truy vấn SQL/NoSQL, review tính đúng, phân tích độ phức tạp/tải, tìm query nặng và đề xuất tối ưu có bằng chứng. Dùng khi viết query, aggregation, filter, index, phân trang hoặc điều tra hiệu năng (MySQL, PostgreSQL, MongoDB, Redis...)."
+description: "Turn business requirements into SQL/NoSQL queries, review correctness, analyze complexity/load, find heavy queries and propose evidence-based optimizations. Use when writing queries, aggregations, filters, indexes, pagination or investigating performance (MySQL, PostgreSQL, MongoDB, Redis...)."
 ---
 
 # Database Query Analyzer
 
-## Quy trình chung
+## General process
 
-1. Xác định engine, phiên bản, driver/ORM, connection, môi trường — không coi NoSQL là một dialect.
-2. Đọc schema/document model, quan hệ, index, partition/shard key, kiểu dữ liệu; thu thập input/output, ordering, pagination, quyền tenant cần giữ. Khi cần minh họa quan hệ, kết hợp skill [`system-understanding`](../system-understanding/references/diagrams.md) để vẽ ERD từ schema đã xác minh.
-3. Xác định quy mô, phân bố dữ liệu, selectivity, tần suất gọi, concurrency, giới hạn latency/tài nguyên — thiếu số liệu thì đánh dấu thiếu, không tự đặt ngưỡng.
-4. Viết truy vấn native có tham số; không bịa field/index — thiếu schema thì cung cấp bản mẫu ghi rõ giả định. Có ORM tương đương khi cần, kiểm tra query thực do ORM phát sinh.
-5. Review tính đúng đắn trước hiệu năng: duplicate, null/missing, cardinality join, count, rounding, timezone, stable ordering, phân trang, filter tenant, consistency, xử lý lỗi.
-6. Phân tích tĩnh đường truy cập và chi phí dự kiến — đọc [analysis.md](references/analysis.md) để phân biệt độ phức tạp, chi phí thực thi, tải toàn hệ thống.
-7. Nếu được phép và có môi trường phù hợp, thu execution plan/profiler/metrics đúng engine — đọc [engines.md](references/engines.md), kiểm tra tài liệu chính thức theo phiên bản trước khi dùng tính năng chưa chắc chắn.
-8. Xếp hạng query theo bằng chứng (dữ liệu xử lý, latency, tài nguyên, fan-out, tần suất) — không gọi nặng chỉ vì dài/nhiều JOIN/không dùng index.
-9. Đề xuất thay đổi nhỏ nhất giữ đúng semantics (query rewrite, index, data model, batch, pagination, cache, precompute) kèm tradeoff write/storage/freshness/consistency.
-10. Kiểm chứng trước/sau với dữ liệu đại diện, tham số đa dạng, cùng môi trường/cache — so sánh correctness và metrics, không bịa % cải thiện.
+1. Identify engine, version, driver/ORM, connection, environment — never treat NoSQL as one dialect.
+2. Read the schema/document model, relationships, indexes, partition/shard key, data types; collect input/output, ordering, pagination, tenant permissions to keep. When illustrating relationships, combine with the [`system-understanding`](../system-understanding/references/diagrams.md) skill to draw an ERD from the verified schema.
+3. Identify scale, data distribution, selectivity, call frequency, concurrency, latency/resource limits — if numbers are missing, mark them missing, never set thresholds yourself.
+4. Write native parameterized queries; never invent fields/indexes — without a schema, provide a sample stating assumptions. Provide an equivalent ORM version when needed, and check the real query the ORM generates.
+5. Review correctness before performance: duplicates, null/missing, join cardinality, counts, rounding, timezone, stable ordering, pagination, tenant filter, consistency, error handling.
+6. Statically analyze the access path and expected cost — read [analysis.md](references/analysis.md) to distinguish complexity, execution cost, system-wide load.
+7. If permitted and a suitable environment exists, collect the execution plan/profiler/metrics for the right engine — read [engines.md](references/engines.md), check official docs for the version before using uncertain features.
+8. Rank queries by evidence (data processed, latency, resources, fan-out, frequency) — never call a query heavy just because it is long/has many JOINs/does not use an index.
+9. Propose the smallest change preserving semantics (query rewrite, index, data model, batch, pagination, cache, precompute) with write/storage/freshness/consistency tradeoffs.
+10. Verify before/after with representative data, varied parameters, the same environment/cache — compare correctness and metrics, never invent improvement percentages.
 
-## Liên quan
+## Related
 
-Khi cần thiết kế data model mới ở mức khái niệm (entity/quan hệ, trước khi có schema cụ thể), đó là việc của agent [`architect`](../../agents/architect.md) mục "Dữ liệu & API". Skill này vào việc khi đã có (hoặc đang soạn) schema cụ thể theo một engine thật — xác nhận bằng chi tiết đúng engine: cú pháp DDL, chiến lược index, chi phí truy vấn.
+Designing a new data model at the conceptual level (entities/relationships, before a concrete schema exists) is the job of agent [`architect`](../../agents/architect.md) section "Data & API". This skill applies once a concrete schema for a real engine exists (or is being drafted) — confirm with engine-specific details: DDL syntax, index strategy, query cost.
 
-## Đầu vào và câu hỏi
+## Input and questions
 
-Ưu tiên dữ liệu đã có: yêu cầu, query, bindings đã ẩn dữ liệu nhạy cảm, schema/index, plan, cardinality, log tổng hợp và mục tiêu đo. Hỏi gộp thông tin thiếu ảnh hưởng trực tiếp. Tiếp tục phân tích tĩnh khi chưa có quyền kết nối; ghi rõ chưa kiểm chứng.
+Prefer existing data: requirements, queries, bindings with sensitive data masked, schema/index, plan, cardinality, aggregated logs and measurement goals. Ask for missing information that directly matters in one batch. Continue static analysis without connection permission; state it is unverified.
 
-## Phạm vi và bảo vệ dữ liệu
+## Scope and data protection
 
-- Soạn query không đồng nghĩa được phép chạy. Chỉ truy cập engine/môi trường trong phạm vi đã được cho phép.
-- Không tự chạy DDL, update/delete, backfill, cache flush, đổi index/config hoặc workload benchmark trên production.
-- Actual plan/analyze có thể thực thi query và tiêu tốn tài nguyên; xác minh semantics theo engine, dùng môi trường phù hợp. Không mặc định transaction rollback loại bỏ mọi side effect.
-- Không dùng query text để suy ra an toàn read-only: kiểm tra stored function, procedure, script và tính năng thực thi liên quan.
-- Parameterize giá trị; allowlist identifier, sort field/operator động. Với NoSQL, không nhận nguyên object/operator từ input không tin cậy để ghép trực tiếp.
-- Không đọc toàn bộ dữ liệu hay log secret khi chỉ cần plan, thống kê hoặc mẫu đã ẩn danh.
-- Giữ tenant/authorization filter. Với Redis keyspace và NoSQL partition, kiểm tra phạm vi key và quyền truy cập.
+- Writing a query does not mean permission to run it. Access only engines/environments within the permitted scope.
+- Never run DDL, update/delete, backfill, cache flush, index/config changes or benchmark workloads on production yourself.
+- Actual plan/analyze can execute the query and consume resources; verify semantics per engine, use a suitable environment. Never assume transaction rollback removes all side effects.
+- Never infer read-only safety from query text: check stored functions, procedures, scripts and related execution features.
+- Parameterize values; allowlist identifiers, dynamic sort fields/operators. For NoSQL, never take a whole object/operator from untrusted input to splice in directly.
+- Never read all data or log secrets when only plans, statistics or anonymized samples are needed.
+- Keep tenant/authorization filters. For Redis keyspace and NoSQL partitions, check key scope and access rights.
 
-## Tài liệu theo tình huống
+## Docs by situation
 
-- Đọc [analysis.md](references/analysis.md) khi đánh giá độ phức tạp, query nặng, xếp hạng và kiểm chứng.
-- Đọc [engines.md](references/engines.md) để chọn metrics và cách tiếp cận theo SQL/NoSQL.
-- Đọc [output.md](references/output.md) khi viết báo cáo hoặc bàn giao query.
+- Read [analysis.md](references/analysis.md) when evaluating complexity, heavy queries, ranking and verification.
+- Read [engines.md](references/engines.md) to choose metrics and approach for SQL/NoSQL.
+- Read [output.md](references/output.md) when writing a report or query handoff.
 
-## Điều kiện hoàn thành
+## Completion criteria
 
-Trả query và bindings/schema giả định rõ ràng; mô tả đúng semantics; gắn mỗi finding với bằng chứng hoặc giả thuyết; đưa đề xuất và cách kiểm chứng. Nếu chưa chạy query hoặc chưa có plan, ghi rõ. Không hứa hỗ trợ mọi tính năng của mọi database: engine chưa biết cần tra tài liệu chính thức và giữ kết luận có điều kiện.
+Return the query and bindings/assumed schema clearly; describe the semantics correctly; tie each finding to evidence or a hypothesis; give recommendations and how to verify. If the query was not run or there is no plan, state it. Never promise support for every feature of every database: for an unknown engine, consult official docs and keep conclusions conditional.

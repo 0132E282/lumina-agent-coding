@@ -1,6 +1,6 @@
 ---
 name: cleanup-temp-files
-description: "Dọn file tạm/scratch/debug do chính Claude tạo trong task (xóa thẳng, không phải deliverable). Không xóa test chính thức hay file không rõ nguồn gốc (việc của workspace-auditor). Dùng ngay trước khi báo hoàn thành task hoặc khi người dùng yêu cầu dọn file tạm."
+description: "Clean up temp/scratch/debug files Claude itself created during the task (delete directly; they are not deliverables). Never delete official tests or files of unknown origin (that is workspace-auditor's job). Use right before reporting task completion or when the user asks to clean temp files."
 license: MIT
 metadata:
   version: "1.0"
@@ -8,42 +8,42 @@ metadata:
 
 # 🧹 Cleanup Temp Files
 
-Skill dọn dẹp file tạm do **chính mình (Claude) tạo ra** trong lúc làm task hiện tại — script thử một lần, file output trung gian, bản nháp trước khi tổng hợp, file test viết ra chỉ để tự kiểm tra thủ công (không thuộc bộ test suite chính thức).
+Cleans up temp files **Claude itself created** during the current task — one-off scripts, intermediate outputs, drafts before consolidation, test files written only for manual self-checking (not part of the official test suite).
 
-## Phạm vi — chỉ xóa khi cả 2 điều kiện đúng
+## Scope — delete only when both conditions hold
 
-1. **Do mình tạo ra trong session hiện tại** (nhớ rõ đã `Write`/tạo file đó lúc nào, để làm gì).
-2. **Không phải deliverable**: không phải code được yêu cầu, không phải test chính thức (xem dưới), không phải doc được yêu cầu tạo.
+1. **Created by you in the current session** (you clearly remember when/why you `Write`-created it).
+2. **Not a deliverable**: not requested code, not an official test (see below), not a requested doc.
 
-Không chắc một trong hai điều kiện → **không xóa**. Việc quét file không rõ nguồn gốc/có sẵn trong toàn workspace là phạm vi của agent [`workspace-auditor`](../../agents/workspace-auditor.md) (luôn liệt kê + chờ xác nhận người dùng), không phải skill này.
+Unsure about either -> **do not delete**. Scanning for files of unknown origin/pre-existing in the workspace is the scope of agent [`workspace-auditor`](../../agents/workspace-auditor.md) (always lists + waits for user confirmation), not this skill.
 
-## Không xóa — test chính thức
+## Do not delete — official tests
 
-Theo [`rules/delivery.md`](../../rules/delivery.md#chất-lượng-và-bằng-chứng), test thuộc bộ test suite của project (file nằm đúng cấu trúc test của framework, được chạy bởi lệnh test chính thức, đặc biệt regression test viết sau khi fix bug) là **deliverable**, không phải rác — giữ lại trong codebase dù task đã xong.
+Per [`rules/delivery.md`](../../rules/delivery.md#quality-and-evidence), tests in the project's test suite (files in the framework's proper test structure, run by the official test command, especially regression tests written after a bug fix) are **deliverables**, not junk — keep them in the codebase after the task is done.
 
-Dấu hiệu phân biệt file test là rác (nên xóa) vs chính thức (giữ lại):
+How to tell junk test files (delete) from official ones (keep):
 
-| | Rác — nên xóa | Chính thức — giữ lại |
+| | Junk — delete | Official — keep |
 |---|---|---|
-| Vị trí | Ngoài cấu trúc test của project, hoặc ở scratchpad/`/tmp` | Đúng thư mục/convention test của framework |
-| Mục đích | Tự kiểm tra thủ công một lần trong lúc debug | Regression/unit/integration test cho hành vi cần khóa lại |
-| Có trong lệnh test chính thức không | Không (`npm test`, `pytest`... không chạy tới nó) | Có |
+| Location | Outside the project's test structure, or in scratchpad/`/tmp` | Proper framework test dir/convention |
+| Purpose | One-off manual self-check while debugging | Regression/unit/integration test locking in behavior |
+| In the official test command | No (`npm test`, `pytest`... never reach it) | Yes |
 
-## Quy trình
+## Process
 
-1. Lấy danh sách ứng viên bằng script (đáng tin hơn tự nhớ lại, nhất là sau khi context đã bị compact):
+1. Get candidates via the script (more reliable than memory, especially after context compaction):
    ```bash
    bash .claude/skills/cleanup-temp-files/scripts/find-session-scratch-files.sh "$SESSION_ID"
    ```
-   Script đọc `.agents/storage/logs/logs.jsonl` và file đã xoay vòng mới nhất `logs-<timestamp>.jsonl` (ghi bởi hook `audit-log`), chỉ lấy file đã `Write` **trong session hiện tại**, **trong phạm vi dự án** (so khớp `cwd`), còn tồn trên đĩa, và khớp pattern tên file tạm (tên bắt đầu bằng `tmp`/`scratch`/`debug`/`draft`/`sandbox`/`test-output`, hoặc đuôi `.tmp`/`.bak`/`.orig`), bỏ qua file trong thư mục cấu hình/tài liệu của project (`.agents/rules/`, `.agents/skills/`, `.agents/agents/`, `.claude/`, `.codex/`, `docs/`). Không tự xóa gì, không quét ra ngoài dự án.
-2. Với mỗi ứng viên script trả về, xác nhận lại theo bảng trên — loại nào rác, loại nào giữ lại. Script chỉ gợi ý theo tên file, có thể báo sai (ví dụ file tên có "draft" nhưng là deliverable thật) — Claude luôn tự xác nhận trước khi xóa, không xóa máy móc theo script.
-3. Xóa trực tiếp các file rác đã xác định (không cần hỏi xác nhận — tự chịu trách nhiệm vì là file tự tạo).
-4. Báo ngắn gọn: đã xóa file nào, giữ lại file nào vì là deliverable/test chính thức.
+   The script reads `.agents/storage/logs/logs.jsonl` and the latest rotated `logs-<timestamp>.jsonl` (written by the `audit-log` hook), takes only files `Write`-n **in the current session**, **within the project** (matching `cwd`), still on disk, and matching temp file name patterns (name starts with `tmp`/`scratch`/`debug`/`draft`/`sandbox`/`test-output`, or extension `.tmp`/`.bak`/`.orig`), skipping project config/docs dirs (`.agents/rules/`, `.agents/skills/`, `.agents/agents/`, `.claude/`, `.codex/`, `docs/`). Deletes nothing, never scans outside the project.
+2. For each candidate returned, re-confirm using the table above — which is junk, which to keep. The script suggests by file name only and can be wrong (e.g. a file named "draft" that is a real deliverable) — Claude always confirms before deleting, never mechanically follows the script.
+3. Delete confirmed junk files directly (no confirmation needed — you own self-created files).
+4. Report briefly: which files were deleted, which were kept as deliverables/official tests.
 
-Ưu tiên không tạo file tạm trong repo từ đầu — dùng scratchpad directory hoặc `/tmp` khi có thể, để không phải dọn lại. Hook `remind-cleanup` (xem [`hook/README.md`](../../hooks/README.md)) tự nhắc khi context window của phiên đã dùng ≥ 80% và phát hiện ứng viên chưa dọn; mỗi file chỉ nhắc một lần mỗi session.
+Prefer not creating temp files in the repo at all — use the scratchpad directory or `/tmp` when possible. The `remind-cleanup` hook (see [`hook/README.md`](../../hooks/README.md)) reminds automatically when the session context window is ≥ 80% used and uncleaned candidates are found; each file is reminded once per session.
 
-## Khi áp dụng
+## When to apply
 
-- Trước khi báo "hoàn thành task", nếu trong lúc làm có tạo file tạm/scratch/debug/test thử.
-- Khi người dùng yêu cầu dọn file tạm/rác do Claude tạo ra.
-- **Không** dùng cho file không rõ Claude có tạo ra hay không, hoặc file có sẵn trong workspace trước khi task bắt đầu — chuyển sang `workspace-auditor`.
+- Before reporting "task complete", if temp/scratch/debug/trial test files were created along the way.
+- When the user asks to clean up junk files Claude created.
+- **Not** for files where it's unclear whether Claude created them, or files that existed in the workspace before the task started — hand off to `workspace-auditor`.

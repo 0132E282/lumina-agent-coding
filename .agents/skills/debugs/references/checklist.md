@@ -1,72 +1,60 @@
-# Checklist debug
+# Debug checklist
 
-## Tiêu chí
+## Criteria
 
-| Tiêu chí | Cần trả lời |
+| Criterion | Must answer |
 |---|---|
-| Reproduce | Tái hiện được không? Các bước/điều kiện gây lỗi? |
-| Expected vs Actual | Kết quả mong muốn (theo đặc tả) và thực tế khác nhau ở đâu? |
-| Scope | Lỗi ở frontend, backend, database, network hay môi trường? |
-| Root Cause | Đã tìm nguyên nhân gốc hay chỉ xử lý triệu chứng? |
-| Origin | Nguồn gốc: code, dữ liệu, cấu hình/môi trường, input/thao tác người dùng ngoài đặc tả hay dependency? Input sai mà không được validate/báo lỗi rõ vẫn là lỗi code. |
-| Evidence | Có log, stack trace, request, SQL query hoặc dữ liệu chứng minh? |
-| Impact | Ảnh hưởng chức năng nào, bao nhiêu người dùng, có mất/sai dữ liệu? |
-| Regression | Bản sửa có làm hỏng chức năng khác? |
-| Performance | Có gây chậm API, tăng CPU/RAM, N+1 hoặc rò rỉ bộ nhớ? |
-| Security | Liên quan phân quyền, lộ dữ liệu, SQL injection, XSS, xác thực? |
-| Verification | Đã test lại case lỗi, case bình thường và case biên? |
+| Reproduce | Can it be reproduced? Steps/conditions causing the bug? |
+| Expected vs Actual | Where do the expected result (per spec) and the actual one differ? |
+| Scope | Is the bug in frontend, backend, database, network or environment? |
+| Root Cause | Was the root cause found or only the symptom handled? |
+| Origin | Origin: code, data, config/environment, user input/action outside the spec, or dependency? Bad input that is not validated/clearly rejected is still a code bug. |
+| Evidence | Are there logs, stack traces, requests, SQL queries or data proving it? |
+| Impact | Which functions are affected, how many users, is data lost/wrong? |
+| Regression | Does the fix break other functionality? |
+| Performance | Does it slow the API, raise CPU/RAM, cause N+1 or memory leaks? |
+| Security | Related to authorization, data exposure, SQL injection, XSS, authentication? |
+| Verification | Were the failing case, normal case and edge cases retested? |
 
-## Mức độ
+## Severity
 
-| Mức | Khi nào | Ưu tiên |
+| Level | When | Priority |
 |---|---|---|
-| S1 | Mất/sai dữ liệu, lỗ hổng bảo mật, hệ thống/luồng chính ngừng hoạt động | Xử lý ngay, báo người dùng |
-| S2 | Chức năng chính sai hoặc chặn nhiều người dùng, có workaround khó | Ưu tiên trong task hiện tại |
-| S3 | Chức năng phụ sai, có workaround rõ | Lên kế hoạch sửa |
-| S4 | Hiển thị/văn bản nhỏ, không ảnh hưởng nghiệp vụ | Gom sửa sau |
+| S1 | Data lost/wrong, security hole, system/main flow down | Handle immediately, notify the user |
+| S2 | Main function wrong or blocking many users, hard workaround | Prioritize in the current task |
+| S3 | Secondary function wrong, clear workaround | Plan a fix |
+| S4 | Minor display/text, no business impact | Batch-fix later |
 
-Không chắc giữa hai mức thì chọn mức cao hơn và ghi lý do.
+Unsure between two levels -> pick the higher one and state the reason.
 
-## Kiểm tra theo loại lỗi
+## Checks by bug type
 
-| Loại lỗi | Kiểm tra |
+| Bug type | Check |
 |---|---|
-| API trả sai dữ liệu | Request params, validation, business logic, response mapping |
-| API chậm | Thời gian từng tầng, SQL query, N+1, cache, external API — dùng [`complexity-performance`](../../complexity-performance/SKILL.md), [`database`](../../database/SKILL.md) |
-| HTTP 500 | Exception, stack trace, cấu hình, dependency |
-| HTTP 401/403 | Token, authentication, middleware, RBAC/policy — dùng [`review-web-security`](../../review-web-security/SKILL.md) |
-| Database | SQL, transaction, index, lock, dữ liệu thực tế (chỉ đọc) |
+| API returns wrong data | Request params, validation, business logic, response mapping |
+| Slow API | Time per layer, SQL queries, N+1, cache, external APIs — use [`complexity-performance`](../../complexity-performance/SKILL.md), [`database`](../../database/SKILL.md) |
+| HTTP 500 | Exception, stack trace, config, dependencies |
+| HTTP 401/403 | Token, authentication, middleware, RBAC/policy — use [`review-web-security`](../../review-web-security/SKILL.md) |
+| Database | SQL, transaction, index, lock, real data (read-only) |
 | Queue/Job | Retry, timeout, failed jobs, idempotency |
-| Frontend | Console, Network, state, props, dữ liệu API, render/effect loop |
-| Production quá tải | CPU, RAM, request rate, concurrency, worker, slow query |
-| Lúc có lúc không | Race/concurrency, thời gian/timezone, thứ tự test, tài nguyên chung (thư mục, port, cache, DB), retry/timeout; chạy lặp và ghi tần suất |
-| Bảo mật | Theo [`review-web-security`](../../review-web-security/SKILL.md); không ghi payload khai thác/dữ liệu nhạy cảm vào báo cáo |
-| Chỉ lỗi trên production | Khác biệt cấu hình, phiên bản, quyền truy cập, dữ liệu, môi trường |
+| Frontend | Console, Network, state, props, API data, render/effect loop |
+| Production overload | CPU, RAM, request rate, concurrency, workers, slow queries |
+| Intermittent | Race/concurrency, time/timezone, test order, shared resources (directories, ports, cache, DB), retry/timeout; run repeatedly and record frequency |
+| Security | Per [`review-web-security`](../../review-web-security/SKILL.md); never write exploit payloads/sensitive data into reports |
+| Production-only bug | Differences in config, version, access rights, data, environment |
 
-## Che secret trong bằng chứng
+## Debug quality
 
-Trước khi dẫn log, HAR hoặc output vào báo cáo, quét thư mục evidence và che mọi dòng khớp:
+- [ ] Reproduced the bug or clearly identified the conditions
+- [ ] Concrete evidence (log, stack trace, request, query, screenshot) with secrets/PII masked, stored or referenced by path in `.agents/storage/evidence/<task-slug>/`
+- [ ] Identified the origin (code/data/environment/user/dependency) and root cause
+- [ ] Assigned severity S1–S4 and assessed security risk
+- [ ] Fixed the real cause, no arbitrary workaround
+- [ ] A test reproduces the bug: fails before the fix, passes after, fails again when the fix alone is removed
+- [ ] Ran the appropriate regression tests
+- [ ] UI bug: before/after screenshots at the same route/viewport in `.agents/storage/evidence/<task-slug>/` and attached to the report
+- [ ] Verified on the target environment (or clearly stated it could not be verified)
+- [ ] Performance bug: before/after measurements (p50/p95, queries/request, CPU/RAM when measurable)
+- [ ] Production bug: logs/monitoring plan and a short postmortem note
 
-```bash
-grep -rEnIi -e 'AKIA[0-9A-Z]{16}' -e 'BEGIN [A-Z ]*PRIVATE KEY' -e '(api[_-]?key|secret|token|password)[^[:alnum:]]{0,3}[:=]' .agents/storage/evidence/<task-slug>/
-```
-
-## Đo hiệu năng
-
-Lỗi hiệu năng đo trước/sau cùng điều kiện và ghi tối thiểu: latency p50/p95, số query/request, CPU/RAM khi đo được, kèm lệnh/công cụ đo. Không đo được thì ghi rõ chỉ rà tĩnh.
-
-## Chất lượng một lần debug
-
-- [ ] Tái hiện được lỗi hoặc xác định rõ điều kiện xảy ra
-- [ ] Có bằng chứng cụ thể (log, stack trace, request, query, ảnh) đã che secret/PII, lưu hoặc dẫn đường dẫn trong `.agents/storage/evidence/<task-slug>/`
-- [ ] Xác định nguồn gốc (code/dữ liệu/môi trường/người dùng/dependency) và nguyên nhân gốc
-- [ ] Gán mức độ S1–S4 và đánh giá rủi ro bảo mật
-- [ ] Sửa đúng nguyên nhân, không workaround tùy tiện
-- [ ] Có test tái hiện lỗi: fail trước sửa, pass sau sửa, fail lại khi bỏ riêng bản sửa
-- [ ] Đã chạy regression test phù hợp
-- [ ] Bug UI: có ảnh trước/sau cùng route/viewport trong `.agents/storage/evidence/<task-slug>/` và đính vào báo cáo
-- [ ] Đã xác minh trên môi trường mục tiêu (hoặc ghi rõ chưa xác minh được)
-- [ ] Lỗi hiệu năng: có số đo trước/sau (p50/p95, số query/request, CPU/RAM khi đo được)
-- [ ] Lỗi production: có log/phương án theo dõi và ghi chú postmortem ngắn
-
-Mục chưa đạt phải ghi trong báo cáo là giới hạn còn lại; không đánh dấu đạt khi chưa có bằng chứng.
+Unmet items must be recorded in the report as remaining limits; never mark as met without evidence.

@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# PostToolUse hook (matcher Skill): khi skill `report` được gọi, đo token + issue lãng phí
-# từ transcript và đưa vào additionalContext để báo cáo thay đổi ghi đúng số thật.
+# PostToolUse hook (matcher Skill): when skill `report` is called, measure tokens + waste issues
+# from the transcript and put them in additionalContext so the change report states the real numbers.
 #
-# Nhận JSON input từ stdin theo schema PostToolUse:
+# Reads JSON input from stdin per the PostToolUse schema:
 #   { "session_id": "...", "transcript_path": "...", "tool_name": "Skill", "tool_input": {"skill": "report"} }
 #
-# Best-effort: thiếu jq/node/script/transcript/usage thì im lặng, không in N/A, không ước lượng.
-# Luôn exit 0 — không bao giờ chặn tool call.
+# Best-effort: missing jq/node/script/transcript/usage -> silent, no N/A, no estimates.
+# Always exit 0 -- never blocks a tool call.
 
-# ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+# ! Skip if the project already has the same hook (avoid running twice with the user-level copy).
 . "$(dirname "$0")/_dedupe-guard.sh"
 
 set -o pipefail
@@ -41,10 +41,10 @@ fi
 [ -f "$usage_script" ] || exit 0
 
 since_line="$(lumina_state_get "$log_root" "$session_id" usageMarker | jq -r '.lastLine // 0' 2>/dev/null || true)"
-window_label="từ mốc trước"
+window_label="since previous mark"
 if [ -z "$since_line" ] || [ "$since_line" = "0" ]; then
   since_line=0
-  window_label="cả phiên"
+  window_label="whole session"
 fi
 
 usage_json="$(node "$usage_script" --transcript "$transcript_path" --since-line "$since_line" 2>/dev/null || true)"
@@ -59,11 +59,11 @@ compact_json="$(printf '%s' "$usage_json" | node "$compact_module" 2>/dev/null |
 [ -z "$compact_json" ] && exit 0
 
 usage_text="$(printf '%s' "$usage_json" | jq -r --arg label "$window_label" --argjson compact "$compact_json" '
-  "📈 Token: input \($compact.input) | output \($compact.output) | cache đọc \($compact.cacheRead) | cache tạo \($compact.cacheCreate) | tổng \($compact.total) (\($label)).",
+  "📈 Token: input \($compact.input) | output \($compact.output) | cache read \($compact.cacheRead) | cache create \($compact.cacheCreate) | total \($compact.total) (\($label)).",
   (if (.waste | length) > 0 then
-    "Issue lãng phí: \(.waste | length) — " + (.waste | map("\(.rule): \(.evidence) (×\(.count))") | join("; "))
+    "Waste issue: \(.waste | length) — " + (.waste | map("\(.rule): \(.evidence) (×\(.count))") | join("; "))
   else empty end),
-  "Khi báo cáo thêm dòng Token: theo template change (và dòng Issue lãng phí: chỉ khi hook liệt kê vi phạm). Chép nguyên các số rút gọn (k/M) và nhãn phạm vi trên, không dùng số cũ hay tự tính; số liệu tính đến lúc gọi skill, chưa gồm các message của lượt hiện tại."
+  "When reporting add the Token: line per the change template (and the Waste issue: line only if the hook lists violations). Copy the shortened numbers (k/M) and the scope label above verbatim, do not use old numbers or compute your own; the numbers are counted up to the skill call and do not include messages of the current turn."
 ' 2>/dev/null || true)"
 [ -z "$usage_text" ] && exit 0
 

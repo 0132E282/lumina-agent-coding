@@ -1,46 +1,46 @@
 ---
 name: coding-standards
-description: "Checklist code cross-stack: DRY/SOLID/SRP/fail-fast, comment, TypeScript strict, readability, KISS/YAGNI. Dùng khi viết, sửa hoặc review code và cần đối chiếu chuẩn code."
+description: "Cross-stack code checklist: DRY/SOLID/SRP/fail-fast, comments, strict TypeScript, readability, KISS/YAGNI. Use when writing, modifying or reviewing code and checking against code standards."
 ---
 
 # Coding standards
 
-Đọc các invariant trong [`coding-principles`](../../rules/coding.md#nguyên-tắc-code), [`comments`](../../rules/coding.md#comment-có-kỷ-luật), [`type-safety`](../../rules/coding.md#an-toàn-type) và [`simplicity`](../../rules/coding.md#kiss-yagni-và-phạm-vi) trước khi dùng checklist này.
+Read the invariants in [`coding-principles`](../../rules/coding.md#coding-principles), [`comments`](../../rules/coding.md#disciplined-comments), [`type-safety`](../../rules/coding.md#type-safety) and [`simplicity`](../../rules/coding.md#kiss-yagni-and-scope) before using this checklist.
 
-## DRY, SOLID và trách nhiệm
+## DRY, SOLID and responsibility
 
-- Chỉ gom logic có cùng ý nghĩa nghiệp vụ và cùng lý do thay đổi. Rule of Three: chấp nhận hai lần lặp; lần thứ ba mới refactor.
-- Trước khi tạo resource/config mới, tìm resource cùng mục đích trong code/config và dùng lại khi phù hợp.
-- Ưu tiên composition; chỉ kế thừa khi quan hệ `is-a` thật và ổn định. Chỉ tạo interface/DI khi có nhu cầu thay thế thật.
-- Với request flow, tách HTTP, validation, authorization và business logic. Business logic không phụ thuộc HTTP/framework nếu cần tái dùng hoặc test độc lập.
-- Validate boundary và điều kiện nghiệp vụ trước khi ghi dữ liệu; trả lỗi cụ thể. Dùng early return, tên rõ nghĩa và function một trách nhiệm.
-- Giữ format codebase. File text mới/sửa phải có final newline và giữ line ending hiện có; không format file ngoài scope.
+- Merge only logic with the same business meaning and the same reason to change. Rule of Three: tolerate two repetitions; refactor on the third.
+- Before creating a new resource/config, look for one with the same purpose in code/config and reuse it when suitable.
+- Prefer composition; use inheritance only for a real, stable `is-a` relationship. Create interfaces/DI only when real substitution is needed.
+- In request flows, separate HTTP, validation, authorization and business logic. Business logic must not depend on HTTP/framework if it needs reuse or independent testing.
+- Validate boundaries and business conditions before writing data; return specific errors. Use early returns, meaningful names and single-responsibility functions.
+- Keep the codebase format. New/modified text files must have a final newline and keep the existing line ending; do not format files outside scope.
 
 ## Comment
 
-- Không comment logic tự giải thích. Chỉ giải thích `why`: business constraint, workaround hoặc hành vi bất ngờ của bên thứ ba.
-- Nhãn: `*` thông tin quan trọng, `!` cảnh báo, `?` câu hỏi cần xác nhận, `TODO:` kèm ngữ cảnh; `@param`/`@return` chỉ khi bổ sung type mà signature không có.
-- Không giữ code comment-out, TODO thiếu ngữ cảnh, banner, comment lỗi thời hoặc PHPDoc/JSDoc lặp signature.
-- Mỗi dòng tối đa 180 ký tự, mỗi đoạn 1–3 dòng. Dài hơn thì rút còn invariant/hệ quả, tách hàm hoặc chuyển docs; nhiều cảnh báo dùng từng dòng `!` riêng.
-- Khi sửa code, cập nhật hoặc xoá comment không còn đúng.
+- Never comment self-explanatory logic. Explain only `why`: business constraints, workarounds or surprising third-party behavior.
+- Labels: `*` important info, `!` warning, `?` question needing confirmation, `TODO:` with context; `@param`/`@return` only when adding type info the signature lacks.
+- Keep no commented-out code, context-free TODOs, banners, stale comments or PHPDoc/JSDoc repeating the signature.
+- Max 180 characters per line, 1–3 lines per paragraph. Longer -> cut to the invariant/consequence, split the function or move to docs; multiple warnings each get their own `!` line.
+- When changing code, update or delete comments that are no longer correct.
 
 ## TypeScript
 
-- Không dùng `any`, implicit `any`, `as unknown as T`, `@ts-ignore` hoặc tắt lint để lách type. Dữ liệu chưa biết dùng `unknown` rồi validate/narrow.
-- Tìm và tái sử dụng type domain/SDK/schema trước; dùng inference khi đủ rõ. Dẫn xuất bằng `extends`, intersection, `Pick`, `Omit`, `Partial` khi đúng ngữ nghĩa.
-- Chỉ tạo type mới cho contract/khái niệm thật sự khác. Gom type theo domain trong `types/` hoặc convention module; không khai báo lại trong component/service/hook.
-- Dùng `import type` khi phù hợp; import generated type từ nguồn và chỉ dẫn xuất khi cần.
-- Chạy type checker/lint sẵn có; sửa lỗi ở nguồn, không dùng assertion che dữ liệu chưa kiểm chứng.
+- Never use `any`, implicit `any`, `as unknown as T`, `@ts-ignore` or disabling lint to bypass types. Use `unknown` for unknown data then validate/narrow.
+- Find and reuse domain/SDK/schema types first; use inference when clear enough. Derive with `extends`, intersection, `Pick`, `Omit`, `Partial` when semantically right.
+- Create new types only for truly different contracts/concepts. Group types by domain in `types/` or the module convention; never redeclare in components/services/hooks.
+- Use `import type` where appropriate; import generated types from the source and derive only when needed.
+- Run the existing type checker/lint; fix errors at the source, never use assertions to hide unverified data.
 
 ## KISS/YAGNI
 
-- Chọn giải pháp đơn giản nhất cho yêu cầu hiện tại; ba dòng lặp còn tốt hơn abstraction sinh non.
-- Không thêm config/interface/layer hay design pattern cho nhu cầu giả định. Nếu giải pháp cần sơ đồ mới giải thích được, đơn giản hoá lại.
-- Phát hiện vấn đề ngoài scope thì ghi file, tác động, lý do và xin chấp thuận; tiếp tục phần độc lập. Cleanup, accessibility, tối ưu hoặc convention không tự tạo quyền đổi hành vi.
+- Choose the simplest solution for the current requirement; three repeated lines beat a premature abstraction.
+- Do not add config/interfaces/layers or design patterns for hypothetical needs. If a solution needs a new diagram to explain, simplify it.
+- On finding out-of-scope issues, note the file, impact and reason and ask for approval; continue the independent parts. Cleanup, accessibility, optimization or convention do not by themselves grant permission to change behavior.
 
-## Checklist bàn giao
+## Handoff checklist
 
-- Logic trùng đã được phân biệt theo ý nghĩa nghiệp vụ; abstraction mới có nhu cầu thật.
-- Boundary validation, authorization và side effect nằm đúng lớp.
-- Comment và type tuân thủ các mục trên.
-- Diff không chứa thay đổi ngoài scope; formatter, lint và type checker liên quan đã chạy hoặc được ghi rõ chưa chạy.
+- Duplicate logic was distinguished by business meaning; new abstractions have real need.
+- Boundary validation, authorization and side effects are in the right layer.
+- Comments and types follow the items above.
+- The diff has no out-of-scope changes; relevant formatter, lint and type checker were run or explicitly noted as not run.

@@ -1,23 +1,23 @@
 #!/usr/bin/env bash
-# PreToolUse hook: mọi lần gọi Agent tool đều báo rõ tên agent đang được
-# dùng (permissionDecision "allow" kèm reason — không chặn). Riêng vai trò
-# "nặng" (analyst, planner, architect,
-# reviewer, qa-tester, researcher) kèm prompt quá ngắn thì
-# đổi sang "ask" (hỏi xác nhận) — tín hiệu cơ học cho khả năng đang
-# over-delegate một task nhỏ, trái Execution discipline (AGENTS.md/CLAUDE.md):
-# task nhỏ/rõ nên giao thẳng coder, không mặc định chạy đủ chuỗi
-# planner/reviewer/tester.
+# PreToolUse hook: every Agent tool call reports which agent is
+# being used (permissionDecision "allow" with a reason -- does not block). Only "heavy"
+# roles (analyst, planner, architect,
+# reviewer, qa-tester, researcher) with a very short prompt are
+# switched to "ask" (confirmation) -- a mechanical signal of possibly
+# over-delegating a small task, against Execution discipline (AGENTS.md/CLAUDE.md):
+# small/clear tasks go straight to coder, not the full chain by default:
+# analyst/planner/reviewer/tester.
 #
-# Phần "ask" CHỈ là lưới an toàn cơ học (độ dài prompt), không hiểu ngữ nghĩa
-# task — có task nhỏ về chữ nhưng thật sự cần vai trò đó (ví dụ review 1 file
-# rủi ro cao). Người điều phối (phiên chính) tự quyết tiếp tục hay đổi hướng.
+# The "ask" part is ONLY a mechanical safety net (prompt length), not a semantic judgment
+# of the task -- a small text task may genuinely need that role (e.g. reviewing 1
+# high-risk file). The orchestrator (main session) decides whether to continue or change course.
 #
-# Nhận JSON input từ stdin theo schema PreToolUse:
+# Reads JSON input from stdin per the PreToolUse schema:
 #   { "tool_name": "Agent", "tool_input": { "subagent_type": "...", "prompt": "..." }, ... }
 #
-# Best-effort: thiếu jq hoặc không phải tool Agent -> không làm gì.
+# Best-effort: missing jq or not the Agent tool -> do nothing.
 
-# ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+# ! Skip if the project already has the same hook (avoid running twice with the user-level copy).
 . "$(dirname "$0")/_dedupe-guard.sh"
 
 set -o pipefail
@@ -33,7 +33,7 @@ input="$(cat)"
 tool_name="$(printf '%s' "$input" | jq -r '.tool_name // ""' 2>/dev/null)"
 [ "$tool_name" = "Agent" ] || exit 0
 
-subagent_type="$(printf '%s' "$input" | jq -r '.tool_input.subagent_type // "(không rõ)"' 2>/dev/null)"
+subagent_type="$(printf '%s' "$input" | jq -r '.tool_input.subagent_type // "(unknown)"' 2>/dev/null)"
 prompt="$(printf '%s' "$input" | jq -r '.tool_input.prompt // ""' 2>/dev/null)"
 prompt_length=${#prompt}
 
@@ -42,7 +42,7 @@ reason="Đang giao task cho agent: ${subagent_type}."
 
 if printf '%s' "$subagent_type" | grep -qE "$HEAVY_AGENTS_REGEX" && [ "$prompt_length" -lt "$MIN_PROMPT_CHARS" ]; then
   decision="ask"
-  reason="Đang giao task cho agent: ${subagent_type} — prompt chỉ ${prompt_length} ký tự. Theo Execution discipline, task nhỏ/rõ nên giao thẳng coder thay vì qua vai trò này. Nếu task thật sự cần ${subagent_type} (độ phức tạp/rủi ro/yêu cầu còn mơ hồ), xác nhận để tiếp tục."
+  reason="Delegating task to agent: ${subagent_type} -- prompt is only ${prompt_length} characters. Per Execution discipline, small/clear tasks should go straight to coder instead of this role. If the task truly needs ${subagent_type} (complexity/risk/ambiguous requirements), confirm to continue."
 fi
 
 jq -n --arg decision "$decision" --arg reason "$reason" '{

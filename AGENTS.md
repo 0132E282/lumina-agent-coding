@@ -19,12 +19,12 @@ This is an agent configuration repo. `.agents/rules/` is the single shared sourc
 
 ## Execution discipline
 
-Follow [implementation](./.agents/rules/delivery.md#triển-khai-theo-yêu-cầu) directly. `/cleanup` trims context only. `/test`/`$workflow-test` saves to `testcase.json` at repo root.
+Follow [implementation](./.agents/rules/delivery.md#implementation-on-request) directly. `/cleanup` trims context only. `/test`/`$workflow-test` saves to `testcase.json` at repo root.
 
 - Every task that performs work follows the mandatory [`orchestration`](./.agents/rules/orchestration.md) rule: the main session delegates directly to the matching specialist subagent. Pure answers/lookups without an execution task stay in the main session.
 - Implement immediately when evidence is sufficient; no extra probing.
-- Gates: scope/authorization → [`coding`](./.agents/rules/coding.md#kiss-yagni-và-phạm-vi); UI → [`frontend`](./.agents/rules/frontend.md); before handoff → [`delivery`](./.agents/rules/delivery.md#chất-lượng-và-bằng-chứng); full plan completion → [`docs`](./.agents/rules/docs.md#đồng-bộ-tài-liệu).
-- Small, clear coding task → the main session immediately assigns one dedicated `coder`; do not add planner/review steps unless truly warranted. Once scope and authorization are sufficient, that `coder` implements and verifies the code in the same assignment instead of returning analysis or an implementation proposal.
+- Gates: scope/authorization → [`coding`](./.agents/rules/coding.md#kiss-yagni-and-scope); UI → [`frontend`](./.agents/rules/frontend.md); before handoff → [`delivery`](./.agents/rules/delivery.md#quality-and-evidence); full plan completion → [`docs`](./.agents/rules/docs.md#docs-sync).
+- Small, clear task → `coder` directly. Plan/subagent/review only when truly warranted.
 
 ## Hooks and format
 

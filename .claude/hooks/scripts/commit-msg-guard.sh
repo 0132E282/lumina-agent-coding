@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
-# PreToolUse hook: chặn lệnh `git commit` nếu message không đúng format
-# Conventional Commits — enforce rules/git.md tự động,
-# không phụ thuộc Claude Code tự giác tuân theo rule.
+# PreToolUse hook: block a `git commit` command if the message is not in
+# Conventional Commits format -- enforces rules/git.md automatically,
+# without relying on Claude Code to follow the rule voluntarily.
 #
-# Nhận JSON input từ stdin theo schema PreToolUse:
+# Reads JSON input from stdin per the PreToolUse schema:
 #   { "tool_name": "Bash", "tool_input": { "command": "..." }, ... }
 #
-# Chặn (deny) bằng cách in JSON hookSpecificOutput ra stdout + exit 0
-# (đúng protocol PreToolUse của Claude Code — exit 0 kèm JSON hợp lệ thì
-# JSON mới là cái quyết định, không phải exit code).
+# Block (deny) by printing hookSpecificOutput JSON to stdout + exit 0
+# (the PreToolUse protocol of Claude Code -- with exit 0 plus valid JSON,
+# the JSON decides, not the exit code).
 #
-# Best-effort: nếu không trích được message (ví dụ commit mở editor,
-# dùng -F file, hoặc thiếu jq/validator) -> không chặn, để git tự xử lý.
+# Best-effort: if the message cannot be extracted (e.g. commit opens an editor,
+# uses -F file, or jq/validator is missing) -> do not block, let git handle it.
 
-# ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+# ! Skip if the project already has the same hook (avoid running twice with the user-level copy).
 . "$(dirname "$0")/_dedupe-guard.sh"
 
 set -o pipefail
@@ -36,16 +36,16 @@ invocations="$(git_invocations "$command_str" commit)" || true
 validator=".claude/skills/git-workflow/scripts/validate-commit-message.sh"
 [ -f "$validator" ] || exit 0
 
-# Message chỉ lấy từ đối số của chính lệnh `git commit` (-m/--message, hoặc
-# -F - kèm heredoc); không lấy heredoc/-m của lệnh khác như `cat`/`git tag`.
+# The message is taken only from the arguments of the `git commit` command itself (-m/--message, or
+# -F - with heredoc); not from the heredoc/-m of other commands such as `cat`/`git tag`.
 reasons=()
 while IFS= read -r invocation; do
   [ -z "$invocation" ] && continue
   IFS=$'\037' read -r -a fields <<< "$invocation"
   message="$(git_commit_message "${fields[@]:2}")" || continue
   [ -z "$message" ] && continue
-  # Dùng nội dung output để biết hợp lệ hay không (validator exit 1 khi sai —
-  # không dựa vào exit code trực tiếp vì `trap ERR` phía trên sẽ thoát sớm).
+  # Use the output content to decide validity (validator exits 1 when invalid --
+  # do not rely on the exit code directly because the `trap ERR` above would exit early).
   validation_output="$(printf '%s' "$message" | bash "$validator" - 2>&1)" || true
   printf '%s' "$validation_output" | grep -q '❌' || continue
   reasons+=("$(printf '%s' "$validation_output" | tr '\n' ' ')")

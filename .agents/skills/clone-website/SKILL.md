@@ -8,64 +8,67 @@ metadata:
 
 # Clone Website
 
-## Checkpoint bắt buộc trước khi code
+## Mandatory checkpoint before coding
 
-Sau khi đã nhận diện source và phạm vi route/page, phải hỏi người dùng một lần:
+After identifying the source and route/page scope, ask the user once:
 
-> Bạn có muốn cập nhật thiết kế để bản clone giống source 100% không? Nếu có, mình sẽ giữ nguyên section, thứ tự, kích thước, width/max-width, spacing, typography, asset, responsive và interaction theo source. Nếu không, hãy chỉ rõ phần nào được phép khác.
+> Do you want the design updated so the clone matches the source 100%? If yes, I will keep the sections, order, sizes, width/max-width, spacing, typography, assets, responsive behavior and interactions exactly as in the source. If not, specify which parts may differ.
 
-Không tự mặc định câu trả lời, không code khi checkpoint chưa có câu trả lời rõ ràng. Chọn 100% → mọi sai khác quan sát được trong phạm vi đã chọn là lỗi cần sửa; chỉ ghi đạt pixel-perfect sau khi đối chiếu thực tế cùng viewport/trạng thái.
+Never assume the answer; do not code until the checkpoint has a clear answer. If 100% is chosen -> every observable difference within the chosen scope is a bug to fix; claim pixel-perfect only after comparing for real at the same viewport/state.
 
-Nguồn tham chiếu (ảnh, website, sitemap, recording, HTML, design file) là source of truth tuyệt đối cho cấu trúc, nội dung, typography, màu, spacing, asset, responsive và tương tác quan sát được. Tải asset chỉ hỗ trợ; nghiệm thu là clone khớp source.
+The reference source (image, website, sitemap, recording, HTML, design file) is the absolute source of truth for structure, content, typography, color, spacing, assets, responsive behavior and observable interactions. Cloning means reproducing UI/behavior 100%, not just downloading assets — downloaded assets only help; acceptance is that the clone matches the source.
 
-## Ràng buộc fidelity
+## Invariant constraints
 
-- Giữ nguyên hierarchy: route, thứ tự section, vùng header/navigation/main/footer, nhóm component, vị trí và quan hệ giữa các phần.
-- Không tự ý thêm, xóa, đổi thứ tự, bố cục, copy, component/interaction, redesign, "cải thiện", tối giản, hiện đại hóa, thêm section/CTA, đổi theme/design system/component library hoặc phong cách ngoài phạm vi người dùng đã chọn — dù nhìn "hợp lý" hơn. Source khác code hiện tại ở phần ngoài phạm vi → báo chênh lệch, xin xác nhận, không tự mở rộng/thay thế.
-- Giữ nguyên giá trị UI quan sát được: kích thước tương đối, màu, border, radius, shadow, spacing, icon, ảnh, trạng thái, chuyển động.
-- Không dùng placeholder, ảnh giả, text giả hoặc component generic che phần chưa hiểu; thiếu asset/hành vi thì ghi rõ giới hạn, giữ cấu trúc tối thiểu.
-- Bảo toàn URL, route, link, query, form action và contract dữ liệu thuộc phạm vi clone; không đổi backend/API chỉ để thuận tiện frontend.
-- Responsive suy từ viewport/breakpoint có bằng chứng; không tự thêm breakpoint làm đổi UI ngoài nguồn.
-- Không tự áp dụng skill thiết kế khác (như `ui-styles`) — chúng có thể làm lệch nguồn clone.
-- Mọi asset tải về có mapping `originUrl` → `localPath`, trạng thái, loại và lỗi nếu có; không thay URL chưa tải bằng placeholder hoặc URL không xác minh.
-- Giữ CSS gốc ở file riêng khi có thể, thay URL bằng mapping đã xác minh, giữ thứ tự stylesheet và selector. Không dùng regex phức tạp sửa CSS nếu có thể làm hỏng chuỗi, data URI hoặc `@import`.
-- Video, iframe, stream manifest và asset lớn có trạng thái riêng. Không tự tải/ghép stream `.m3u8`, không bỏ qua `poster`, `source`, `track` hoặc `srcset`; ghi rõ phần cần xử lý thủ công.
-- Inject CSS/media phải idempotent (chạy lại không nhân đôi `<link>`, `<style>` hoặc nguồn media), không ghi đè layout nguồn; dùng file output riêng.
-- Pixel spec chỉ chứa giá trị đo/quan sát được; giá trị chưa đo ghi `TBD`/`Unverified`, không bịa.
-- Tuân thủ giới hạn cùng-origin, kích thước file, timeout và quyền truy cập; host ngoài, authentication, CAPTCHA, paywall hoặc stream cần quyền riêng → dừng và báo blocker.
+- Keep the hierarchy intact: routes, section order, header/navigation/main/footer regions, component groups, position and relationships between parts.
+- Never add, remove, reorder, re-layout, change copy, change components/interactions, redesign, "improve", simplify, modernize, add sections/CTAs, change theme/design system/component library or style outside the scope the user chose — even if it looks "reasonable" or "better" to the agent. Source differs from current code outside the scope -> report the difference, ask for confirmation, do not expand/replace on your own.
+- Keep observed UI values intact: relative sizes, colors, borders, radius, shadows, spacing, icons, images, states, motion.
+- No placeholders, fake images, fake text or generic components to cover what you don't understand; missing asset/behavior -> state the limitation, keep a minimal structure.
+- Preserve URLs, routes, links, queries, form actions and data contracts within the clone scope. Do not change backend/API just for frontend convenience.
+- Infer responsive behavior from evidenced viewports/breakpoints; never add breakpoints that change UI beyond the source.
+- Do not apply other design skills (like `ui-styles`) on your own — they can skew the clone from the source.
 
-## Quy trình
+## Process
 
-**Chuyển nguồn thành tài liệu design trước khi code**: mọi nguồn (URL, ảnh, sitemap, recording, HTML, link hoạt ảnh) phải được phân tích và ghi vào `design/` rồi mới giao `coder`: `DESIGN.md` ở gốc repo (đúng spec `npm run design:spec`: token màu/typography/layout/component, lint bằng `npm run design:lint`), `index.md` (mọi trang), một file cho mỗi trang, `animations.md` (trigger, thuộc tính đổi, thời lượng, easing, reduced-motion) và ảnh chứng trong `images/`; cập nhật `docs/index.json`. Phần không đọc được ghi rõ chưa xác minh, không đoán. `coder` bám tài liệu này, không tự thiết kế.
+Before coding from a URL, check accessibility, status/redirects, HTML/DOM, computed style, fonts, assets, viewport/responsive and interactions; state what works, what is blocked or unverified.
 
-Trước khi code từ URL, kiểm tra khả năng truy cập, status/redirect, HTML/DOM, computed style, font, asset, viewport/responsive và interaction; ghi rõ phần hoạt động, bị chặn hoặc chưa kiểm chứng.
+1. **Identify the canonical source**: classify image/screenshot, website URL, sitemap URL, recording, HTML, Figma or multiple sources; state which wins on conflict. For a sitemap, use it only for inventory and fix the route URL or route group to clone before coding; never clone the whole sitemap. If the source cannot be accessed/read, stop speculating and report a specific blocker.
+2. **Build the inventory before editing**: routes and URLs, section/component tree, header/footer, content, assets, fonts, colors/tokens, sizes/spacing, breakpoints, states and interactions. Separate what was observed from assumptions.
+3. **Survey the codebase**: read project guidance, stack, routes, components, assets and related contracts; reuse existing rendering mechanisms, tokens and components when they match the source. Change only files/pages within the clone scope.
+4. **Compare with current code/design**: if the current clone differs from the source website or the design file, stop and ask the user to choose the source of truth. Never decide website vs design file yourself.
+5. **Lock in and sync docs**: if the user chose the website, confirm updating design/plan/docs to match the website 100%; if the design file, use it as source of truth and update plan/docs to the chosen design. Update in the repo's existing doc format, including plan/index when affected; never write a plan that contradicts the chosen source.
+6. **Hand off to coder**: once source of truth, inventory, scope and plan/docs are locked, hand off to `coder` to write code — do not write code in this orchestration step. In Claude Code this is a separate call made by the orchestrating agent (the session that ran steps 1–5) via the Agent tool; the clone agent has no `Edit` and no tool to call other agents, so it cannot do this itself.
+7. **Fidelity comparison**: coder must check at the same viewport and state as the source; compare macro-layout first, then typography, spacing, assets, colors and interactions. Check both the actual bounding box and computed style of containers, sections, slider track/thumb and related elements, at minimum `width`, `max-width`, `min-width`, `height`, `padding`, `margin`, `gap`, `overflow`, `flex-basis`/grid track. Do not conclude correct just because the source CSS declares something similar: if the source uses `max-width` but the clone renders full width, or vice versa, fix it or report the specific difference. If a difference cannot be verified, record it and stop speculating.
+8. **Evidence screenshots (before and result)**: after all in-scope edits are done — capture the **final result state**, not mid-way/WIP then report done. Capture pairs at the same viewport/state: the `before` image is the source (original website/image/design being cloned) and the `result` image is the real clone page opened in a browser, for side-by-side comparison. Save to `.agents/storage/evidence/<task-slug>/<viewport>-<state>-{source|result}.png` (not committed, only evidence for the report). Never claim fidelity was compared without both real images; if the environment cannot capture, state the reason instead of skipping.
+9. **Handoff**: review the diff to confirm no UI added/removed or changed beyond the chosen source of truth; state the source, synced plan/docs, matching parts, unverified parts and checks run. A report per the [Change template](../report/assets/change-report-template.md) must have a `URL:` line (checked route) and an `Evidence image:` line (screenshot paths from step 8). Never claim pixel-perfect without the corresponding comparison and evidence screenshots.
 
-1. **Xác định nguồn chuẩn**: phân loại ảnh/screenshot, URL website, sitemap, recording, HTML, Figma hoặc nhiều nguồn; ghi rõ nguồn nào ưu tiên khi mâu thuẫn. Sitemap chỉ dùng để inventory và phải chốt URL route hoặc nhóm route cần clone trước khi code, không tự clone toàn bộ. Không đọc được nguồn → dừng phần suy đoán và báo blocker cụ thể.
-2. **Lập inventory trước khi sửa**: route/URL, cây section/component, header/footer, nội dung, asset, font, màu/token, kích thước/spacing, breakpoint, trạng thái, tương tác. Tách phần đã quan sát khỏi giả định.
-3. **Khảo sát codebase**: đọc hướng dẫn project, stack, route, component, asset và contract liên quan; tái sử dụng cơ chế render, token, component hiện có khi khớp nguồn. Chỉ đổi file/page trong phạm vi clone.
-4. **Đối chiếu code/design hiện tại**: clone hiện tại khác source website hoặc design file → dừng và hỏi người dùng chọn source of truth, không tự quyết.
-5. **Chốt và đồng bộ tài liệu**: theo source đã chọn (website → khớp 100% website; design file → theo design đã chốt), cập nhật design/plan/docs đúng format hiện có của repo, gồm plan/index khi bị ảnh hưởng; không ghi kế hoạch mâu thuẫn với source đã chọn.
-6. **Giao coder triển khai**: sau khi source of truth, inventory, phạm vi và plan/docs đã chốt, bàn giao cho `coder` viết code — không tự viết code ở bước điều phối. Ở Claude Code, agent điều phối (phiên đã chạy bước 1–5) gọi `coder` qua Agent tool; agent clone không có `Edit` và không gọi được agent khác.
-7. **Đối chiếu fidelity**: coder kiểm tra cùng viewport và trạng thái với source; so macro-layout trước rồi typography, spacing, asset, màu, interaction. Kiểm tra cả bounding box và computed style của container, section, slider track/thumb và phần tử liên quan, tối thiểu `width`, `max-width`, `min-width`, `height`, `padding`, `margin`, `gap`, `overflow`, `flex-basis`/grid track. Không kết luận đúng chỉ vì CSS source khai báo tương tự: source dùng `max-width` mà clone hiển thị full width (hoặc ngược lại) phải sửa hoặc báo sai khác cụ thể. Sai khác không xác minh được thì ghi lại và dừng phần suy đoán.
-8. **Chụp ảnh chứng**: chỉ chụp ở **trạng thái kết quả cuối** (không WIP), một cặp ảnh cùng viewport/trạng thái: `source` (website/ảnh/design gốc) và `result` (trang clone thật trên trình duyệt). Lưu vào `.agents/storage/evidence/<task-slug>/<viewport>-<trạng-thái>-{source|result}.png` (không commit). Không tuyên bố đã đối chiếu fidelity nếu thiếu một trong hai ảnh thật; môi trường không chụp được thì ghi rõ lý do.
-9. **Bàn giao**: rà diff để xác nhận không có UI thêm/bớt hoặc đổi ngoài source of truth đã chọn; nêu nguồn, plan/docs đã đồng bộ, phần khớp, phần chưa xác minh và check đã chạy. Report theo [template Change](../report/assets/change-report-template.md) phải có dòng `URL:` (route đã kiểm tra) và `Ảnh chứng:` (đường dẫn ở bước 8).
+## Pipeline automating assets, CSS and media
 
-## Pipeline tài nguyên, CSS và media
+When the user asks to clone from a URL and needs local assets, open [references/pipeline.md](./references/pipeline.md): Step 0 source inventory, Step 1 extract/download assets, Step 2 process CSS, Step 3 inject layout/media, Step 4 verify, plus the default storage structure. Scripts are in `scripts/`, the sample pixel spec in `assets/pixel-perfect-spec.md`; final acceptance is still comparing the real UI.
 
-Clone từ URL cần tài nguyên local: mở [references/pipeline.md](./references/pipeline.md) (Bước 0 inventory, 1 extract/download asset, 2 process CSS, 3 inject layout/media, 4 verify, cấu trúc storage mặc định). Script ở `scripts/`, pixel spec mẫu ở `assets/pixel-perfect-spec.md`; nghiệm thu cuối vẫn là đối chiếu UI thực tế.
+## Rules when the source is a screenshot or image
 
-## Nguồn là screenshot hoặc ảnh
+Source is an image/screenshot (no HTML/CSS to crawl): read [references/screenshot-source.md](./references/screenshot-source.md) before building the UI.
 
-Không có HTML/CSS để crawl: đọc [references/screenshot-source.md](./references/screenshot-source.md) trước khi dựng UI.
+## Acceptance criteria
 
-## Tiêu chí nghiệm thu
+- Page tree, section order, routes and in-scope behavior match the reference source.
+- UI has no unauthorized change of color, font, spacing, component, copy, asset, breakpoint or interaction.
+- No unmarked placeholders/assumptions in the committed clone scope.
+- Correct viewport, responsive states and interactions are checked with evidence; unchecked states are stated.
+- The diff contains no changes outside the page/component/asset/config needed for the clone.
 
-- Cây trang, thứ tự section, route và hành vi trong phạm vi khớp nguồn; UI không bị tự ý đổi màu, font, spacing, component, copy, asset, breakpoint hoặc interaction.
-- Không có placeholder/giả định chưa đánh dấu trong phần đã cam kết clone.
-- Viewport, responsive state và interaction có bằng chứng; ghi rõ trạng thái chưa kiểm tra.
-- Diff không chứa thay đổi ngoài page/component/asset/config cần cho clone.
+## Related skills
 
-## Skill liên quan
+- Use `coding-frontend` to implement the frontend per the project's real stack and rules.
+- Use `workflow-test` or `testcase` when the user asks to design/run tests; never turn cloning into a redesign.
 
-- `coding-frontend`: triển khai frontend theo stack và rule thật của project.
-- `workflow-test` hoặc `testcase`: khi người dùng yêu cầu thiết kế/chạy test; không biến việc clone thành redesign.
+## Fidelity constraints
+
+- Lock the source of truth, route, viewport and state before implementing. Separate observed facts from assumptions; do not record pixel-perfect without comparing at the same viewport/state.
+- Every downloaded asset has a mapping `originUrl` → `localPath`, status, resource type and error if any; never replace an undownloaded URL with a placeholder or unverified URL.
+- Keep the original CSS in a separate file when possible, replace URLs with the verified mapping, keep stylesheet and selector order. Do not use complex regex to edit CSS if it could break strings, data URIs or `@import`.
+- Video, iframe, stream manifests and large assets have their own status. Never download/merge `.m3u8` streams yourself, never skip `poster`, `source`, `track` or `srcset`; state what needs manual handling.
+- CSS/media injection must be idempotent (re-running must not duplicate `<link>`, `<style>` or media sources) and must not overwrite the source layout; use a separate output file.
+- The pixel spec holds only measured/observed values (color, font, size, line-height, spacing, container, breakpoint, shadow, transition, state); unmeasured values are `TBD`/`Unverified`, never invented.
+- Respect same-origin limits, file size, timeout and access rights. External hosts, authentication, CAPTCHA, paywall or streams needing separate permission -> stop and report a blocker.

@@ -1,41 +1,41 @@
-# Mẫu báo cáo Debug
+# Debug report template
 
-Dùng khi chẩn đoán/sửa lỗi theo skill [`debugs`](../../debugs/SKILL.md). Chỉ nêu kết quả cuối (vd "test fail trước sửa, pass sau sửa" là kết quả), không kể lại diễn biến các lần thử. Thay đổi file vẫn liệt kê theo [mẫu Change](./change-report-template.md); mẫu này thay phần tóm tắt lỗi. Bỏ dòng không áp dụng.
+Use when diagnosing/fixing bugs per skill [`debugs`](../../debugs/SKILL.md). State final results only (e.g. "test fails before fix, passes after" is a result), not the story of attempts. File changes still listed per the [Change template](./change-report-template.md); this template replaces the bug summary. Drop lines that do not apply.
 
 `------------------------`
 
-**Lỗi**: tiêu đề ngắn — **Mức độ**: S1|S2|S3|S4 (lý do)
+**Bug**: short title — **Severity**: S1|S2|S3|S4 (reason)
 
-**Ảnh hưởng**: chức năng, nhóm/số người dùng, dữ liệu mất/sai (số liệu kèm nguồn: log, analytics, query đếm; không có thì `chưa xác định` + lý do)
+**Impact**: feature, user group/count, lost/wrong data (figures with source: log, analytics, count query; none means `undetermined` + reason)
 
-**Căn cứ**: `file:dòng` đặc tả hoặc nguồn yêu cầu
+**Basis**: `file:line` spec or requirement source
 
-**Expected / Actual**: kết quả mong đợi / kết quả thực tế
+**Expected / Actual**: expected result / actual result
 
-**Tái hiện**: môi trường/phiên bản + input + các bước đánh số tới lỗi (lệnh hoặc thao tác chạy lại được); lỗi lúc có lúc không ghi tỉ lệ (vd 2/5 lần); không tái hiện được thì ghi điều kiện đã biết, đã thử gì và vì sao vẫn sửa (bằng chứng từ log/dữ liệu)
+**Reproduction**: environment/version + input + numbered steps to the bug (re-runnable commands or actions); intermittent bugs give the rate (e.g. 2/5 runs); if not reproducible give known conditions, what was tried and why the fix proceeds (evidence from log/data)
 
-**Phạm vi**: tầng lỗi (frontend | API | service | database | queue | network | hệ thống ngoài) — kèm `file:dòng`
+**Scope**: bug layer (frontend | API | service | database | queue | network | external system) — with `file:line`
 
-**Nguồn gốc**: code | dữ liệu | cấu hình/môi trường | input người dùng | dependency — kèm `file:dòng`
+**Origin**: code | data | config/environment | user input | dependency — with `file:line`
 
-**Nguyên nhân gốc**: một câu + `file:dòng` + bằng chứng nối trực tiếp tới triệu chứng
+**Root cause**: one sentence + `file:line` + evidence directly linking to the symptom
 
-**Bằng chứng**: log/stack trace/query/request đã che secret (đã chạy lệnh kiểm secret ở skill debugs), đường dẫn `.agents/storage/evidence/<task-slug>/<yyyyMMdd-HHmm>-<loại>.<ext>`
+**Evidence**: log/stack trace/query/request with secrets masked (secret check from skill debugs run), path `.agents/storage/evidence/<task-slug>/<yyyyMMdd-HHmm>-<type>.<ext>`
 
-**Bản sửa**: thay đổi chính và vì sao nhắm đúng nguyên nhân
+**Fix**: main change and why it targets the root cause
 
-**Regression test**: `file:dòng` — fail trước sửa (kết quả `verify-regression.sh <base> -- <lệnh>` + đường dẫn log evidence), pass sau sửa, fail lại khi bỏ riêng bản sửa; không tự động hóa được thì cách kiểm tra trước/sau
+**Regression test**: `file:line` — fails before fix (result of `verify-regression.sh <base> -- <command>` + evidence log path), passes after fix, fails again when only the fix is removed; if not automatable, the before/after check method
 
-**Hiệu năng**: trước → sau (p50/p95, số query/request, CPU/RAM) khi lỗi hiệu năng; bug khác trên luồng phụ thuộc dữ liệu ghi kết quả rà N+1/vòng lặp
+**Performance**: before → after (p50/p95, query/request count, CPU/RAM) for performance bugs; other bugs on data-dependent flows record N+1/loop review result
 
-**Bảo mật**: có/không; có thì tham chiếu báo cáo security, không ghi payload khai thác
+**Security**: yes/no; if yes reference the security report, never write exploit payloads
 
-**URL / Ảnh chứng**: route và ảnh trước/sau trong `.agents/storage/evidence/<task-slug>/` — chỉ khi bug UI
+**URL / Evidence image**: route and before/after images in `.agents/storage/evidence/<task-slug>/` — only for UI bugs
 
-**Kiểm chứng**: lệnh và kết quả cuối (case lỗi, bình thường, biên, regression)
+**Verification**: final command and result (failing, normal, edge, regression cases)
 
-**Ngoài scope**: lỗi phát hiện thêm — vị trí, tác động, đang chờ xin phép; `Không có` khi phù hợp
+**Out of scope**: additional bugs found — location, impact, awaiting permission; `None` when appropriate
 
-**Giới hạn**: mục checklist chưa đạt, phần chưa xác minh trên môi trường mục tiêu; `Không có` khi phù hợp
+**Limits**: unmet checklist items, parts unverified on the target environment; `None` when appropriate
 
-**Postmortem**: timeline, tác động, cách phòng lặp lại — chỉ khi lỗi production
+**Postmortem**: timeline, impact, how to prevent recurrence — only for production bugs

@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# Stop hook: nhắc dùng skill `report` nếu phát hiện đã Edit/Write trong
-# session này mà CHƯA gọi skill `report` sau đó — enforce rules/delivery.md
-# bằng cơ chế thay vì chỉ dựa vào Claude tự giác. CHỈ nhắc qua
-# additionalContext, KHÔNG tự chặn gì và KHÔNG dùng decision/reason (những
-# field đó sẽ chặn Claude dừng lại).
+# Stop hook: remind to use skill `report` if it detects an Edit/Write in
+# this session with NO `report` skill call afterwards -- enforces rules/delivery.md
+# by mechanism instead of relying on Claude's discipline. ONLY reminds via
+# additionalContext, does NOT block anything and does NOT use decision/reason (those
+# fields would block Claude from stopping).
 #
-# Nhận JSON input từ stdin theo schema Stop: { "session_id": "...", ... }
+# Reads JSON input from stdin per the Stop schema: { "session_id": "...", ... }
 #
 # Dựa vào .agents/storage/logs/logs-YYYYMMDD.jsonl (ghi bởi hook audit-log) —
 # phải bật hook đó cùng lúc, và audit-log phải ghi field input.skill cho tool Skill.
 #
-# Luôn exit 0 — hook phụ trợ, không bao giờ chặn việc Claude Code dừng lại.
+# Always exit 0 -- auxiliary hook, never blocks Claude Code from stopping.
 
-# ! Bỏ qua nếu project đã có cùng hook (tránh chạy 2 lần với bản user-level).
+# ! Skip if the project already has the same hook (avoid running twice with the user-level copy).
 . "$(dirname "$0")/_dedupe-guard.sh"
 
 set -o pipefail
@@ -36,10 +36,10 @@ log_dir="$log_root/.agents/storage/logs"
 read_session_lines() { lumina_session_log_lines "$log_dir" "$session_id"; }
 
 
-# Đếm Edit/Write xảy ra SAU lần gọi skill `report` gần nhất (hoặc từ đầu
-# session nếu chưa gọi lần nào) — nếu > 0 nghĩa là có thay đổi chưa báo cáo.
-# Chỉ tính entry của phiên chính (không có agent_id): Edit/Write của subagent
-# được phiên chính gộp vào một báo cáo tổng sau khi mọi task xong.
+# Count Edit/Write occurring AFTER the most recent `report` skill call (or from the start of
+# the session if never called) -- if > 0 there are unreported changes.
+# Only count main-session entries (no agent_id): subagent Edit/Write
+# is merged by the main session into one overall report after all tasks finish.
 result="$(read_session_lines \
   | jq -s -r --arg sid "$session_id" --arg cwd "$(pwd)" '
   map(select(.session_id == $sid and .cwd == $cwd and ((.agent_id // "") == ""))) as $entries
@@ -64,7 +64,7 @@ reminder_marker="$(jq -cn --arg ts "$latest_ts" '$ts')"
 [ "$(lumina_state_get "$log_root" "$session_id" reportReminder)" = "$reminder_marker" ] && exit 0
 lumina_state_set "$log_root" "$session_id" reportReminder "$reminder_marker"
 
-msg="📊 Đã Edit/Write ${count} lần (${preview}) mà chưa thấy gọi skill \`report\` để xuất báo cáo thay đổi — rules/delivery.md yêu cầu bắt buộc. Dùng Skill tool với \`report\` trước khi báo hoàn thành task; số token sẽ được cung cấp tự động khi gọi skill."
+msg="📊 Edit/Write ${count} time(s) (${preview}) with no skill \`report\` call seen to produce the change report -- required by rules/delivery.md. Use the Skill tool with \`report\` before declaring the task complete; token numbers are supplied automatically when the skill is called."
 
 jq -n --arg msg "$msg" '{
   hookSpecificOutput: {

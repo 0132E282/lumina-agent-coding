@@ -1,11 +1,11 @@
-# Creational Patterns — Nhóm khởi tạo đối tượng (5 pattern)
+# Creational Patterns (5 patterns)
 
-Giúp kiểm soát cách tạo đối tượng, nhất là khi việc khởi tạo có nhiều biến thể hoặc cấu hình.
+Help control how objects are created, especially when instantiation has many variants or configurations.
 
-| Pattern | Ngữ cảnh nên dùng | Ví dụ backend |
+| Pattern | When to use | Backend example |
 |---|---|---|
-| **Factory Method** | Lớp cha có quy trình chung nhưng cần cho lớp con quyết định loại đối tượng được tạo. Hữu ích khi xây thư viện có điểm mở rộng. | `BaseExporter` gọi `createWriter()`; `CsvExporter` và `PdfExporter` trả về writer tương ứng. |
-| **Abstract Factory** | Cần tạo một bộ đối tượng liên quan, bảo đảm chúng thuộc cùng một biến thể và tương thích với nhau. | `PaymentProviderFactory` tạo đồng bộ payment client, refund client và webhook verifier cho cùng nhà cung cấp. |
-| **Builder** | Đối tượng phức tạp, có nhiều tham số tùy chọn hoặc cần được xây qua nhiều bước. | Xây cấu hình báo cáo bằng `withColumns()`, `withFilters()`, `withRelations()`, rồi `build()`. |
-| **Prototype** | Cần tạo đối tượng bằng cách sao chép mẫu đã cấu hình; không muốn bên sử dụng phụ thuộc vào lớp cụ thể. | Clone cấu hình một module CRUD mẫu rồi đổi tên, trường dữ liệu và quyền. Cần xác định rõ phần nào sao chép sâu (deep copy), phần nào dùng chung. |
-| **Singleton** | Thực sự cần một instance dùng chung trong phạm vi chương trình và một điểm truy cập thống nhất. | Một registry cấu hình dùng chung trong tiến trình. **Không** đồng nghĩa với "một instance duy nhất trên mọi server"; cần cân nhắc vì trạng thái toàn cục làm việc kiểm thử khó hơn. |
+| **Factory Method** | A parent class has a common process but needs subclasses to decide the type of object created. Useful when building libraries with extension points. | `BaseExporter` calls `createWriter()`; `CsvExporter` and `PdfExporter` return the matching writer. |
+| **Abstract Factory** | Need to create a set of related objects, ensuring they belong to the same variant and are compatible. | `PaymentProviderFactory` creates the payment client, refund client and webhook verifier together for the same provider. |
+| **Builder** | A complex object with many optional parameters or built in multiple steps. | Build a report config with `withColumns()`, `withFilters()`, `withRelations()`, then `build()`. |
+| **Prototype** | Need to create objects by copying a configured template; consumers should not depend on the concrete class. | Clone a sample CRUD module's config then change the name, data fields and permissions. Must clearly define what is deep-copied and what is shared. |
+| **Singleton** | A shared instance is truly needed program-wide with one consistent access point. | A shared config registry within the process. **Not** the same as "a single instance across all servers"; use with care since global state makes testing harder. |

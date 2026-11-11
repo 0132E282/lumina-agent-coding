@@ -12,7 +12,7 @@ const hookViaSymlink = path.join(repoRoot, '.agents/hooks/scripts/ci-workflow-li
 const systemPath = '/usr/bin:/bin';
 const LINT_OUTPUT = 'ci.yml:3:5: "runs-on" section is missing in job "build"';
 
-// macOS quét mỗi file thực thi mới ở lần chạy đầu, nên fake linter được tạo một lần cho cả file test.
+// macOS scans each new executable on first run, so the fake linter is created once for the whole test file.
 const fakeRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'ci-workflow-lint-fakes-')));
 after(() => fs.rmSync(fakeRoot, { recursive: true, force: true }));
 for (const tool of ['actionlint', 'yamllint']) {

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Helper của remind-cleanup.sh: đo % context window đã dùng từ transcript của phiên.
+// Helper for remind-cleanup.sh: measure the % of the context window used from the session transcript.
 // Usage: node remind-cleanup-context.mjs  (Stop payload qua stdin).
-// Đạt ngưỡng thì in một dòng dạng `82% (164k/200k)`; dưới ngưỡng/thiếu dữ liệu thì không in gì. Luôn exit 0.
+// At or above the threshold print one line like `82% (164k/200k)`; below the threshold/missing data print nothing. Always exit 0.
 import * as fs from 'node:fs';
 
 const STANDARD_CONTEXT_LIMIT = 200000;
@@ -17,7 +17,7 @@ function readConfiguredContextLimit() {
   return null;
 }
 
-// Context của từng message assistant có message.usage, theo thứ tự transcript.
+// The context of each assistant message comes from message.usage, in transcript order.
 function readContextTokensPerMessage(transcriptPath) {
   if (typeof transcriptPath !== 'string' || !fs.existsSync(transcriptPath)) return [];
   const contextTokens = [];
@@ -38,7 +38,7 @@ function readContextTokensPerMessage(transcriptPath) {
   return contextTokens;
 }
 
-// Transcript không ghi kích thước window; từng vượt 200k nghĩa là model đang chạy context 1M.
+// The transcript does not record the window size; once it exceeded 200k the model is running a 1M context.
 function inferContextLimit(contextTokens) {
   return contextTokens.some(tokens => tokens > STANDARD_CONTEXT_LIMIT) ? EXTENDED_CONTEXT_LIMIT : STANDARD_CONTEXT_LIMIT;
 }
@@ -59,5 +59,5 @@ function main() {
 try {
   main();
 } catch {
-  // Best-effort: payload/transcript lỗi thì im lặng để không chặn Stop.
+  // Best-effort: on a bad payload/transcript stay silent so Stop is not blocked.
 }

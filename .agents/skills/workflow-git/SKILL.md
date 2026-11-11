@@ -1,16 +1,16 @@
 ---
 name: workflow-git
-description: "Workflow Git chung cho Codex: commit all mặc định, merge và xử lý conflict, hoặc chuẩn bị repo và PR vào nhánh hiện tại/chính."
+description: "Shared Git workflow for Codex: commit all by default, merge and resolve conflicts, or prepare repo and PR into the current/main branch."
 ---
 
 # workflow-git
 
-Đọc workflow nguồn `.claude/commands/git.md`; truyền argument của người dùng vào chế độ tương ứng, giải quyết link từ `.claude/commands/`. Codex dùng `$workflow-git`, Claude dùng `/git`; không giả lập đăng ký slash command Claude trên Codex.
+Read the source workflow `.claude/commands/git.md`; pass the user's argument into the matching mode, resolving links from `.claude/commands/`. Codex uses `$workflow-git`, Claude uses `/git`; never simulate registering Claude slash commands on Codex.
 
-- Không argument hoặc `commit`: `commit all`. `commit change` chỉ khi người dùng chọn rõ.
-- `merge <nhánh-nguồn> [into <nhánh-đích>]`: merge local, mặc định vào nhánh đang checkout; xử lý conflict có đủ căn cứ, giữ thay đổi ngoài phạm vi và kiểm chứng trước hoàn tất. Không tự push.
-- `pr [into <nhánh-đích>] [from <nhánh-nguồn>]`: tạo/cập nhật PR; ưu tiên đích chỉ định, PR hiện có, nhánh gốc có căn cứ, nhánh phát triển `developer`/`develop`, rồi nhánh chính. Không đoán nhánh cha từ upstream/tên nhánh; source bằng base hoặc có nhiều lựa chọn thì hỏi.
-- `main [tên repo] [into current|main] [from nhánh-nguồn]`: chuẩn bị repo và PR, mặc định nhánh chính; hỏi trước merge.
-- `help`: chỉ hướng dẫn/trạng thái repo.
+- No argument or `commit`: `commit all`. `commit change` only when the user chooses it explicitly.
+- `merge <source-branch> [into <target-branch>]`: local merge, default into the checked-out branch; resolve conflicts with enough basis, keep out-of-scope changes and verify before completing. Never push on your own.
+- `pr [into <target-branch>] [from <source-branch>]`: create/update PR; prefer the specified target, existing PR, a grounded base branch, development branch `developer`/`develop`, then the main branch. Never guess the parent branch from upstream/branch name; if source equals base or there are several options, ask.
+- `main [repo name] [into current|main] [from source-branch]`: prepare repo and PR, default main branch; ask before merge.
+- `help`: guidance/repo status only.
 
-Mọi quy tắc còn lại (loại trừ file tạm/rác/secret, validator commit, kiểm tra lịch sử trước push, điểm duyệt merge PR, xử lý conflict theo merge-base) lấy từ workflow nguồn `.claude/commands/git.md` và [`git-workflow`](../git-workflow/SKILL.md); không lặp lại ở đây. Lời yêu cầu sửa workflow này không phải lệnh thực hiện commit/push/merge.
+All remaining rules (excluding temp/junk/secret files, commit validator, history check before push, PR merge approval point, merge-base conflict handling) come from the source workflow `.claude/commands/git.md` and [`git-workflow`](../git-workflow/SKILL.md); not repeated here. A request to edit this workflow is not a command to commit/push/merge.

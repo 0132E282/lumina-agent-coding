@@ -1,0 +1,352 @@
+{
+  "title": "Project optimization: fix hook doc drift, check gaps and clean up the dropped plugin",
+  "description": "Reference when fixing hook paths in the README, extending scripts/check-agent-config.py to check the .agents/{hooks,agents,commands} symlinks and registered hook scripts, fixing the CI git diff --check scope, compacting .claude/hooks/README.md or cleaning up the cancelled Lumina plugin.",
+  "tags": ["agent-config", "hooks", "ci", "docs", "cleanup", "plugin"],
+  "createdAt": "2026-10-24",
+  "content": {
+    "meta": {
+      "objective": "Fix the surveyed doc drift/check gaps and shrink the hook README; change no hook/skill behavior. The Lumina plugin is dropped.",
+      "inScope": "TASK-001 fix hook paths in .claude/hooks/README.md and add a note in README.md that the docs index is only checked locally; TASK-002 extend scripts/check-agent-config.py (+ existing test); TASK-003 fix the whitespace check step in .github/workflows/agent-config.yml; TASK-004 compact .claude/hooks/README.md; TASK-005 delete 3 empty plugin directories and mark the plugin plan as cancelled.",
+      "outOfScope": "Changing behavior/content of hook scripts, .claude/settings.json, .codex/hooks.json, skills, rules; reversing the .agents/hooks <-> .claude/hooks symlink; CI check of the docs index (docs/**/index.json is deliberately .gitignored); splitting large files (.agents/rules/git.md, .claude/agents/qa-tester.md, .agents/skills/clone-website/SKILL.md); .claude/settings.local.json; the user's existing uncommitted changes.",
+      "currentState": "Checked 2026-10-24 via readlink/ls/grep/wc. Real symlinks: .agents/hooks -> ../.claude/hooks, .agents/agents -> ../.claude/agents, .agents/commands -> ../.claude/commands (physical directories live in .claude/); .claude|.codex/{rules,skills} -> ../.agents/{rules,skills}. .claude/settings.json (21 scripts) and .codex/hooks.json call scripts via the path $(git rev-parse --show-toplevel)/.agents/hooks/scripts/<name>. .claude/hooks/README.md: 294 lines, 43217 bytes; lines 26-28 instruct cp -r .claude/hooks, line 255 uses .agents/hooks/scripts/ensure-final-newline.mjs, line 288 says .claude/hooks/scripts, line 294 says settings point to .claude/hooks/scripts/... (inconsistent with settings, which use .agents/hooks/scripts/...). This file has the user's uncommitted changes (git diff --stat: +3/-1). README.md is only 75 lines, does not mention hook paths; line 57 is the python3 scripts/check-agent-config.py command. scripts/check-agent-config.py lines 12-16 only check that .claude/.codex rules|skills are symlinks to .agents; lines 17-19 only report directly broken symlinks under .agents. tests/check-agent-config.test.mjs already exists (validTree fixture links .agents/agents and .agents/hooks, has no .agents/commands and settings). .github/workflows/agent-config.yml: checkout fetch-depth 2, last step git diff --check HEAD^ HEAD. Directories plugins/ (only an empty subtree plugins/lumina/...), scripts/plugin/, .agents/plugins/: find -type f = 0 files, git ls-files empty. .gitignore ignores docs/* except docs/handoffs/ and docs/**/index.json."
+    },
+    "requirements": [
+      {
+        "id": "REQ-001",
+        "description": "Hook docs describe the real paths correctly: physical directory, symlink and the path settings use; make the wording consistent in .claude/hooks/README.md.",
+        "source": "User-approved plan (TASK-001); current state verified by readlink and .claude/settings.json"
+      },
+      {
+        "id": "REQ-002",
+        "description": "State in the docs that the docs index is only checked locally (CI does not check it because .gitignore deliberately pushes only handoffs).",
+        "source": "User's decision (1); .gitignore"
+      },
+      {
+        "id": "REQ-003",
+        "description": "scripts/check-agent-config.py additionally checks that .agents/hooks, .agents/agents, .agents/commands are symlinks to the right target and that every hook script referenced in .claude/settings.json and .codex/hooks.json exists.",
+        "source": "User-approved plan (TASK-002)"
+      },
+      {
+        "id": "REQ-004",
+        "description": "The CI whitespace check compares against the PR's base branch instead of only HEAD^..HEAD.",
+        "source": "User-approved plan (TASK-003)"
+      },
+      {
+        "id": "REQ-005",
+        "description": "Compact .claude/hooks/README.md: one short block per hook (script, event, behavior, limits), keep all information, links/anchors alive, consistent with settings.",
+        "source": "User-approved plan (TASK-004)"
+      },
+      {
+        "id": "REQ-006",
+        "description": "Clean up the dropped plugin: delete the empty directories plugins/, scripts/plugin/, .agents/plugins/ and mark the plan docs/plans/lumina-plugin-20261023.json as cancelled (do not delete the plan).",
+        "source": "User-approved plan (TASK-005)"
+      }
+    ],
+    "businessRules": [
+      {
+        "id": "BR-001",
+        "description": "Change no hook/skill behavior: do not edit .claude/hooks/scripts/*, .claude/settings.json, .codex/hooks.json, .agents/skills/*, .agents/rules/*.",
+        "source": "Goal of the user-approved plan"
+      },
+      {
+        "id": "BR-002",
+        "description": "Do not split large files (git.md, qa-tester.md, clone-website/SKILL.md) this time; do not add a CI docs index check.",
+        "source": "User's decisions (1), (2)"
+      },
+      {
+        "id": "BR-003",
+        "description": "Do not touch .claude/settings.local.json; keep the user's existing uncommitted changes (including the hunk being edited in .claude/hooks/README.md).",
+        "source": "User-approved plan (TASK-005); CONTRACT.md item 7; git status 2026-10-24"
+      },
+      {
+        "id": "BR-004",
+        "description": "Only add tests for the checker since tests/check-agent-config.test.mjs already exists; write no extra tests for docs/CI tasks.",
+        "source": "User-approved plan (TASK-002)"
+      }
+    ],
+    "acceptanceCriteria": [
+      {
+        "id": "AC-001",
+        "requirements": ["REQ-001"],
+        "description": ".claude/hooks/README.md states correctly: .claude/hooks is the physical directory, .agents/hooks is a symlink to it, settings (.claude/settings.json, .codex/hooks.json) call scripts via .agents/hooks/scripts/...; the sentence at line 294 no longer says settings point to .claude/hooks/scripts; the copy instructions (lines 26-28), the check command (line 255) and the dedupe mechanism (line 288) use consistent wording matching readlink.",
+        "source": "REQ-001; readlink .agents/hooks; .claude/settings.json"
+      },
+      {
+        "id": "AC-002",
+        "requirements": ["REQ-002"],
+        "description": "README.md section Development (around line 57) has one short sentence: the docs index (docs/**/index.json) is .gitignored so it is only checked via python3 scripts/check-agent-config.py locally, CI does not check it.",
+        "source": "User's decision (1)"
+      },
+      {
+        "id": "AC-003",
+        "requirements": ["REQ-003"],
+        "description": "The checker fails with exit 1 and a message naming the path when: .agents/hooks|agents|commands is not a symlink to .claude/hooks|agents|commands; a script .agents/hooks/scripts/<name> referenced in .claude/settings.json or .codex/hooks.json does not exist. The real repo still passes; the new test in tests/check-agent-config.test.mjs fails when the new check is removed.",
+        "source": "REQ-003, BR-004"
+      },
+      {
+        "id": "AC-004",
+        "requirements": ["REQ-004"],
+        "description": "On the pull_request event, the whitespace step runs git diff --check between the PR base commit (github.event.pull_request.base.sha) and HEAD with history deep enough to include the base commit; the push event keeps current behavior unless the user approves otherwise. YAML valid.",
+        "source": "REQ-004"
+      },
+      {
+        "id": "AC-005",
+        "requirements": ["REQ-005"],
+        "description": ".claude/hooks/README.md is smaller than 43217 bytes; has a block for each of the 21 scripts registered in .claude/settings.json + rtk + _dedupe-guard, each block having script, event/matcher, behavior, limits; no operational information lost (check commands, environment variables, dependencies, install method); all links/anchors alive (check_docs passes); anchors from other files pointing into this README still exist.",
+        "source": "REQ-005"
+      },
+      {
+        "id": "AC-006",
+        "requirements": ["REQ-006"],
+        "description": "plugins/, scripts/plugin/, .agents/plugins/ no longer exist (verified 0 files before deleting); docs/plans/lumina-plugin-20261023.json and its entry in docs/plans/index.json are marked cancelled in a way that keeps the schema; the plan is not deleted.",
+        "source": "REQ-006"
+      },
+      {
+        "id": "AC-007",
+        "requirements": ["REQ-001", "REQ-003", "REQ-004", "REQ-005", "REQ-006"],
+        "description": "git diff does not touch .claude/hooks/scripts/, .claude/settings.json, .claude/settings.local.json, .codex/hooks.json, .agents/skills/, .agents/rules/ beyond the uncommitted changes that existed before the plan; no large file split.",
+        "source": "BR-001, BR-002, BR-003"
+      }
+    ],
+    "assumptions": [
+      "The reference \"README.md (:26-28, :255)\" in the approved plan is understood as .claude/hooks/README.md lines 26-28 and 255: the root README.md has only 75 lines and does not contain the string hooks/ (grep 2026-10-24), while .claude/hooks/README.md lines 26-28 (cp -r .claude/hooks) and 255 (.agents/hooks/scripts/...) are exactly where the two styles are mixed.",
+      "Since readlink shows .claude/hooks is the physical directory and .agents/hooks is the symlink (opposite to the description in the approved plan), TASK-001 documents reality; the symlink is not reversed (structure change, out of scope).",
+      "The plan schema has no cancelled state (task status only TODO|IN_PROGRESS|BLOCKED|DONE, no top-level status); mark cancellation by: adding tag \"cancelled\", prefixing \"[CANCELLED 2026-10-24]\" in description (plan and index entry), and a line in content.blockers/meta.currentState giving the reason; keep task status unchanged.",
+      "The \"index checked locally\" note goes in README.md section Development (lines 52-58) because that is where the python3 scripts/check-agent-config.py command is already documented; AGENTS.md:65 is not edited.",
+      "Expected symlink targets for the checker follow the current state: .agents/{hooks,agents,commands} -> .claude/{hooks,agents,commands}."
+    ],
+    "openQuestions": [
+      "Confirm the TASK-001 direction: the approved plan says \".agents/hooks is the real path, .claude/hooks is the symlink\" but reality is the opposite (readlink .agents/hooks = ../.claude/hooks). By default docs follow reality; reversing the symlink would be a separate task with installer/symlink risk.",
+      "TASK-003: for pull_request, actions/checkout checks out the merge commit by default so HEAD^ HEAD may already cover the whole PR (not verified against official docs in this turn); the clearer gap is the push event with multiple commits (only the last commit is checked). Extend to push (using github.event.before)? By default only the PR part is done as in the approved plan.",
+      "Is the way of marking the plugin plan cancelled (tag + description prefix + blockers) what the user intends?"
+    ],
+    "blockers": [],
+    "technicalSolution": "Execute sequentially 001 -> 005, each task self-verifies before moving to the next.\n\n1. Docs (TASK-001, main session edits docs): in .claude/hooks/README.md replace the line 294 sentence with a correct description: scripts physically live in .claude/hooks/scripts/, .agents/hooks is a symlink to .claude/hooks, settings call via $(git rev-parse --show-toplevel)/.agents/hooks/scripts/<name>. Unify: when stating file location use .claude/hooks/scripts (physical), when stating commands/settings use .agents/hooks/scripts (the path settings use); add one sentence explaining the symlink relationship at the top of the README. README.md section Development gets one sentence: docs/**/index.json is .gitignored, only checked locally with check-agent-config.py.\n\n2. Checker (TASK-002, coder): in scripts/check-agent-config.py, after the .claude/.codex rules|skills loop (lines 12-16) add a loop for folder in (hooks, agents, commands): path = root/.agents/folder must is_symlink() and resolve() == (root/.claude/folder).resolve(), error '.agents/<folder>: expected link to .claude/<folder>'. Add a hook script check: read .claude/settings.json and .codex/hooks.json with json (stdlib), walk every command string, regex find '.agents/hooks/scripts/[\\w.-]+', each name must be a file in root/.agents/hooks/scripts; error '<settings file>: missing hook script <path>'. A missing settings file is skipped (fixture/project without that runtime); invalid JSON reports an error. Update the success message if needed and sync the SUCCESS regex in the test. Tests: update validTree to add the .agents/commands link and .claude/commands/<file>, add a minimal .claude/settings.json pointing to a real script; add 2 short tests (commands symlink wrong target; script in settings does not exist).\n\n3. CI (TASK-003, coder): .github/workflows/agent-config.yml step 'Check whitespace errors': pull_request -> git diff --check ${{ github.event.pull_request.base.sha }} HEAD (checkout fetch-depth: 0 or fetch the base sha); push -> keep git diff --check HEAD^ HEAD. May split into two steps with if: github.event_name. Do not add a docs index check step.\n\n4. Compact the hook README (TASK-004, main session docs): before writing, list anchors/links pointing into .claude/hooks/README.md from the whole repo (grep 'hooks/README.md'), the list of 21 scripts in settings and the operational information of each section. Rewrite each hook as a block: heading '## <name>' (keep the old heading if an anchor references it), Script, Event/matcher (cross-check settings.json and .codex/hooks.json), Behavior, Limits/dependencies. Keep the install-to-another-project part, rtk, dedupe guard. Keep the user's uncommitted hunk.\n\n5. Plugin cleanup (TASK-005, main session): run find <dir> -type f | wc -l for the 3 directories, delete only if = 0 using find <dir> -depth -type d -empty -delete (not rm -rf). Edit docs/plans/lumina-plugin-20261023.json and the entry in docs/plans/index.json per the cancel marking in assumptions.\n\nData/API/migration: no database, API or migration. Rollback: all files are tracked by git except docs/plans/* (gitignored, kept local) and the 3 untracked empty directories (recreate with mkdir if needed).\n\nCommon verification after each task: npm test; python3 scripts/check-agent-config.py; python3 scripts/check_docs.py; git diff --check; check final newline of changed files.",
+    "tasks": [
+      {
+        "id": "TASK-001",
+        "title": "Hook README states the real paths and a note that the docs index is only checked locally",
+        "status": "TODO",
+        "priority": "P1",
+        "priorityReason": "Docs have the wrong settings path (line 294); foundation for TASK-004 which compacts the same file.",
+        "requirements": ["REQ-001", "REQ-002", "BR-001", "BR-003"],
+        "acceptanceCriteria": ["AC-001", "AC-002", "AC-007"],
+        "inScope": "Fix the path sentences in .claude/hooks/README.md lines 26-28, 255, 288, 294 and add one sentence explaining the symlink; add one sentence noting the local index in README.md section Development.",
+        "outOfScope": "Compacting the hook README content (TASK-004); changing symlinks/settings/scripts; editing AGENTS.md.",
+        "dependencies": [],
+        "approach": "1. Re-read the whole .claude/hooks/README.md and its git diff to keep the uncommitted hunk. 2. Re-verify readlink .agents/hooks and the command strings in .claude/settings.json. 3. Fix line 294: settings point to .agents/hooks/scripts/... (symlink to .claude/hooks/scripts). 4. Unify lines 26-28, 255, 288 under the convention physical location = .claude/hooks, command/settings path = .agents/hooks. 5. README.md: add a sentence under the Development command block (lines 54-58) that docs/**/index.json is .gitignored, only checked locally. Role: main session (docs).",
+        "filesToChange": [
+          {
+            "path": ".claude/hooks/README.md",
+            "changes": "Fix the path sentence at line 294; unify lines 26-28, 255, 288; add a sentence on the .agents/hooks -> .claude/hooks symlink relationship."
+          },
+          {
+            "path": "README.md",
+            "changes": "Add one sentence noting the docs index is only checked locally in section Development (around line 57)."
+          }
+        ],
+        "test": "grep -n 'claude/hooks/scripts\\|agents/hooks/scripts' .claude/hooks/README.md: every sentence about settings uses .agents/hooks/scripts; readlink .agents/hooks = ../.claude/hooks matches the description; python3 scripts/check_docs.py passes; python3 scripts/check-agent-config.py passes; npm test passes; git diff --check clean.",
+        "doneWhen": "AC-001, AC-002, AC-007 met with real output from the check commands."
+      },
+      {
+        "id": "TASK-002",
+        "title": "Checker errors when the .agents/{hooks,agents,commands} symlinks are wrong or a registered hook script is missing",
+        "status": "TODO",
+        "priority": "P1",
+        "priorityReason": "Check gap: wrong hooks/agents/commands symlinks or a deleted registered script are currently not detected.",
+        "requirements": ["REQ-003", "BR-001", "BR-004"],
+        "acceptanceCriteria": ["AC-003", "AC-007"],
+        "inScope": "Add the symlink check and hook script existence check in scripts/check-agent-config.py; update the fixture and add 2 short tests in tests/check-agent-config.test.mjs.",
+        "outOfScope": "Editing hook scripts, settings, check_docs.py; docs index check on CI; other tests.",
+        "dependencies": ["TASK-001"],
+        "approach": "1. After the lines 12-16 loop add a loop for hooks/agents/commands: .agents/<folder> must be a symlink resolving to .claude/<folder>. 2. Read .claude/settings.json and .codex/hooks.json (json stdlib; skip if the file is absent; error if JSON is broken), recursively walk every 'command' value, regex '.agents/hooks/scripts/[\\w.-]+', each path must be a file. 3. Update validTree: link ../.claude/commands -> .agents/commands, create .claude/commands/<file>.md, create .claude/settings.json referencing .agents/hooks/scripts/hook.sh. 4. Add tests: (a) .agents/commands not a symlink to the right target -> error; (b) settings reference a non-existent script -> error. 5. Sync the SUCCESS regex if the message changes. Role: coder.",
+        "filesToChange": [
+          {
+            "path": "scripts/check-agent-config.py",
+            "changes": "Add the .agents/{hooks,agents,commands} -> .claude/{...} symlink check and the check that hook scripts referenced in .claude/settings.json, .codex/hooks.json exist."
+          },
+          {
+            "path": "tests/check-agent-config.test.mjs",
+            "changes": "Update the validTree fixture (commands symlink, minimal settings) and add 2 short tests for the new checks."
+          }
+        ],
+        "test": "node --test tests/check-agent-config.test.mjs: new tests pass; temporarily removing the new check makes the 2 new tests fail; test 'the real repository configuration is valid' passes; npm test passes; python3 scripts/check-agent-config.py passes on the real repo.",
+        "doneWhen": "AC-003, AC-007 met; real test output including evidence that the new tests fail when the check is removed."
+      },
+      {
+        "id": "TASK-003",
+        "title": "CI checks whitespace over all PR changes against the base branch",
+        "status": "TODO",
+        "priority": "P2",
+        "priorityReason": "CI check gap; lower impact than the checker since whitespace is also checked locally.",
+        "requirements": ["REQ-004", "BR-002"],
+        "acceptanceCriteria": ["AC-004", "AC-007"],
+        "inScope": "The 'Check whitespace errors' step and checkout parameters in .github/workflows/agent-config.yml.",
+        "outOfScope": "Adding a docs index check step; changing other steps; extending to multi-commit push without approval (see openQuestions).",
+        "dependencies": ["TASK-002"],
+        "approach": "1. Change checkout to fetch-depth: 0 (or fetch the base sha). 2. Split the whitespace step: if github.event_name == 'pull_request' run git diff --check ${{ github.event.pull_request.base.sha }} HEAD; the push branch keeps git diff --check HEAD^ HEAD. 3. Change no other step. Role: coder.",
+        "filesToChange": [
+          {
+            "path": ".github/workflows/agent-config.yml",
+            "changes": "Change fetch-depth and the git diff --check step to use the PR base sha for the pull_request event."
+          }
+        ],
+        "test": "Static read of the workflow; parse YAML (if a parser is already available, install nothing); ci-workflow-lint hook if run; run the local equivalent git diff --check $(git merge-base origin/main HEAD) HEAD. State clearly that real CI cannot be run locally.",
+        "doneWhen": "AC-004, AC-007 met by static read + local equivalent command; the report states that real CI was not run."
+      },
+      {
+        "id": "TASK-004",
+        "title": "Compact .claude/hooks/README.md into a short block per hook, keeping all information and links",
+        "status": "TODO",
+        "priority": "P2",
+        "priorityReason": "Reduce tokens when agents read the hook README (43217 bytes); risk of losing information so do it after the paths are correct.",
+        "requirements": ["REQ-005", "BR-001", "BR-003"],
+        "acceptanceCriteria": ["AC-005", "AC-007"],
+        "inScope": "Rewrite .claude/hooks/README.md as blocks: script, event/matcher, behavior, limits/dependencies; keep install, rtk, dedupe guard.",
+        "outOfScope": "Changing hook scripts/settings; splitting the README into several files; editing other files beyond anchors broken by this task itself (must report first if any).",
+        "dependencies": ["TASK-001", "TASK-003"],
+        "approach": "1. Record baseline: wc -c, heading list, grep -rn 'hooks/README.md' across the repo to get referenced anchors. 2. Build a table of 21 scripts from .claude/settings.json (event, matcher) and .codex/hooks.json. 3. Rewrite each block, keeping headings that have referenced anchors, keeping check commands/environment variables/dependencies. 4. Cross-check each hook with settings; cross-check that each operational item of the old version exists in the new one. 5. Keep the user's uncommitted hunk. Role: main session (docs).",
+        "filesToChange": [
+          {
+            "path": ".claude/hooks/README.md",
+            "changes": "Rewrite as a short block per hook, keeping all information and anchors."
+          }
+        ],
+        "test": "wc -c .claude/hooks/README.md < 43217; script counts that all 21 script names in settings have a corresponding block; python3 scripts/check_docs.py passes (link/anchor); python3 scripts/check-agent-config.py passes; npm test passes; git diff --check clean.",
+        "doneWhen": "AC-005, AC-007 met with before/after byte counts and real check output."
+      },
+      {
+        "id": "TASK-005",
+        "title": "Delete 3 empty plugin directories and mark the plugin plan cancelled",
+        "status": "TODO",
+        "priority": "P3",
+        "priorityReason": "Cleanup, no behavior impact; the plugin is dropped.",
+        "requirements": ["REQ-006", "BR-003"],
+        "acceptanceCriteria": ["AC-006", "AC-007"],
+        "inScope": "Delete plugins/, scripts/plugin/, .agents/plugins/ (only if 0 files); mark docs/plans/lumina-plugin-20261023.json and its entry in docs/plans/index.json as cancelled.",
+        "outOfScope": "Deleting the plugin plan; editing .claude/settings.local.json; editing other plans.",
+        "dependencies": ["TASK-004"],
+        "approach": "1. find plugins scripts/plugin .agents/plugins -type f | wc -l must = 0 (checked 2026-10-24: 0) and git ls-files empty. 2. Delete with find <dir> -depth -type d -empty -delete, not rm -rf. 3. Plugin plan: add tag 'cancelled', prefix '[CANCELLED 2026-10-24]' to description, add a line to content.blockers saying the plugin is dropped; keep task status. 4. Update the corresponding entry in docs/plans/index.json (description, tags). Role: main session.",
+        "filesToChange": [
+          {
+            "path": "plugins/",
+            "changes": "Delete (empty directory, only an empty subtree plugins/lumina/..., 0 files, not tracked by git)."
+          },
+          {
+            "path": "scripts/plugin/",
+            "changes": "Delete (empty directory, 0 files, not tracked by git)."
+          },
+          {
+            "path": ".agents/plugins/",
+            "changes": "Delete (empty directory, 0 files, not tracked by git)."
+          },
+          {
+            "path": "docs/plans/lumina-plugin-20261023.json",
+            "changes": "Mark cancelled: tag cancelled, description prefix, blockers line."
+          },
+          {
+            "path": "docs/plans/index.json",
+            "changes": "Update the description/tags of the plugin plan entry to match the cancelled state."
+          }
+        ],
+        "test": "ls plugins scripts/plugin .agents/plugins reports they do not exist; python3 -c json.load both JSON files; python3 scripts/check_docs.py and check-agent-config.py pass; git status shows no changes in .claude/settings.local.json.",
+        "doneWhen": "AC-006, AC-007 met with real command output."
+      }
+    ],
+    "executionOrder": ["TASK-001", "TASK-002", "TASK-003", "TASK-004", "TASK-005"],
+    "traceability": [
+      {
+        "requirementId": "REQ-001",
+        "acceptanceCriteria": ["AC-001"],
+        "tasks": ["TASK-001"],
+        "test": "grep hooks paths in .claude/hooks/README.md against readlink and settings; check_docs passes",
+        "result": "Not Run"
+      },
+      {
+        "requirementId": "REQ-002",
+        "acceptanceCriteria": ["AC-002"],
+        "tasks": ["TASK-001"],
+        "test": "Read README.md section Development has the sentence about the index being checked locally; check_docs passes",
+        "result": "Not Run"
+      },
+      {
+        "requirementId": "REQ-003",
+        "acceptanceCriteria": ["AC-003"],
+        "tasks": ["TASK-002"],
+        "test": "node --test tests/check-agent-config.test.mjs (2 new tests pass, fail when the check is removed); check-agent-config.py passes on the real repo",
+        "result": "Not Run"
+      },
+      {
+        "requirementId": "REQ-004",
+        "acceptanceCriteria": ["AC-004"],
+        "tasks": ["TASK-003"],
+        "test": "Static read of the workflow + git diff --check from the local merge-base; real CI not run",
+        "result": "Not Run"
+      },
+      {
+        "requirementId": "REQ-005",
+        "acceptanceCriteria": ["AC-005"],
+        "tasks": ["TASK-004"],
+        "test": "wc -c decreases; cross-check 21 settings scripts; check_docs passes",
+        "result": "Not Run"
+      },
+      {
+        "requirementId": "REQ-006",
+        "acceptanceCriteria": ["AC-006"],
+        "tasks": ["TASK-005"],
+        "test": "Directories gone; JSON valid; check_docs passes",
+        "result": "Not Run"
+      },
+      {
+        "requirementId": "BR-001",
+        "acceptanceCriteria": ["AC-007"],
+        "tasks": ["TASK-001", "TASK-002", "TASK-003", "TASK-004", "TASK-005"],
+        "test": "git diff --stat has no hook scripts/settings/skills/rules files beyond existing changes",
+        "result": "Not Run"
+      },
+      {
+        "requirementId": "BR-002",
+        "acceptanceCriteria": ["AC-007"],
+        "tasks": ["TASK-003"],
+        "test": "git diff does not touch git.md, qa-tester.md, clone-website/SKILL.md; workflow adds no index check step",
+        "result": "Not Run"
+      },
+      {
+        "requirementId": "BR-003",
+        "acceptanceCriteria": ["AC-007"],
+        "tasks": ["TASK-001", "TASK-004", "TASK-005"],
+        "test": "git diff .claude/settings.local.json empty; the user's uncommitted hunk in .claude/hooks/README.md keeps its content",
+        "result": "Not Run"
+      },
+      {
+        "requirementId": "BR-004",
+        "acceptanceCriteria": ["AC-003"],
+        "tasks": ["TASK-002"],
+        "test": "git diff tests/ only has tests/check-agent-config.test.mjs",
+        "result": "Not Run"
+      }
+    ],
+    "remainingRisks": [
+      {
+        "description": "Compacting the hook README may lose operational information or break anchors referenced by other files.",
+        "mitigation": "Baseline the heading/anchor list and grep 'hooks/README.md' before writing; check_docs.py checks links/anchors; cross-check each old item -> new."
+      },
+      {
+        "description": ".claude/hooks/README.md has the user's uncommitted changes (+3/-1); TASK-001/004 editing the same file may overwrite them.",
+        "mitigation": "Read this file's git diff before editing, keep the hunk content; if scope is ambiguous, stop and ask."
+      },
+      {
+        "description": "The approved plan's description of the symlink direction is opposite to reality; if the user really wants to reverse it, the TASK-001 docs will need redoing.",
+        "mitigation": "Raised in openQuestions; by default document per actual readlink."
+      },
+      {
+        "description": "GitHub Actions' merge-commit checkout behavior for pull_request was not verified against official docs in this turn; real CI cannot run locally.",
+        "mitigation": "Coder checks the actions/checkout docs before editing; the report states real CI was not run."
+      },
+      {
+        "description": "The new checker requires .agents/commands to be a symlink; a target project installed via the installer may not have .agents/commands, making the check fail in other projects.",
+        "mitigation": "Coder checks bin/lumina-agent.mjs to see whether the installer creates .agents/{hooks,agents,commands}; if not, stop and ask before enforcing."
+      }
+    ]
+  }
+}

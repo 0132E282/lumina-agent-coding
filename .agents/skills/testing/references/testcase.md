@@ -1,109 +1,109 @@
 # 🧪 Test Case Writer
 
-Khi thiết kế hoặc thực thi test hộp đen theo module/tính năng, áp dụng [mục 7.1](#71-hộp-đen-và-lập-lịch-khi-thực-thi).
+When designing or executing black-box tests by module/feature, apply [section 7.1](#71-black-box-and-scheduling-at-execution).
 
-Skill viết **test case có cấu trúc** cho một hành vi/luồng cụ thể, dùng ngay trong phiên hiện tại. Khác agent [`qa-tester`](../../../agents/qa-tester.md) — agent đó làm toàn bộ quy trình (phân tích yêu cầu diện rộng, đánh giá rủi ro P0–P3, thực thi, bug report, bàn giao) cho một feature; skill này là lớp kỹ thuật "viết đúng định dạng, đúng kỹ thuật" khi chỉ cần vài test case nhanh, không cần spawn agent riêng. Dùng chung field/định dạng với `qa-tester` để hai bên tương thích.
+Skill for writing **structured test cases** for a specific behavior/flow, used right in the current session. Different from agent [`qa-tester`](../../../agents/qa-tester.md) — that agent runs the whole process (broad requirement analysis, P0–P3 risk assessment, execution, bug report, handoff) for a feature; this skill is the technical layer "right format, right technique" when only a few quick test cases are needed, without spawning a separate agent. Shares fields/format with `qa-tester` so the two stay compatible.
 
-## 1. Mục tiêu và phạm vi
+## 1. Goal and scope
 
-Viết test case cho UI, API, nghiệp vụ, database hoặc toàn hệ thống. Xác định rõ phạm vi trước khi viết — một luồng/API/bug cụ thể, không mặc định mở rộng ra toàn feature.
+Write test cases for UI, API, business logic, database or the whole system. Define the scope clearly before writing — one specific flow/API/bug, never default to expanding to the whole feature.
 
-## 2. Khi nào dùng
+## 2. When to use
 
-Tính năng mới, thay đổi yêu cầu, sửa bug (viết test tái hiện bug **trước** khi fix — [`rules/delivery`](../../../rules/delivery.md#chất-lượng-và-bằng-chứng)), hoặc cần bổ sung case cho bộ regression test.
+New feature, requirement change, bug fix (write a bug-reproducing test **before** the fix — [`rules/delivery`](../../../rules/delivery.md#quality-and-evidence)), or adding cases to the regression suite.
 
-## 3. Dữ liệu đầu vào
+## 3. Inputs
 
-Đọc trước khi viết: đặc tả/acceptance criteria, thiết kế UI, API contract, vai trò người dùng, quy tắc nghiệp vụ. Thiếu một trong số này → áp dụng mục 9, không tự bịa.
+Read before writing: spec/acceptance criteria, UI design, API contract, user roles, business rules. Missing any → apply section 9, never invent.
 
-## 4. Quy trình phân tích
+## 4. Analysis process
 
-Xác định: luồng chính, luồng thay thế, điều kiện lỗi, trạng thái nghiệp vụ liên quan, phụ thuộc dữ liệu/tích hợp/thứ tự.
+Identify: main flow, alternate flows, error conditions, related business states, data/integration/order dependencies.
 
-## 5. Kỹ thuật thiết kế test
+## 5. Test design techniques
 
-Chọn kỹ thuật theo bài toán, không thêm case chỉ để tăng số lượng ([`rules/coding`](../../../rules/coding.md#kiss-yagni-và-phạm-vi)):
+Choose techniques by problem, never add cases just to raise the count ([`rules/coding`](../../../rules/coding.md#kiss-yagni-and-scope)):
 
-| Kỹ thuật | Dùng khi |
+| Technique | Use when |
 |---|---|
-| Phân vùng tương đương | Nhóm dữ liệu hợp lệ/không hợp lệ |
-| Giá trị biên | Ngay dưới, tại, ngay trên giới hạn (số, Unicode, múi giờ) |
-| Bảng quyết định | Tổ hợp điều kiện/quyền/quy tắc nghiệp vụ |
-| Chuyển trạng thái | Chuyển hợp lệ/không hợp lệ, thao tác lặp, trạng thái kết thúc |
-| Pairwise | Nhiều tổ hợp, rủi ro cho phép giảm số case — không thay thế tổ hợp nghiệp vụ bắt buộc |
-| Kiểm thử theo rủi ro | Ưu tiên case ảnh hưởng lớn/khả năng xảy ra cao khi thời gian hạn chế |
+| Equivalence partitioning | Groups of valid/invalid data |
+| Boundary values | Just below, at, just above limits (numbers, Unicode, timezone) |
+| Decision table | Combinations of conditions/permissions/business rules |
+| State transition | Valid/invalid transitions, repeated actions, end states |
+| Pairwise | Many combinations, risk allows fewer cases — does not replace mandatory business combinations |
+| Risk-based testing | Prioritize high-impact/high-likelihood cases when time is limited |
 
-## 6. Phạm vi kiểm thử
+## 6. Test scope
 
-Happy path, dữ liệu không hợp lệ, phân quyền, lỗi hệ thống/tích hợp, toàn vẹn dữ liệu (rollback, unique, soft delete), đồng thời nếu liên quan (idempotency, race condition).
+Happy path, invalid data, permissions, system/integration errors, data integrity (rollback, unique, soft delete), concurrency if relevant (idempotency, race condition).
 
-## 7. Định dạng đầu ra
+## 7. Output format
 
-Mỗi test case bắt buộc các trường:
+Each test case requires these fields:
 
-| Trường | Ý nghĩa |
+| Field | Meaning |
 |---|---|
-| ID | Mã duy nhất, ví dụ `TC_LOGIN_001` |
-| Requirement ID | Yêu cầu/acceptance criterion được kiểm tra |
-| Title | Mô tả ngắn hành vi cần kiểm thử |
+| ID | Unique code, e.g. `TC_LOGIN_001` |
+| Requirement ID | Requirement/acceptance criterion being verified |
+| Title | Short description of the behavior to test |
 | Priority | High / Medium / Low |
-| Preconditions | Trạng thái hệ thống trước khi chạy |
-| Test data | Dữ liệu và tài khoản sử dụng (dữ liệu giả, không dùng secret/PII thật — [`rules/backend`](../../../rules/backend.md#an-toàn-dữ-liệu)) |
-| Steps | Các bước thao tác cụ thể, đánh số |
-| Expected result | Kết quả quan sát được, xác minh được — gắn với bước/checkpoint tương ứng |
-| Postconditions / Cleanup | Trạng thái sau test và cách dọn dữ liệu nếu có tạo mới |
+| Preconditions | System state before running |
+| Test data | Data and accounts used (fake data, no real secrets/PII — [`rules/backend`](../../../rules/backend.md#data-safety)) |
+| Steps | Concrete numbered actions |
+| Expected result | Observable, verifiable result — tied to the matching step/checkpoint |
+| Postconditions / Cleanup | State after the test and how to clean data if newly created |
 
-Dùng để **ghi nhận kết quả đã chạy** (không chỉ thiết kế) → bổ sung thêm: Actual result, Status (Pass/Fail/Blocked/Skipped/Not Run), Evidence/Bug ID. Chỉ ghi Pass/Fail khi đã thực thi và có bằng chứng — test mới thiết kế là Not Run ([`rules/delivery`](../../../rules/delivery.md#chất-lượng-và-bằng-chứng)).
+When **recording executed results** (not just design) → add: Actual result, Status (Pass/Fail/Blocked/Skipped/Not Run), Evidence/Bug ID. Write Pass/Fail only when executed with evidence — newly designed tests are Not Run ([`rules/delivery`](../../../rules/delivery.md#quality-and-evidence)).
 
-## 7.1. Hộp đen và lập lịch khi thực thi
+## 7.1. Black-box and scheduling at execution
 
-- Đánh giá từ requirement/contract, input, output quan sát được và side effect được phép; không dùng implementation nội bộ để quyết định Pass/Fail.
-- Mọi case phải truy vết requirement và expected input/output; toàn bộ module/case trong scope phải được lập lịch và đối soát đủ, không bỏ hoặc chạy trùng.
-- Tổng Pass/Fail/Blocked/Skipped/Not Run phải giải thích đủ đầu vào.
-- Helper phải kiểm tra `đã phân bổ = tổng case đầu vào`, ID không trùng, và ghi nhận đủ `Pass/Fail/Blocked/Skipped/Not Run` sau mỗi batch.
-- Nếu chưa có framework/runner hỗ trợ, chỉ ghi rõ kế hoạch batch và trạng thái `Not Run`; không tự thêm dependency để tạo chạy song song.
+- Evaluate from requirement/contract, input, observable output and allowed side effects; never use internal implementation to decide Pass/Fail.
+- Every case must trace to a requirement and expected input/output; all modules/cases in scope must be scheduled and reconciled fully, none skipped or run twice.
+- Total Pass/Fail/Blocked/Skipped/Not Run must fully explain the input.
+- The helper must check `allocated = total input cases`, no duplicate IDs, and record all of `Pass/Fail/Blocked/Skipped/Not Run` after each batch.
+- If no framework/runner supports it, only state the batch plan and `Not Run` status; never add dependencies to create parallel runs.
 
-## 7.2. Bằng chứng và kết quả API
+## 7.2. Evidence and API results
 
-- Mọi case đã chạy (Pass/Fail) phải có bằng chứng thật: ảnh chụp màn hình cho UI (lưu `.agents/storage/evidence/<task-slug>/`, theo [`rules/frontend`](../../../rules/frontend.md)) hoặc request/response API thật cho API. Không có bằng chứng thì không ghi Pass/Fail.
-- Không ghi API chung chung ("API hoạt động bình thường", "các API OK"). Mỗi API là một mục riêng gồm:
-  - `METHOD URL` đầy đủ (path thật, không `/api/...`).
-  - Tham số đã gửi: path/query/body/header (che secret/PII), và tham số đó đúng hay sai so với contract.
-  - Expected theo contract: status, field/kiểu chính.
-  - Actual: status và response thật (rút gọn phần không liên quan).
-  - `Kết quả: Đúng | Sai`, không có loại khác. `Sai` phải chỉ rõ sai ở đâu: status, field, kiểu, giá trị hay tham số nào.
-- API chưa gọi được thì không ghi Đúng/Sai; case giữ `Blocked`/`Not Run` kèm lý do.
+- Every executed case (Pass/Fail) must have real evidence: screenshots for UI (stored in `.agents/storage/evidence/<task-slug>/`, per [`rules/frontend`](../../../rules/frontend.md)) or real API request/response for API. No evidence means no Pass/Fail.
+- Never write generic API results ("API works normally", "APIs OK"). Each API is its own section with:
+  - Full `METHOD URL` (real path, not `/api/...`).
+  - Parameters sent: path/query/body/header (secret/PII masked), and whether each parameter is correct or incorrect vs the contract.
+  - Expected per contract: status, main fields/types.
+  - Actual: status and real response (trim irrelevant parts).
+  - `Result: Correct | Incorrect`, no other values. `Incorrect` must state where: which status, field, type, value or parameter.
+- An API that could not be called gets no Correct/Incorrect; the case stays `Blocked`/`Not Run` with the reason.
 
-## 8. Tiêu chí chất lượng
+## 8. Quality criteria
 
-- Thực thi được: bước cụ thể, không mơ hồ ("kiểm tra form hoạt động" không phải một bước).
-- Expected result kiểm chứng được — không viết "hoạt động bình thường", "hiển thị đúng", "báo lỗi hợp lệ" mà thiếu tiêu chí cụ thể.
-- Không trùng lặp — case khác nhau phải kiểm tra hành vi khác nhau, không chỉ đổi dữ liệu vô nghĩa.
-- Truy vết được về yêu cầu — Requirement ID khớp với tài liệu/API contract thật, không tự chế ID khi chưa có nguồn.
+- Executable: concrete steps, not vague ("check the form works" is not a step).
+- Verifiable expected result — never write "works normally", "displays correctly", "shows a valid error" without concrete criteria.
+- No duplication — different cases must test different behavior, not just meaningless data changes.
+- Traceable to requirements — Requirement ID matches real docs/API contract, never invent IDs without a source.
 
-## 9. Khi thiếu thông tin
+## 9. When information is missing
 
-Ghi rõ giả định đang dùng. Điểm thiếu ảnh hưởng trực tiếp tới expected result → hỏi lại trước khi đánh dấu case Ready; không hỏi được ngay thì đánh dấu Draft/TBD, không tự điền nghiệp vụ để hoàn thiện case ([`rules/coding`](../../../rules/coding.md#nguyên-tắc-code), [`rules/search-priority`](../../../rules/search-priority.md): không bịa quy tắc/ngưỡng/thông báo lỗi chưa xác nhận).
+State the assumption in use. A gap directly affecting the expected result → ask before marking the case Ready; if you cannot ask right away, mark Draft/TBD, never fill in business logic to finish the case ([`rules/coding`](../../../rules/coding.md#coding-principles), [`rules/search-priority`](../../../rules/search-priority.md): never invent unconfirmed rules/thresholds/error messages).
 
-## 10. Lưu testcase và kết quả
+## 10. Saving testcases and results
 
-- Trước khi tạo hoặc cập nhật bộ testcase, đọc `docs/testcases/index.json` nếu file này tồn tại; đây là dữ liệu testcase và kết quả, không phải mục lục file.
-- Lưu case, ma trận truy vết và trạng thái thực thi tại `docs/testcases/index.json`, giữ ID ổn định. Bổ sung case vào bộ có sẵn thay vì tạo bản trùng.
-- Suite và case mới có `title` và `createdAt` theo `YYYY-MM-DD`; mỗi lần chạy có `executedAt` theo ISO 8601. Mỗi case có vùng kết quả chạy gồm `status`, `actualResult`, `evidence` (`screenshots`, `apiChecks` theo [mục 7.2](#72-bằng-chứng-và-kết-quả-api)) và `bugId` khi có. Case mới là `Not Run`; chỉ ghi `Pass`/`Fail` sau khi chạy và lưu bằng chứng. Giữ lịch sử lần chạy nếu schema hiện tại có lịch sử.
-- Sau khi cập nhật testcase hoặc kết quả, parse JSON và đối soát số case, ID duy nhất, traceability và trạng thái.
+- Before creating or updating a testcase suite, read `docs/testcases/index.json` if it exists; it is testcase and result data, not a file index.
+- Save cases, traceability matrix and execution status in `docs/testcases/index.json`, keeping IDs stable. Add cases to the existing suite instead of creating duplicates.
+- New suites and cases have `title` and `createdAt` as `YYYY-MM-DD`; each run has `executedAt` in ISO 8601. Each case has a run-result area with `status`, `actualResult`, `evidence` (`screenshots`, `apiChecks` per [section 7.2](#72-evidence-and-api-results)) and `bugId` when any. New cases are `Not Run`; write `Pass`/`Fail` only after running and storing evidence. Keep run history if the current schema has history.
+- After updating testcases or results, parse the JSON and reconcile case count, unique IDs, traceability and status.
 
-### Testcase cấp repository
+### Repository-level testcases
 
-- Khi coding cho toàn bộ task của một implementation plan đã hoàn tất, tạo tài liệu testcase cấp repo tại `docs/repo/<title-slug>-<yyyyMMdd>.md`; nội dung dựa trên code, route, API và luồng thực tế đã kiểm tra trong repository.
-- Đọc `docs/repo/index.json` trước để tránh tạo testcase repo trùng; mở các file Markdown được trỏ tới khi liên quan. Nếu menu chưa tồn tại, tạo JSON array rỗng rồi thêm entry mới.
-- Ghi testcase theo cấu trúc mục 7. Kết quả chưa chạy ghi `Not Run`; chỉ ghi Pass/Fail khi đã thực thi và có bằng chứng.
-- Thêm/cập nhật entry trong cả `docs/repo/index.json` và `docs/index.json` với đúng `title`, `description`, `tags`, `path`. `docs/repo/index.json` là mục lục con, không nhúng nội dung testcase vào index.
-- Việc tự động tạo tài liệu sau khi code xong chỉ thiết kế testcase, không chạy test. Chỉ thực thi khi người dùng yêu cầu hoặc workflow test được giao.
-- Quy ước này dành cho testcase cấp repository; bộ testcase và lịch sử kết quả theo feature vẫn lưu tại `docs/testcases/index.json`.
+- When coding for all tasks of a completed implementation plan, create a repo-level testcase doc at `docs/repo/<title-slug>-<yyyyMMdd>.md`; content based on code, routes, APIs and real flows verified in the repository.
+- Read `docs/repo/index.json` first to avoid duplicate repo testcases; open the pointed Markdown files when relevant. If the menu does not exist, create an empty JSON array then add the new entry.
+- Write testcases per the section 7 structure. Unrun results are `Not Run`; write Pass/Fail only when executed with evidence.
+- Add/update the entry in both `docs/repo/index.json` and `docs/index.json` with exact `title`, `description`, `tags`, `path`. `docs/repo/index.json` is a sub-index, never embed testcase content in the index.
+- Auto-creating the doc after coding only designs testcases, never runs tests. Execute only when the user requests it or the test workflow is assigned.
+- This convention is for repository-level testcases; feature-level suites and result history still live in `docs/testcases/index.json`.
 
-Nếu test case được review độc lập, review report thuộc `docs/reviews/` theo workflow-review; testcase và trạng thái chạy vẫn ở `docs/testcases/index.json`.
+If a test case is reviewed independently, the review report belongs in `docs/reviews/` per workflow-review; testcases and run status stay in `docs/testcases/index.json`.
 
-## Khi áp dụng
+## When to apply
 
-- Cần viết nhanh một vài test case cho tính năng/API/bug cụ thể ngay trong phiên hiện tại.
-- Không dùng cho việc thiết kế + thực thi toàn bộ bộ test có risk assessment, ma trận bao phủ REQ→AC và bug report đầy đủ cho một feature lớn — giao cho agent [`qa-tester`](../../../agents/qa-tester.md).
+- Need to quickly write a few test cases for a specific feature/API/bug right in the current session.
+- Not for designing + executing a whole test suite with risk assessment, REQ→AC coverage matrix and full bug reports for a large feature — assign to agent [`qa-tester`](../../../agents/qa-tester.md).

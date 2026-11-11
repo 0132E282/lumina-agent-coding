@@ -1,0 +1,20 @@
+[
+  {
+    "title": "Compact all rules and move details into skills",
+    "description": "Repository testcases for thin rules, semantic owners, references and runtime configuration after the refactor; use for agent configuration regression.",
+    "tags": ["agent-rules", "skills", "configuration", "regression"],
+    "path": "docs/repo/compact-rules-into-skills-20261021.md"
+  },
+  {
+    "title": "Debug rule/skill, compact Token line and context-threshold remind-cleanup",
+    "description": "Repository testcases for the bug-fix rule, debugs skill, compact Token line with total and the remind-cleanup hook at the 80% context threshold; use for agent/hook configuration regression.",
+    "tags": ["agent-rules", "skills", "hooks", "report", "regression"],
+    "path": "docs/repo/debug-rule-and-report-hooks-20261021.md"
+  },
+  {
+    "title": "Optimize rules and review repo structure",
+    "description": "Repository testcases verifying rules consolidated to a single owner, no lost constraints, live anchors and unchanged symlinks/paths; use for agent configuration regression.",
+    "tags": ["agent-rules", "configuration", "regression", "token-optimization"],
+    "path": "docs/repo/optimize-rules-structure-20261022.md"
+  }
+]
