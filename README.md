@@ -27,6 +27,9 @@ npx --yes --package='git+ssh://git@github.com/0132E282/lumina-agent.git' lumina-
 
 - Re-running install asks before overwriting conflicting files
 - The CLI fetches the private repository over SSH on each run (including dry runs)
+- Tools are optional and chosen after scope and agents (nothing preselected), or with repeatable `--tool graphify|markitdown`. Only selected tools get their skill/rule/command files, their CLI (`uv tool install`, else `pipx`; skipped if already on PATH) and, for `markitdown` with Claude selected, the `markitdown` MCP server (`claude mcp add`). Failures only warn. `--skip-tools` or no `--tool` in a non-interactive run installs no tools; `--skip-tools` cannot be combined with `--tool`
+- `lumina-agent install tool [--agent ...] [--global | --target <dir>] [--tool <id> ...]` skips the base rules/skills and adds only the chosen tools; the list is filtered to the selected agents (for example the `/graphify` command only appears for Claude) and exits with a message when nothing applies
+- The `graphify` command is installed, but `~/.claude/skills/graphify/SKILL.md` is never touched or rewritten
 
 After install finishes, **start a new agent session**. Claude hooks only run in Claude Code; Codex and Antigravity use the shared rules and skills through their own discovery mechanisms.
 

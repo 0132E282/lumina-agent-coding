@@ -18,6 +18,42 @@ const payloadRoots = [
 ];
 const runtimes = ['codex', 'claude', 'antigravity'];
 const runtimeLabels = { codex: 'Codex', claude: 'Claude Code', antigravity: 'Antigravity' };
+// Single source for tools: files (copied only when selected), CLI package and optional MCP registration.
+// `agents` limits a part to those runtimes; without it the part applies to every runtime.
+const toolCatalog = {
+  graphify: {
+    label: 'graphify',
+    binary: 'graphify',
+    pkg: 'graphifyy',
+    files: [
+      { path: '.agents/skills/workflow-graphify', kind: 'skill' },
+      { path: '.agents/rules/graphify.md', kind: 'rule' },
+      { path: '.claude/commands/graphify.md', kind: 'command', agents: ['claude'] },
+    ],
+  },
+  markitdown: {
+    label: 'markitdown',
+    binary: 'markitdown',
+    pkg: 'markitdown[all]',
+    files: [{ path: '.agents/skills/markitdown', kind: 'skill' }],
+    mcp: { agents: ['claude'] },
+  },
+};
+const toolNames = Object.keys(toolCatalog);
+const toolParts = (tool, agents) => {
+  const applies = part => !part.agents || part.agents.some(agent => agents.includes(agent));
+  const kinds = [...new Set(tool.files.filter(applies).map(file => file.kind))];
+  return [...kinds, 'CLI', ...(tool.mcp && applies(tool.mcp) ? ['MCP'] : [])];
+};
+
+// Tools that have something to add for the selected agents, with a short hint of what each adds.
+export function availableTools(agents) {
+  return toolNames
+    .map(name => ({ name, label: toolCatalog[name].label, parts: toolParts(toolCatalog[name], agents) }))
+    .filter(tool => tool.parts.length > 0)
+    .map(({ name, label, parts }) => ({ name, label, hint: `adds ${parts.join(', ')}` }));
+}
+
 const sharedPayloadRoots = ['.agents/rules', '.agents/skills', 'CONTRACT.md'];
 const startMarker = '<!-- lumina-agent:start -->';
 const endMarker = '<!-- lumina-agent:end -->';
@@ -260,7 +296,7 @@ async function preflight(target, entries, { overwrite = false } = {}) {
   return changes;
 }
 
-export async function installFromSource({ source, target, dryRun = false, global = false, overwrite = false, agents = global ? ['codex', 'claude'] : runtimes }) {
+export async function installFromSource({ source, target, dryRun = false, global = false, overwrite = false, agents = global ? ['codex', 'claude'] : runtimes, tools = [], toolsOnly = false }) {
   source = await fs.realpath(source);
   target = path.resolve(target);
   await assertDirectories(target);
@@ -276,6 +312,17 @@ export async function installFromSource({ source, target, dryRun = false, global
   );
   for (const relative of allEntries.keys()) {
     if (!roots.some(root => relative === root || relative.startsWith(`${root}/`))) allEntries.delete(relative);
+  }
+  // Tool-owned files are copied only for the tools the user selected.
+  for (const [name, tool] of Object.entries(toolCatalog)) {
+    if (tools.includes(name)) continue;
+    for (const relative of allEntries.keys()) {
+      if (tool.files.some(({ path: file }) => relative === file || relative.startsWith(`${file}/`))) allEntries.delete(relative);
+    }
+  }
+  if (toolsOnly) {
+    const owned = relative => tools.some(name => toolCatalog[name].files.some(({ path: file }) => relative === file || relative.startsWith(`${file}/`)));
+    for (const relative of allEntries.keys()) if (!owned(relative)) allEntries.delete(relative);
   }
   // ! Global mode skips .claude/rules -- Claude loads ~/.claude/rules itself, duplicating the project's .claude/rules (rules loaded twice).
   if (global) allEntries.delete('.claude/rules');
@@ -309,7 +356,7 @@ export async function installFromSource({ source, target, dryRun = false, global
   const instructionPaths = global
     ? [selected.has('codex') && '.codex/AGENTS.md', selected.has('claude') && '.claude/CLAUDE.md', selected.has('antigravity') && 'AGENTS.md']
     : [selected.has('codex') && 'AGENTS.md', selected.has('antigravity') && 'AGENTS.md', selected.has('claude') && 'CLAUDE.md'];
-  for (const relative of new Set(instructionPaths.filter(Boolean))) {
+  for (const relative of toolsOnly ? [] : new Set(instructionPaths.filter(Boolean))) {
     entries.set(relative, { relative, kind: 'file', instructions: true, block, mode: 0o644 });
   }
   const changes = await preflight(target, entries, { overwrite });
@@ -350,7 +397,7 @@ export async function installFromSource({ source, target, dryRun = false, global
   return { target, changes: changes.length, dryRun };
 }
 
-export async function initialize({ target, dryRun = false, global = false, overwrite = false, agents = global ? ['codex', 'claude'] : runtimes }, runGit = executeFile) {
+export async function initialize({ target, dryRun = false, global = false, overwrite = false, agents = global ? ['codex', 'claude'] : runtimes, tools = [], toolsOnly = false }, runGit = executeFile) {
   const temporary = await fs.mkdtemp(path.join(os.tmpdir(), 'lumina-agent-'));
   try {
     const source = path.join(temporary, 'source');
@@ -363,7 +410,7 @@ export async function initialize({ target, dryRun = false, global = false, overw
     } catch {
       throw new Error('Could not read private repository. Check collaborator access, Git, and SSH key authorization for GitHub; clone timeout is 120 seconds.');
     }
-    return await installFromSource({ source, target, dryRun, global, overwrite, agents });
+    return await installFromSource({ source, target, dryRun, global, overwrite, agents, tools, toolsOnly });
   } finally {
     await fs.rm(temporary, { recursive: true, force: true });
   }
@@ -372,9 +419,11 @@ export async function initialize({ target, dryRun = false, global = false, overw
 export function parseArguments(argumentsList, { cwd = process.cwd(), home = os.homedir() } = {}) {
   if (argumentsList[0] === '--help' || argumentsList[0] === '-h') return null;
   if (argumentsList.length > 0 && argumentsList[0] !== 'install') throw new Error('Only the install command is supported. Use --help to see usage.');
-  const options = { target: cwd, dryRun: false, global: false, agents: [] };
+  const options = { target: cwd, dryRun: false, global: false, agents: [], tools: [] };
+  const toolsOnly = argumentsList[1] === 'tool';
+  if (toolsOnly) options.toolsOnly = true;
   const seen = new Set();
-  for (let index = 1; index < argumentsList.length; index++) {
+  for (let index = toolsOnly ? 2 : 1; index < argumentsList.length; index++) {
     const argument = argumentsList[index];
     if (argument === '--agent' && argumentsList[index + 1] && !argumentsList[index + 1].startsWith('--')) {
       const agent = argumentsList[++index].toLowerCase();
@@ -383,14 +432,24 @@ export function parseArguments(argumentsList, { cwd = process.cwd(), home = os.h
       options.agents.push(agent);
       continue;
     }
+    if (argument === '--tool' && argumentsList[index + 1] && !argumentsList[index + 1].startsWith('--')) {
+      const tool = argumentsList[++index].toLowerCase();
+      if (!toolNames.includes(tool)) throw new Error(`Invalid tool: ${tool}. Choose ${toolNames.join(' or ')}.`);
+      if (options.tools.includes(tool)) throw new Error(`Duplicate tool: ${tool}`);
+      options.tools.push(tool);
+      continue;
+    }
     if (seen.has(argument)) throw new Error(`Duplicate option: ${argument}`);
     seen.add(argument);
     if (argument === '--dry-run') options.dryRun = true;
+    else if (argument === '--skip-tools') continue;
     else if (argument === '--global') options.global = true;
     else if (argument === '--target' && argumentsList[index + 1] && !argumentsList[index + 1].startsWith('--')) {
       options.target = argumentsList[++index];
     } else throw new Error(`Invalid option: ${argument}`);
   }
+  if (toolsOnly && seen.has('--skip-tools')) throw new Error('Cannot combine --skip-tools with install tool.');
+  if (seen.has('--skip-tools') && options.tools.length > 0) throw new Error('Cannot combine --skip-tools with --tool.');
   if (options.global && seen.has('--target')) throw new Error('Cannot combine --global with --target.');
   if (options.global && options.agents.includes('antigravity')) throw new Error('Antigravity only supports project-level install; remove --global or remove --agent antigravity.');
   if (options.global) options.target = home;
@@ -619,6 +678,75 @@ function promptOverwrite(input = process.stdin, output = process.stdout, relativ
   });
 }
 
+async function commandExists(name, searchPath = process.env.PATH ?? '') {
+  for (const directory of searchPath.split(path.delimiter).filter(Boolean)) {
+    try {
+      await fs.access(path.join(directory, name), constants.X_OK);
+      return true;
+    } catch {}
+  }
+  return false;
+}
+
+function runCommand(command, args) {
+  return executeFile(command, args, { timeout: 600_000, maxBuffer: 4 * 1024 * 1024 });
+}
+
+const markitdownMcpCommand = ['mcp', 'add', '--scope', 'user', 'markitdown', '--', 'uvx', '--python', '3.13', 'markitdown-mcp'];
+
+// Cài CLI/MCP cho các tool đã chọn; lỗi chỉ cảnh báo, không bao giờ làm hỏng install.
+export async function installTools({ tools = [], agents = runtimes, run = runCommand, exists = commandExists, log = console.log, warn = console.warn } = {}) {
+  if (tools.length === 0) return;
+  const installer = await exists('uv') ? ['uv', ['tool', 'install']] : await exists('pipx') ? ['pipx', ['install']] : null;
+  for (const name of tools) {
+    const { binary, pkg } = toolCatalog[name];
+    if (await exists(binary)) {
+      log(`Tools: ${binary} already installed, skipped.`);
+    } else if (!installer) {
+      warn(`Tools: could not install ${binary}; install uv or pipx first, then run: uv tool install '${pkg}'`);
+    } else {
+      try {
+        await run(installer[0], [...installer[1], pkg]);
+        log(`Tools: installed ${binary} via ${installer[0]}.`);
+      } catch (error) {
+        warn(`Tools: could not install ${binary} (${error.message.split('\n')[0]}); continuing.`);
+      }
+    }
+  }
+  if (!tools.some(name => toolCatalog[name].mcp && toolCatalog[name].mcp.agents.some(agent => agents.includes(agent)))) return;
+  const manual = `claude ${markitdownMcpCommand.join(' ')}`;
+  if (!await exists('claude')) {
+    log(`Tools: Claude CLI not found; register the markitdown MCP server manually: ${manual}`);
+    return;
+  }
+  try {
+    const { stdout } = await run('claude', ['mcp', 'list']);
+    if (/^markitdown\s*:/m.test(String(stdout))) {
+      log('Tools: markitdown MCP server already registered, skipped.');
+      return;
+    }
+    await run('claude', markitdownMcpCommand);
+    log('Tools: registered markitdown MCP server for Claude Code.');
+  } catch (error) {
+    warn(`Tools: could not register markitdown MCP server (${error.message.split('\n')[0]}); run manually: ${manual}`);
+  }
+}
+
+export function promptTools(input = process.stdin, output = process.stdout, { agents = runtimes } = {}) {
+  return promptCheckboxes(input, output, {
+    choices: availableTools(agents).map(({ name, label, hint }) => ({ value: name, label, hint, selected: false })),
+    title: 'Select tools to install',
+    description: '↑/↓ move · Space toggle · Enter confirm (none selected = no tools)',
+    footer: 'Ctrl+C to exit',
+    actions: [
+      { label: 'Install' },
+      { label: 'Cancel', cancel: true },
+    ],
+    cancelMessage: 'Tool selection cancelled.',
+    eraseOnConfirm: false,
+  });
+}
+
 if (process.argv[1] && await fs.realpath(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     if (process.stdout.isTTY) {
@@ -629,7 +757,7 @@ if (process.argv[1] && await fs.realpath(process.argv[1]) === fileURLToPath(impo
     }
     const argumentsList = process.argv.slice(2);
     const options = parseArguments(argumentsList);
-    if (!options) console.log('lumina-agent install [--agent codex|claude|antigravity ...] [--global | --target <project-directory>] [--dry-run]\nRun install without scope or agent flags to choose the install scope and agents interactively. Use --agent with --target or --global to skip prompts. If a conflict is found, the installer asks before overwriting.\nRequires Node.js >=20, Git, and SSH read access to the private GitHub repository.');
+    if (!options) console.log('lumina-agent install [--agent codex|claude|antigravity ...] [--global | --target <project-directory>] [--dry-run] [--tool graphify|markitdown ...] [--skip-tools]\nlumina-agent install tool [--agent ...] [--global | --target <project-directory>] [--tool <id> ...] [--dry-run]\nRun install without scope or agent flags to choose the install scope and agents interactively. Use --agent with --target or --global to skip prompts. If a conflict is found, the installer asks before overwriting. Tools are optional: choose them interactively or pass --tool (repeatable); only selected tools get their skill files, CLI and MCP. --skip-tools or no --tool installs none. `install tool` skips the base rules/skills and only adds the chosen tools (the list is filtered to the selected agents).\nRequires Node.js >=20, Git, and SSH read access to the private GitHub repository.');
     else {
       if (process.stdin.isTTY && process.stdout.isTTY) {
         readline.emitKeypressEvents(process.stdin);
@@ -641,17 +769,23 @@ if (process.argv[1] && await fs.realpath(process.argv[1]) === fileURLToPath(impo
         if (options.global && options.agents.includes('antigravity')) {
           throw new Error('Antigravity only supports project-level install; remove --global or remove --agent antigravity.');
         }
+        if (!argumentsList.includes('--tool') && !argumentsList.includes('--skip-tools') && availableTools(options.agents).length > 0) options.tools = await promptTools(process.stdin, process.stdout, { agents: options.agents });
       }
-      let result;
-      try {
-        result = await withProgress(() => initialize(options));
-      } catch (error) {
-        if (!(error instanceof InstallConflictError)) throw error;
-        const confirmed = await promptOverwrite(process.stdin, process.stdout, error.relative);
-        if (!confirmed) throw new Error(`Installation cancelled; existing ${error.relative} was not overwritten.`);
-        result = await withProgress(() => initialize({ ...options, overwrite: true }));
+      if (options.toolsOnly && availableTools(options.agents).length === 0) console.log('No tools apply to the selected agents.');
+      else if (options.toolsOnly && options.tools.length === 0) console.log('No tools selected.');
+      else {
+        let result;
+        try {
+          result = await withProgress(() => initialize(options));
+        } catch (error) {
+          if (!(error instanceof InstallConflictError)) throw error;
+          const confirmed = await promptOverwrite(process.stdin, process.stdout, error.relative);
+          if (!confirmed) throw new Error(`Installation cancelled; existing ${error.relative} was not overwritten.`);
+          result = await withProgress(() => initialize({ ...options, overwrite: true }));
+        }
+        console.log(`${result.dryRun ? 'Dry run' : 'Installed'}: ${result.changes} change(s) at ${result.target}`);
+        if (!result.dryRun) await installTools({ tools: options.tools, agents: options.agents });
       }
-      console.log(`${result.dryRun ? 'Dry run' : 'Installed'}: ${result.changes} change(s) at ${result.target}`);
     }
   } catch (error) {
     console.error(`Lumina: ${error.message}`);

@@ -14,7 +14,7 @@ This is an agent configuration repo. `.agents/rules/` is the single shared sourc
 ## Skills, roles, and workflows
 
 - `.agents/skills/` is the shared skill source; `.claude/skills/` and `.codex/skills/` symlink there. `.codex/agents/*.toml` corresponds to `.claude/agents/*.md` (except `codex-review`, which runs in Claude Code to call Codex).
-- Workflows: `$workflow-{analyze,plan,implement,debug,test,review,report,git,cleanup}`. Claude calls the slash commands in `.claude/commands/` directly; for review, type `/review` to use Claude Code's built-in `code-review`/`security-review` skills — there is no `.claude/commands/review.md` (see [`workflow-review`](./.agents/skills/workflow-review/SKILL.md)). Planning: native Plan mode + `.agents/skills/workflow-plan/SKILL.md`. Git: `/git` or `$workflow-git` ([`rules/git`](./.agents/rules/git.md)).
+- Workflows: `$workflow-{analyze,plan,implement,debug,test,review,report,git,cleanup,graphify}`. Claude calls the slash commands in `.claude/commands/` directly; for review, type `/review` to use Claude Code's built-in `code-review`/`security-review` skills — there is no `.claude/commands/review.md` (see [`workflow-review`](./.agents/skills/workflow-review/SKILL.md)). Planning: native Plan mode + `.agents/skills/workflow-plan/SKILL.md`. Git: `/git` or `$workflow-git` ([`rules/git`](./.agents/rules/git.md)).
 - Hand off via `docs/` per role; maintain approval checkpoints. Do not auto-run the full pipeline.
 
 ## Execution discipline
@@ -39,8 +39,10 @@ Discovers skills/rules from `.agents/`. TOML files in `.codex/agents/` are not A
 | Task | Role / Skill |
 |---|---|
 | Setup tool/library/runtime/app | `setup` |
+| Read PDF/DOCX/PPTX/XLSX/HTML/image/URL content cheaply | `markitdown` — convert to Markdown first (CLI or MCP) |
 | Requirement analysis | `workflow-analyze` / `analyst` |
 | System survey / diagram | `system-understanding`; `database` for schema/query |
+| Codebase knowledge graph / "how does X relate to Y" | `/graphify` / `$workflow-graphify` → `graphify` ([`rules/graphify`](./.agents/rules/graphify.md)) — output `docs/graphify-out/`, input = project root |
 | Plan | Plan mode + `workflow-plan` / `planner` |
 | Implementation | `coder` |
 | Debug / bug fix — also any request with `sửa`/`fix` aimed at a bug or wrong behavior | `/debug` / `$workflow-debug` → `debugs` (fix via `coder`) |

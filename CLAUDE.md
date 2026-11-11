@@ -7,7 +7,7 @@ Read and follow [AGENTS.md](./AGENTS.md) before working.
 ## Project-specific configuration
 
 - `.claude/agents/*.md`: roles, tools, and model for Claude Code.
-- `.claude/commands/*.md`: slash commands `/git`, `/cleanup`, `/test`, `/debug`, `/report`, `/design`. `/review` is built-in (no command file).
+- `.claude/commands/*.md`: slash commands `/git`, `/cleanup`, `/test`, `/debug`, `/report`, `/design`, `/graphify`. `/review` is built-in (no command file).
 - `.claude/settings.json` and `.claude/hooks/`: Claude hooks; do not run automatically on Codex or Antigravity.
 - `.agents/storage/` is ignored; do not commit logs/temp files. `docs/` handoffs are deliverables.
 
