@@ -9,14 +9,33 @@ import test, { after } from 'node:test';
 const repoRoot = fileURLToPath(new URL('..', import.meta.url));
 const hook = path.join(repoRoot, '.claude/hooks/scripts/dependency-audit-reminder.sh');
 const hookViaSymlink = path.join(repoRoot, '.agents/hooks/scripts/dependency-audit-reminder.sh');
-const systemPath = '/usr/bin:/bin';
 const AUDIT_TOOLS = ['npm', 'yarn', 'pnpm', 'composer', 'pip-audit'];
+const SUPPORT_TOOLS = ['awk', 'basename', 'bash', 'cat', 'dirname', 'grep', 'jq'];
 const VULNERABLE_OUTPUT = 'lodash  <4.17.21  Severity: high  Prototype Pollution';
+
+function findExecutable(tool) {
+  for (const directory of (process.env.PATH ?? '').split(path.delimiter)) {
+    const candidate = path.join(directory, tool);
+    if (fs.existsSync(candidate)) {
+      const stats = fs.statSync(candidate);
+      if (!stats.isFile() || (stats.mode & 0o111) === 0) continue;
+      return fs.realpathSync(candidate);
+    }
+  }
+  throw new Error(`Required test utility is missing: ${tool}`);
+}
 
 // Fake package manager: records the command and prints $FAKE_OUTPUT, never touches the network.
 // macOS scans each new executable on first run, so the fake is created once for the whole test file.
 const fakeRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'dependency-audit-fakes-')));
-after(() => fs.rmSync(fakeRoot, { recursive: true, force: true }));
+const supportBin = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'dependency-audit-support-')));
+after(() => {
+  fs.rmSync(fakeRoot, { recursive: true, force: true });
+  fs.rmSync(supportBin, { recursive: true, force: true });
+});
+for (const tool of SUPPORT_TOOLS) {
+  fs.symlinkSync(findExecutable(tool), path.join(supportBin, tool));
+}
 for (const tool of AUDIT_TOOLS) {
   const file = path.join(fakeRoot, `bin-${tool}`, tool);
   fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -33,7 +52,7 @@ function runReminder(context, { command, toolName = 'Bash', tools = AUDIT_TOOLS,
     input: JSON.stringify({ tool_name: toolName, tool_input: command === undefined ? {} : { command } }),
     encoding: 'utf8',
     env: {
-      PATH: [...tools.map(tool => path.join(fakeRoot, `bin-${tool}`)), systemPath].join(':'),
+      PATH: [...tools.map(tool => path.join(fakeRoot, `bin-${tool}`)), supportBin].join(path.delimiter),
       HOME: process.env.HOME,
       CLAUDE_PROJECT_DIR: project,
       FAKE_CALLS: calls,
