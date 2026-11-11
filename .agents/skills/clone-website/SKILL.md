@@ -3,7 +3,7 @@ name: clone-website
 description: Clone an existing website or supplied website reference with structural and visual fidelity. Use when the user provides an image, live website URL, sitemap URL, recording, HTML, or design reference and asks to reproduce the site; do not use for redesigning, restyling, or inventing a new UI.
 license: MIT
 metadata:
-  version: "1.2"
+  version: "1.3"
 ---
 
 # Clone Website

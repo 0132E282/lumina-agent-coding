@@ -7,8 +7,8 @@
 #
 # Reads JSON input from stdin per the Stop schema: { "session_id": "...", "transcript_path": "...", ... }
 #
-# Each file is reminded only once per session: reminded paths are stored in
-# .agents/storage/state/<session_id>.cleanup-reminded (one path per line).
+# Mỗi file chỉ nhắc một lần mỗi session: path đã nhắc lưu tại
+# state theo ngày .agents/storage/state/state-YYYYMMDD.json (khoá cleanupReminded của session).
 #
 # Always exit 0 -- auxiliary hook, never blocks Claude Code from stopping.
 
@@ -39,17 +39,12 @@ finder="$script_dir/../../skills/cleanup-temp-files/scripts/find-session-scratch
 found="$(bash "$finder" "$session_id" 2>/dev/null)" || true
 [ -z "$found" ] && exit 0
 
-if [ -n "$CLAUDE_PROJECT_DIR" ] && [ -d "$CLAUDE_PROJECT_DIR" ]; then
-  log_root="$CLAUDE_PROJECT_DIR"
-else
-  log_root="$(pwd)"
-fi
-state_directory="$log_root/.agents/storage/state"
-reminded_file="$state_directory/$session_id.cleanup-reminded"
+. "$script_dir/_hook-storage.sh"
+log_root="$(lumina_project_root)"
 
-# Empty files are skipped: BSD grep treats `-f <empty file>` as matching every line.
-if [ -s "$reminded_file" ]; then
-  found="$(printf '%s\n' "$found" | grep -vxF -f "$reminded_file" || true)"
+reminded="$(lumina_state_get "$log_root" "$session_id" cleanupReminded | jq -r '.[]?' 2>/dev/null || true)"
+if [ -n "$reminded" ]; then
+  found="$(printf '%s\n' "$found" | grep -vxF -f <(printf '%s\n' "$reminded") || true)"
 fi
 [ -z "$found" ] && exit 0
 
@@ -63,6 +58,6 @@ jq -n --arg msg "🧹 Context used ${context_usage}. Detected ${count} file(s) t
   }
 }'
 
-# Best-effort: if writing state fails the reminder repeats next time; does not block Stop.
-{ mkdir -p "$state_directory" && printf '%s\n' "$found" >> "$reminded_file"; } 2>/dev/null || true
+# Best-effort: ghi state lỗi thì lần sau nhắc lại, không chặn Stop.
+printf '%s\n' "$found" | lumina_state_push "$log_root" "$session_id" cleanupReminded
 exit 0

@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import { getSessionValue, setSessionValue } from '../.claude/hooks/scripts/_hook-storage.mjs';
 
 const checkHook = fileURLToPath(new URL('../.claude/hooks/scripts/report-usage-check.sh', import.meta.url));
 const usageHook = fileURLToPath(new URL('../.claude/hooks/scripts/report-usage.sh', import.meta.url));
@@ -20,9 +21,7 @@ function repository(context) {
 }
 
 function writeEmitted(root, sessionId = 'session-1', emitted = EMITTED) {
-  const directory = path.join(root, '.agents/storage/state');
-  fs.mkdirSync(directory, { recursive: true });
-  fs.writeFileSync(path.join(directory, `${sessionId}.emitted.json`), JSON.stringify(emitted));
+  setSessionValue(root, sessionId, 'emitted', emitted);
 }
 
 function runHook(script, root, payload) {
@@ -191,7 +190,7 @@ test('report-usage writes the emitted numbers file', context => {
   fs.writeFileSync(transcript, `${lines.join('\n')}\n`);
   const result = runHook(usageHook, root, { session_id: 'session-1', transcript_path: transcript, tool_name: 'Skill', tool_input: { skill: 'report' } });
   assert.equal(result.status, 0);
-  const emitted = JSON.parse(fs.readFileSync(path.join(root, '.agents/storage/state/session-1.emitted.json'), 'utf8'));
+  const emitted = getSessionValue(root, 'session-1', 'emitted');
   assert.deepEqual({ ...emitted, ts: undefined }, { input: 20, output: 10, cacheRead: 200, cacheCreate: 14, total: 244, ts: undefined });
   assert.match(emitted.ts, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/);
 

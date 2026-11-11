@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Stop hook: compare the `Token:` line in the final report with the numbers report-usage.sh inserted
-# (.agents/storage/state/<session_id>.emitted.json). On mismatch remind to fix via additionalContext,
-# do NOT use decision/reason (would block Stop). Each kind of mismatch is reminded only once.
+# Stop hook: đối chiếu dòng `Token:` trong báo cáo cuối với số report-usage.sh đã chèn
+# (khoá `emitted` trong .agents/storage/state/state-YYYYMMDD.json). Lệch thì nhắc sửa qua additionalContext,
+# KHÔNG dùng decision/reason (sẽ chặn Stop). Mỗi kiểu lệch chỉ nhắc một lần.
 #
 # Reads JSON input from stdin per the Stop schema:
 #   { "session_id": "...", "transcript_path": "...", "stop_hook_active": false, "last_assistant_message": "..." }
@@ -19,11 +19,6 @@ command -v node >/dev/null 2>&1 || exit 0
 helper="$(cd "$(dirname "$0")" 2>/dev/null && pwd)/report-usage-check.mjs"
 [ -f "$helper" ] || exit 0
 
-if [ -n "$CLAUDE_PROJECT_DIR" ] && [ -d "$CLAUDE_PROJECT_DIR" ]; then
-  log_root="$CLAUDE_PROJECT_DIR"
-else
-  log_root="$(pwd)"
-fi
-
-node "$helper" "$log_root" 2>/dev/null || true
+. "$(dirname "$0")/_hook-storage.sh"
+node "$helper" "$(lumina_project_root)" 2>/dev/null || true
 exit 0

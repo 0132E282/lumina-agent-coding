@@ -5,6 +5,12 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import { getSessionValue } from '../.claude/hooks/scripts/_hook-storage.mjs';
+
+const logFileName = (() => {
+  const now = new Date();
+  return `logs-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}.jsonl`;
+})();
 
 const turnHook = fileURLToPath(new URL('../.claude/hooks/scripts/turn-log.sh', import.meta.url));
 const symlinkedTurnHook = fileURLToPath(new URL('../.agents/hooks/scripts/turn-log.sh', import.meta.url));
@@ -79,7 +85,7 @@ function runHook(root, payload, script = turnHook) {
 }
 
 function logLines(root) {
-  const file = path.join(root, '.agents/storage/logs/logs.jsonl');
+  const file = path.join(root, `.agents/storage/logs/${logFileName}`);
   if (!fs.existsSync(file)) return [];
   return fs.readFileSync(file, 'utf8').split('\n').filter(Boolean).map(line => JSON.parse(line));
 }
@@ -129,7 +135,7 @@ test('turn-log does not duplicate when Stop reruns for the same turn and writes 
   writeTranscript(root, events);
   assert.equal(runHook(root, stopPayload(transcript)).status, 0);
   assert.equal(logLines(root).length, 1);
-  const marker = JSON.parse(fs.readFileSync(path.join(root, '.agents/storage/state/session-1.turn.json'), 'utf8'));
+  const marker = getSessionValue(root, 'session-1', 'turn');
   assert.equal(marker.turnStartLine, 5);
 
   events.push(prompt('Third turn'), assistant('m6', usage(7, 8, 9, 10), [toolUse('t-read', 'Read', { file_path: '/repo/c.js' })]));

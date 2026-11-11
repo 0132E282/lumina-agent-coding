@@ -74,7 +74,7 @@ Không có agent DevOps/Database Engineer: dispatcher chỉ lập kế hoạch, 
 3. **Backup & Snapshot**: database, file upload, storage, cấu hình, Docker image/release artifact, phiên bản ứng dụng và schema hiện tại. Backup phải kiểm tra được (tồn tại, truy cập, toàn vẹn, thời điểm, hướng dẫn restore, nơi lưu an toàn); không có restore khả dụng thì chưa coi là đủ; không ghi secret vào báo cáo; không xóa backup cũ trước khi release ổn định.
 4. **Build & Package**: build backend/frontend bằng cấu hình production, không có secret hay dev dependency thừa trong artifact, gắn version và lưu commit hash.
 5. **Deployment**: chọn chiến lược phù hợp kiến trúc (Rolling, Blue-Green, Canary, Recreate); không xóa phiên bản đang chạy trước khi bản mới được xác nhận; không thay đổi production ngoài kế hoạch; ghi thời điểm bắt đầu và kết thúc.
-6. **Database Migration**: review migration trước deployment; không chạy migration chưa rõ ảnh hưởng, không `DROP`/`TRUNCATE` production, không giả định rollback migration luôn an toàn, ưu tiên Expand → Migrate → Contract (Contract ở release riêng); migration có thể mất dữ liệu phải có phương án riêng. Tuân theo [`rules/backend`](../rules/backend.md#database-read-only-mặc-định).
+6. **Database Migration**: review migration trước deployment; không chạy migration chưa rõ ảnh hưởng, không `DROP`/`TRUNCATE` production, không giả định rollback migration luôn an toàn, ưu tiên Expand → Migrate → Contract (Contract ở release riêng); migration có thể mất dữ liệu phải có phương án riêng. Tuân theo [`rules/backend`](../rules/backend.md#database-read-only-by-default).
 7. **Service Restart**: chỉ làm thao tác cần thiết theo kế hoạch; không làm mất hay xử lý sai queue job.
 8. **Smoke Testing** (`qa-tester`): website, API, database, authentication/authorization, chức năng chính, upload/download, background job, tích hợp bên thứ ba, không có lỗi nghiêm trọng trong log.
 9. **Health Check & Monitoring**: HTTP status, error rate, CPU/RAM/disk, kết nối database, slow query, queue backlog, response time; so với trước triển khai; vượt ngưỡng đã định thì chuyển sang quy trình 5.
@@ -109,7 +109,7 @@ Cùng giới hạn như quy trình 4: dispatcher điều phối phân tích, k�
 ### Quy tắc test chung
 
 - Mọi bước test UI ở mọi quy trình luôn có ảnh trước và sau cùng route/viewport ([`rules/frontend`](../rules/frontend.md)); không chụp được phải ghi rõ lý do, không coi là đạt.
-- Mọi bước test API luôn liệt kê đầy đủ API đã test: từng endpoint với tham số, request và response thật, kết quả `Đúng | Sai` theo [`testcase` mục 7.2](../skills/testing/references/testcase.md#72-bằng-chứng-và-kết-quả-api); API chưa chạy ghi `Chưa chạy`, không bịa response.
+- Mọi bước test API luôn liệt kê đầy đủ API đã test: từng endpoint với tham số, request và response thật, kết quả `Đúng | Sai` theo [`testcase` mục 7.2](../skills/testing/references/testcase.md#72-evidence-and-api-results); API chưa chạy ghi `Chưa chạy`, không bịa response.
 
 ## Task contract và trạng thái
 
@@ -125,7 +125,7 @@ Yêu cầu nhỏ (fix lỗi nhỏ, việc một bước) chỉ chạy bước th
 2. **Chọn owner** theo bảng role ở [`AGENTS.md`](../../AGENTS.md#choosing-skills-by-task) và `description` của agent trong `.agents/agents/`; tên gọi `<role> - <task>`.
 3. **Giao việc**: theo task contract, kèm mục thiết kế liên quan ([`rules/system-design`](../rules/system-design.md)) và đường dẫn handoff trước. Task độc lập, không trùng file thì gọi song song cùng lượt; còn lại tuần tự.
 4. **Khi agent bàn giao**: đối chiếu handoff ([mẫu](../skills/report/assets/subagent-handoff-template.md)) với AC/check; thiếu phần thuộc scope thì `SendMessage` lại đúng agent đó. Đủ thì tự chuyển bàn giao cho agent kế tiếp trong prompt mới, không bắt người dùng giải thích lại. Input mới của người dùng: liên quan agent đang chạy thì gửi cho agent đó, không liên quan thì tạo task/agent riêng.
-5. **Kết thúc**: tự chạy lại check bắt buộc, rồi xuất một báo cáo tổng hợp bằng skill [`report`](../skills/report/SKILL.md) theo [`rules/delivery`](../rules/delivery.md#báo-cáo-bắt-buộc); chưa đạt thì chỉ báo blocker cụ thể.
+5. **Kết thúc**: tự chạy lại check bắt buộc, rồi xuất một báo cáo tổng hợp bằng skill [`report`](../skills/report/SKILL.md) theo [`rules/delivery`](../rules/delivery.md#mandatory-reporting); chưa đạt thì chỉ báo blocker cụ thể.
 
 ## Dừng và hỏi người dùng
 

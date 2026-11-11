@@ -28,12 +28,14 @@ function setup(context) {
   return { project, screenshots, evidence: path.join(project, '.agents/storage/evidence/browser', today()) };
 }
 
-function runHook(project, toolResponse) {
+function runHook(project, toolResponse, options = {}) {
+  const payloadCwd = options.payloadCwd ?? project;
+  const sessionProject = options.sessionProject ?? project;
   const result = spawnSync('bash', [hook], {
     cwd: project,
-    input: JSON.stringify({ tool_name: toolName, tool_input: { action: 'screenshot' }, tool_response: toolResponse, cwd: project }),
+    input: JSON.stringify({ tool_name: toolName, tool_input: { action: 'screenshot' }, tool_response: toolResponse, cwd: payloadCwd }),
     encoding: 'utf8',
-    env: { ...process.env, CLAUDE_PROJECT_DIR: project },
+    env: { ...process.env, CLAUDE_PROJECT_DIR: sessionProject, LUMINA_TASK_SLUG: options.taskSlug ?? '', ...options.env },
   });
   assert.equal(result.status, 0, result.stderr);
   return result.stdout.trim() === '' ? null : JSON.parse(result.stdout).hookSpecificOutput;
@@ -51,6 +53,66 @@ test('copies a screenshot from the temp directory into the project and reports t
   assert.ok(fs.existsSync(source), 'source must be copied, not moved');
   assert.equal(output.hookEventName, 'PostToolUse');
   assert.ok(output.additionalContext.includes(copied));
+  assert.match(output.additionalContext, /staging inbox/i);
+  assert.match(output.additionalContext, /evidence\/<task-slug>/);
+  assert.doesNotMatch(output.additionalContext, /Dẫn đường dẫn.*ở trên.*báo cáo/i);
+});
+
+test('uses the payload cwd git root instead of a different session project', context => {
+  const sessionProject = makeDirectory(context, os.tmpdir(), 'copy-screenshot-session-');
+  const activeProject = makeDirectory(context, os.tmpdir(), 'copy-screenshot-active-');
+  const nestedCwd = path.join(activeProject, 'packages', 'app');
+  fs.mkdirSync(nestedCwd, { recursive: true });
+  spawnSync('git', ['init', '-q'], { cwd: activeProject });
+  const screenshots = makeDirectory(context, os.tmpdir(), 'claude-chrome-screenshots-');
+  const source = path.join(screenshots, 'active.png');
+  fs.writeFileSync(source, 'active');
+
+  const output = runHook(sessionProject, source, { payloadCwd: nestedCwd, sessionProject });
+  const copied = path.join(activeProject, '.agents/storage/evidence/browser', today(), 'active.png');
+
+  assert.equal(fs.readFileSync(copied, 'utf8'), 'active');
+  assert.equal(fs.existsSync(path.join(sessionProject, '.agents/storage/evidence/browser', today(), 'active.png')), false);
+  assert.ok(output.additionalContext.includes(copied));
+});
+
+test('copies directly into a validated task slug directory when configured', context => {
+  const { project, screenshots } = setup(context);
+  const source = path.join(screenshots, 'task.png');
+  fs.writeFileSync(source, 'task');
+
+  const output = runHook(project, source, { taskSlug: 'fix-evidence_scope.2' });
+  const copied = path.join(project, '.agents/storage/evidence/fix-evidence_scope.2', 'task.png');
+
+  assert.equal(fs.readFileSync(copied, 'utf8'), 'task');
+  assert.ok(output.additionalContext.includes(copied));
+  assert.doesNotMatch(output.additionalContext, /staging inbox/i);
+});
+
+test('ignores an invalid task slug and keeps the screenshot in staging', context => {
+  const { project, screenshots, evidence } = setup(context);
+  const source = path.join(screenshots, 'invalid-slug.png');
+  fs.writeFileSync(source, 'task');
+
+  const output = runHook(project, source, { taskSlug: '../outside' });
+
+  assert.equal(fs.readFileSync(path.join(evidence, 'invalid-slug.png'), 'utf8'), 'task');
+  assert.equal(fs.existsSync(path.join(project, '.agents/storage/outside/invalid-slug.png')), false);
+  assert.match(output.additionalContext, /staging inbox/i);
+});
+
+test('does not copy through an evidence symlink outside the active project', context => {
+  const { project, screenshots } = setup(context);
+  const outside = makeDirectory(context, os.tmpdir(), 'copy-screenshot-destination-');
+  fs.mkdirSync(path.join(project, '.agents/storage'), { recursive: true });
+  fs.symlinkSync(outside, path.join(project, '.agents/storage/evidence'));
+  const source = path.join(screenshots, 'symlink-destination.png');
+  fs.writeFileSync(source, 'task');
+
+  const output = runHook(project, source, { taskSlug: 'fix-evidence' });
+
+  assert.equal(output, null);
+  assert.equal(fs.existsSync(path.join(outside, 'fix-evidence', 'symlink-destination.png')), false);
 });
 
 test('finds image paths anywhere in an unknown tool_response shape', context => {
@@ -108,4 +170,53 @@ test('prints nothing when the response contains no image and always exits 0', co
   });
   assert.equal(invalid.status, 0);
   assert.equal(invalid.stdout, '');
+});
+
+test('saves an inline base64 image block from the real Chrome response shape', context => {
+  const { project, evidence } = setup(context);
+  const bytes = Buffer.from('fake-jpeg-bytes');
+  const output = runHook(project, [
+    { type: 'text', text: 'Successfully captured screenshot (743x406, jpeg) - ID: ss_4958du576 - 0.5-scale view' },
+    { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: bytes.toString('base64') } },
+  ]);
+
+  const saved = path.join(evidence, 'chrome-ss_4958du576.jpg');
+  assert.deepEqual(fs.readFileSync(saved), bytes);
+  assert.ok(output.additionalContext.includes(saved));
+});
+
+test('saves several inline images without overwriting and ignores unsupported media types', context => {
+  const { project, evidence } = setup(context);
+  const image = (type, text) => ({ type: 'image', source: { type: 'base64', media_type: type, data: Buffer.from(text).toString('base64') } });
+  runHook(project, [{ type: 'text', text: 'ID: ss_abc1' }, image('image/png', 'one'), image('image/png', 'two'), image('image/svg+xml', 'skip')]);
+  runHook(project, [{ type: 'text', text: 'ID: ss_abc1' }, image('image/png', 'three')]);
+
+  assert.deepEqual(fs.readdirSync(evidence).sort(), ['chrome-ss_abc1-1.png', 'chrome-ss_abc1-2.png', 'chrome-ss_abc1.png']);
+  assert.equal(fs.readFileSync(path.join(evidence, 'chrome-ss_abc1.png'), 'utf8'), 'one');
+  assert.equal(fs.readFileSync(path.join(evidence, 'chrome-ss_abc1-2.png'), 'utf8'), 'two');
+});
+
+test('copies an image that Claude Code saved under its tool-results directory but rejects other .claude paths', context => {
+  const { project, evidence } = setup(context);
+  const home = makeDirectory(context, path.join(repoRoot, '.agents/storage'), 'test-claude-home-');
+  const toolResults = path.join(home, 'projects/-demo/session/tool-results');
+  fs.mkdirSync(toolResults, { recursive: true });
+  const allowed = path.join(toolResults, 'mcp-claude-in-chrome-blob-1.jpg');
+  fs.writeFileSync(allowed, 'blob');
+  const secretDirectory = path.join(home, 'projects/-demo/session');
+  const other = path.join(secretDirectory, 'not-a-screenshot.png');
+  fs.writeFileSync(other, 'private');
+  const outside = path.join(home, 'elsewhere.png');
+  fs.writeFileSync(outside, 'private');
+
+  const output = runHook(project, [{ type: 'text', text: `[Image: source: ${allowed}] ${other} ${outside}` }], { env: { CLAUDE_CONFIG_DIR: home, TMPDIR: '/nonexistent' } });
+
+  assert.deepEqual(fs.readdirSync(evidence), ['mcp-claude-in-chrome-blob-1.jpg']);
+  assert.ok(output.additionalContext.includes(path.join(evidence, 'mcp-claude-in-chrome-blob-1.jpg')));
+});
+
+test('stays silent for a response with neither an image block nor an image path', context => {
+  const { project, evidence } = setup(context);
+  assert.equal(runHook(project, [{ type: 'text', text: 'Navigated to https://example.com' }]), null);
+  assert.equal(fs.existsSync(evidence), false);
 });

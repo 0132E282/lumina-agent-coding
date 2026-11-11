@@ -49,6 +49,13 @@
       }
     ],
     "executionOrder": ["TASK-001"],
+    "codingGroups": [
+      {
+        "name": "<Tên nhóm việc liên quan>",
+        "taskIds": ["TASK-001"],
+        "dependsOnGroups": []
+      }
+    ],
     "traceability": [
       {
         "requirementId": "REQ-001",

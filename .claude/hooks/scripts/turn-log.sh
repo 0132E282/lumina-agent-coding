@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Stop hook: write ONE summary line per turn (prompt, tool call count, edited files, tokens)
-# to .agents/storage/logs/logs.jsonl -- the same file audit-log.sh writes each tool call to.
+# Stop hook: ghi MỘT dòng tóm tắt mỗi lượt (prompt, số lần gọi tool, file đã sửa, token)
+# vào .agents/storage/logs/logs-YYYYMMDD.jsonl — cùng file audit-log.sh ghi từng tool call.
 #
 # Reads JSON input from stdin per the Stop schema:
 #   { "session_id": "...", "transcript_path": "...", "cwd": "...", "stop_hook_active": false }
 #
-# Written only once per turn (marker .agents/storage/state/<session_id>.turn.json).
-# Best-effort: missing node/script/transcript -> silent. Always exit 0, prints nothing to stdout.
+# Mỗi lượt chỉ ghi một lần (marker khoá `turn` của session trong .agents/storage/state/state-YYYYMMDD.json).
+# Best-effort: thiếu node/script/transcript thì im lặng. Luôn exit 0, không in gì ra stdout.
 
 # ! Skip if the project already has the same hook (avoid running twice with the user-level copy).
 . "$(dirname "$0")/_dedupe-guard.sh"

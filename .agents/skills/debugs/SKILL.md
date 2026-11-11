@@ -3,7 +3,7 @@ name: debugs
 description: Diagnose and fix bugs based on spec and evidence — reproduce, localize, root cause, minimal fix, regression verification. Use when debugging wrong behavior, exceptions, HTTP 4xx/5xx, failing tests, production-only bugs, performance bugs, or when the user says to fix a bug.
 license: MIT
 metadata:
-  version: "1.2"
+  version: "1.3"
 ---
 
 # Debugs

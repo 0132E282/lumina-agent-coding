@@ -6,10 +6,15 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
+const logFileName = (() => {
+  const now = new Date();
+  return `logs-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}.jsonl`;
+})();
+
 const repoRoot = fileURLToPath(new URL('..', import.meta.url));
 const hook = path.join(repoRoot, '.claude/hooks/scripts/audit-log.sh');
 const hookViaSymlink = path.join(repoRoot, '.agents/hooks/scripts/audit-log.sh');
-const logRelativePath = '.agents/storage/logs/logs.jsonl';
+const logRelativePath = `.agents/storage/logs/${logFileName}`;
 
 function temporaryDirectory(context, prefix = 'audit-log-test-') {
   const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), prefix)));

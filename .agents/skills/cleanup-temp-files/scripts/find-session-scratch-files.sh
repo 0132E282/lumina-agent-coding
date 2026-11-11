@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Lists files Written in a given session, based on .agents/storage/logs/logs.jsonl
-# and the latest rotated file (written by the audit-log hook) — ONLY within the current project (cwd in the
-# log must match cwd when running this script), still on disk, and matching the
-# "looks like temp/scratch" pattern. Scans nothing outside the project, deletes nothing.
+# Liệt kê file đã Write trong một session cụ thể, dựa vào .agents/storage/logs/logs-YYYYMMDD.jsonl
+# (ghi bởi hook audit-log) — CHỈ trong phạm vi dự án hiện tại (cwd ghi trong
+# log phải khớp cwd lúc chạy script này), còn tồn trên đĩa, và khớp pattern
+# "có vẻ là file tạm/scratch". Không quét gì ngoài project, không xóa gì.
 #
 # Used by skill cleanup-temp-files (suggests candidates) and hook remind-cleanup
 # (end-of-session reminder). Lists only — Claude/the user still decides
@@ -17,32 +17,17 @@ trap 'exit 0' ERR
 session_id="${1:-}"
 [ -z "$session_id" ] && exit 0
 
-if [ -n "$CLAUDE_PROJECT_DIR" ] && [ -d "$CLAUDE_PROJECT_DIR" ]; then
-  log_root="$CLAUDE_PROJECT_DIR"
-else
-  log_root="$(pwd)"
-fi
-log_dir="$log_root/.agents/storage/logs"
 command -v jq >/dev/null 2>&1 || exit 0
 
-# Read the active file + the latest rotated file so a rotation mid-session does not hide candidates.
-# The helper lives in hooks/scripts (skills/ and hooks/ are siblings) and pre-filters by session with grep;
-# without the helper only the active file is read. jq below still filters exactly.
-log_rotate_helper="$(dirname "$0")/../../../hooks/scripts/_log-rotate.sh"
-if [ -f "$log_rotate_helper" ]; then
-  . "$log_rotate_helper"
-  # Check the active file first (usually present) to avoid listing the directory.
-  [ -f "$log_dir/logs.jsonl" ] || [ -n "$(lumina_rotated_logs "$log_dir")" ] || exit 0
-  read_session_lines() { lumina_session_log_lines "$log_dir" "$session_id"; }
-elif [ -f "$log_dir/logs.jsonl" ]; then
-  # Pre-filter by session like the helper so a broken JSON line from another session does not make jq fail.
-  session_needle="$(jq -cn --arg sid "$session_id" '{session_id: $sid}')"
-  session_needle="${session_needle#\{}"
-  session_needle="${session_needle%\}}"
-  read_session_lines() { grep -F -- "$session_needle" "$log_dir/logs.jsonl" || true; }
-else
-  exit 0
-fi
+# Đọc mọi file log theo ngày còn trong cửa sổ giữ để session vắt qua nửa đêm không che ứng viên.
+# Helper nằm ở hooks/scripts (skills/ và hooks/ cùng cấp) và lọc trước theo session bằng grep.
+# jq bên dưới vẫn lọc chính xác.
+storage_helper="$(dirname "$0")/../../../hooks/scripts/_hook-storage.sh"
+[ -f "$storage_helper" ] || exit 0
+. "$storage_helper"
+log_dir="$(lumina_project_root)/.agents/storage/logs"
+[ -n "$(lumina_log_files "$log_dir")" ] || exit 0
+read_session_lines() { lumina_session_log_lines "$log_dir" "$session_id"; }
 
 project_dir="$(pwd)"
 

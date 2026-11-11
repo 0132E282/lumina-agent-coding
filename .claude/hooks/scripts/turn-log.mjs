@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-// Helper for turn-log.sh: read the transcript, write ONE summary line of the current turn to logs.jsonl.
-// Usage: node turn-log.mjs <task-usage.mjs>  (Stop payload via stdin). Always exit 0.
-import { spawnSync } from 'node:child_process';
+// Helper của turn-log.sh: đọc transcript, ghi MỘT dòng tóm tắt lượt hiện tại vào logs-YYYYMMDD.jsonl của hôm nay.
+// Usage: node turn-log.mjs <task-usage.mjs>  (Stop payload qua stdin). Luôn exit 0.
 import * as fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { pathToFileURL } from 'node:url';
+import { getSessionValue, setSessionValue, todayLogFile } from './_hook-storage.mjs';
 
 const REQUEST_LIMIT = 200;
 const FILE_TOOLS = new Set(['Edit', 'Write', 'NotebookEdit']);
@@ -118,28 +118,6 @@ function measureSubagents(results, transcriptPath, measure, criteria) {
   return { tokens: measured > 0 ? totals(sum) : null, pending };
 }
 
-// Same threshold/validation as lumina_log_rotate in _log-rotate.sh.
-function rotateThresholdBytes() {
-  const configured = process.env.LUMINA_LOG_MAX_BYTES ?? '';
-  return /^[0-9]+$/.test(configured) && Number(configured) > 0 ? Number(configured) : 1048576;
-}
-
-// Rotation shares the bash helper with audit-log; best-effort, errors do not block writing the line.
-// Only spawn bash once the file reached the threshold -- avoids one spawn per turn; the helper still rechecks itself.
-function rotateLog(logDirectory) {
-  let size;
-  try {
-    size = fs.statSync(path.join(logDirectory, 'logs.jsonl')).size;
-  } catch {
-    // A missing file (or one that cannot be stat'd) is also skipped by the helper; log rotation is best-effort, never blocks writing.
-    return;
-  }
-  if (size < rotateThresholdBytes()) return;
-  const helper = fileURLToPath(new URL('./_log-rotate.sh', import.meta.url));
-  if (!fs.existsSync(helper)) return;
-  spawnSync('bash', [helper, logDirectory], { stdio: 'ignore' });
-}
-
 async function main() {
   const usageModulePath = process.argv[2];
   const payload = JSON.parse(fs.readFileSync(0, 'utf8'));
@@ -163,14 +141,10 @@ async function main() {
 
   const sessionId = typeof payload.session_id === 'string' && payload.session_id ? payload.session_id : 'unknown';
   const logRoot = resolveLogRoot(payload);
-  const stateFile = path.join(logRoot, '.agents/storage/state', `${sessionId.replace(/[^A-Za-z0-9_-]/g, '_')}.turn.json`);
   const turnMarker = { turnStartLine: startIndex + 1, turnStartUuid: events[startIndex].uuid ?? null };
-  try {
-    const previous = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
-    if (previous.turnStartLine === turnMarker.turnStartLine && previous.turnStartUuid === turnMarker.turnStartUuid) return;
-  } catch {
-    // No marker for this session yet: the first turn is written.
-  }
+  // Chưa có marker cho phiên này (undefined) thì lượt đầu tiên được ghi.
+  const previous = getSessionValue(logRoot, sessionId, 'turn');
+  if (previous && previous.turnStartLine === turnMarker.turnStartLine && previous.turnStartUuid === turnMarker.turnStartUuid) return;
 
   const tools = {};
   const files = [];
@@ -209,12 +183,8 @@ async function main() {
     ...(subagents.pending > 0 ? { subagentsPending: subagents.pending } : {}),
   };
 
-  const logDirectory = path.join(logRoot, '.agents/storage/logs');
-  fs.mkdirSync(logDirectory, { recursive: true });
-  rotateLog(logDirectory);
-  fs.appendFileSync(path.join(logDirectory, 'logs.jsonl'), `${JSON.stringify(entry)}\n`);
-  fs.mkdirSync(path.dirname(stateFile), { recursive: true });
-  fs.writeFileSync(stateFile, `${JSON.stringify(turnMarker)}\n`);
+  fs.appendFileSync(todayLogFile(logRoot), `${JSON.stringify(entry)}\n`);
+  setSessionValue(logRoot, sessionId, 'turn', turnMarker);
 }
 
 try {

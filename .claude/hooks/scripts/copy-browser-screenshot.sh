@@ -6,8 +6,11 @@
 # Reads JSON input from stdin per the PostToolUse schema:
 #   { "tool_name": "...", "tool_response": ..., "cwd": "..." }
 #
-# ! The Chrome tool_response structure is not verified, so scan every string in it
-# with an image-file regex, then accept only regular files (no symlinks) under the temp directory.
+
+# ! Transcript thật của Chrome chỉ có text "Successfully captured screenshot (...) - ID: ss_xxx" và khối image
+# base64 (kèm file .../tool-results/mcp-claude-in-chrome-blob-*.jpg do Claude Code lưu dưới ~/.claude/projects).
+# Hook nhận: (1) khối image base64 trong tool_response, (2) đường dẫn ảnh dưới thư mục tạm,
+# (3) đường dẫn ảnh trong tool-results của Claude Code; chỉ nhận file thường (không symlink) dưới thư mục tin cậy.
 #
 # Copy, not move; on a name clash add a suffix, never overwrite. Always exit 0, never blocks the tool.
 
@@ -21,19 +24,31 @@ command -v jq >/dev/null 2>&1 || exit 0
 
 input="$(cat)"
 
-if [ -n "$CLAUDE_PROJECT_DIR" ] && [ -d "$CLAUDE_PROJECT_DIR" ]; then
-  project_dir="$CLAUDE_PROJECT_DIR"
-else
-  project_dir="$(printf '%s' "$input" | jq -r '.cwd // ""' 2>/dev/null)"
-  [ -n "$project_dir" ] && [ -d "$project_dir" ] || project_dir="$(pwd)"
+project_dir="$(printf '%s' "$input" | jq -r '.cwd // ""' 2>/dev/null)"
+if [ -z "$project_dir" ] || [ ! -d "$project_dir" ]; then
+  if [ -n "$CLAUDE_PROJECT_DIR" ] && [ -d "$CLAUDE_PROJECT_DIR" ]; then
+    project_dir="$CLAUDE_PROJECT_DIR"
+  else
+    project_dir="$(pwd)"
+  fi
 fi
+git_root="$(git -C "$project_dir" rev-parse --show-toplevel 2>/dev/null || true)"
+[ -z "$git_root" ] || project_dir="$git_root"
 project_dir_real="$(cd "$project_dir" 2>/dev/null && pwd -P)" || exit 0
+project_dir="$project_dir_real"
 
 candidates="$(printf '%s' "$input" \
   | jq -r '[.tool_response | .. | strings] | join("\n")' 2>/dev/null \
   | grep -oiE "/[^\"'[:space:]<>|\\\\]*\\.(png|jpe?g|webp)" \
-  | sort -u)"
-[ -z "$candidates" ] && exit 0
+  | sort -u || true)"
+
+# Khối image base64 (MCP): {type:"image", source:{type:"base64", media_type, data}} hoặc {type:"image", data, mimeType}.
+inline_images="$(printf '%s' "$input" | jq -r '
+  [.tool_response | .. | objects | select(.type? == "image") | (.source // .) | select((.data? | type) == "string")]
+  | .[] | "\((.media_type // .mimeType // "image/png"))\t\(.data)"' 2>/dev/null || true)"
+screenshot_id="$(printf '%s' "$input" | jq -r '[.tool_response | .. | strings] | join("\n")' 2>/dev/null \
+  | grep -oE 'ss_[A-Za-z0-9]+' | head -n 1 || true)"
+[ -z "$candidates" ] && [ -z "$inline_images" ] && exit 0
 
 temp_roots=()
 for root in "$TMPDIR" /tmp /private/tmp /var/folders /private/var/folders; do
@@ -41,7 +56,10 @@ for root in "$TMPDIR" /tmp /private/tmp /var/folders /private/var/folders; do
   root_real="$(cd "$root" 2>/dev/null && pwd -P)" || continue
   temp_roots+=("${root_real%/}")
 done
-[ "${#temp_roots[@]}" -eq 0 ] && exit 0
+
+# Thư mục tool-results của Claude Code cho project này (ảnh MCP được lưu ở đây, không phải thư mục tạm).
+claude_home_real="$(cd "${CLAUDE_CONFIG_DIR:-$HOME/.claude}" 2>/dev/null && pwd -P)" || claude_home_real=""
+[ -n "$claude_home_real" ] && temp_roots+=("$claude_home_real/projects")
 
 is_under_temp_root() {
   local directory="$1" root
@@ -53,7 +71,23 @@ is_under_temp_root() {
   return 1
 }
 
-destination_dir="$project_dir/.agents/storage/evidence/browser/$(date +%Y%m%d)"
+task_slug="${LUMINA_TASK_SLUG:-}"
+if [[ "$task_slug" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$ ]]; then
+  destination_dir="$project_dir/.agents/storage/evidence/$task_slug"
+  context_header="Ảnh chụp trình duyệt đã được copy vào thư mục evidence của task trong project đang hoạt động:"
+  context_footer="Dùng đường dẫn trong project ở trên thay cho đường dẫn tạm."
+else
+  destination_dir="$project_dir/.agents/storage/evidence/browser/$(date +%Y%m%d)"
+  context_header="Ảnh chụp trình duyệt đã được copy vào staging inbox của project đang hoạt động:"
+  context_footer="Đây chưa phải evidence cuối. Trước khi dẫn trong báo cáo, hãy chuyển ảnh cần dùng vào .agents/storage/evidence/<task-slug>/ của project này."
+fi
+destination_relative="${destination_dir#"$project_dir"/}"
+destination_cursor="$project_dir"
+IFS='/' read -r -a destination_components <<< "$destination_relative"
+for component in "${destination_components[@]}"; do
+  destination_cursor="$destination_cursor/$component"
+  [ ! -L "$destination_cursor" ] || exit 0
+done
 copied_lines=""
 
 while IFS= read -r source_path; do
@@ -61,7 +95,10 @@ while IFS= read -r source_path; do
   [ -f "$source_path" ] && [ ! -L "$source_path" ] || continue
   source_dir_real="$(cd "$(dirname "$source_path")" 2>/dev/null && pwd -P)" || continue
   is_under_temp_root "$source_dir_real" || continue
-  # If the project lives under the temp directory, do not copy images already inside the project.
+  case "$source_dir_real/" in
+    "$claude_home_real"/projects/*) case "$source_dir_real" in */tool-results|*/tool-results/*) ;; *) continue ;; esac ;;
+  esac
+  # Project nằm dưới thư mục tạm thì không copy ảnh đã ở trong project.
   case "$source_dir_real/" in
     "$project_dir_real"/*) continue ;;
   esac
@@ -82,11 +119,38 @@ while IFS= read -r source_path; do
 "
 done <<< "$candidates"
 
+inline_index=0
+while IFS=$'\t' read -r media_type image_data; do
+  [ -n "$image_data" ] || continue
+  case "$media_type" in
+    image/jpeg|image/jpg) extension="jpg" ;;
+    image/webp) extension="webp" ;;
+    image/png) extension="png" ;;
+    *) continue ;;
+  esac
+  inline_index=$((inline_index + 1))
+  mkdir -p "$destination_dir" 2>/dev/null || exit 0
+  stem="chrome-${screenshot_id:-$(date +%H%M%S)}"
+  [ "$inline_index" -gt 1 ] && stem="$stem-$inline_index"
+  destination_path="$destination_dir/$stem.$extension"
+  suffix=1
+  while [ -e "$destination_path" ] || [ -L "$destination_path" ]; do
+    destination_path="$destination_dir/$stem-$suffix.$extension"
+    suffix=$((suffix + 1))
+  done
+  if printf '%s' "$image_data" | { base64 -d 2>/dev/null || base64 -D 2>/dev/null; } > "$destination_path" && [ -s "$destination_path" ]; then
+    copied_lines="${copied_lines}- (ảnh base64 trong tool_response) -> ${destination_path}
+"
+  else
+    rm -f "$destination_path"
+  fi
+done <<< "$inline_images"
+
 [ -z "$copied_lines" ] && exit 0
 
-context="Browser screenshot in the temp directory was copied into the project:
+context="${context_header}
 ${copied_lines}
-Cite the project path above (not the temp path) when reporting or using it as evidence."
+${context_footer}"
 
 jq -n --arg ctx "$context" '{
   hookSpecificOutput: {
