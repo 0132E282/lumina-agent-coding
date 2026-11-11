@@ -45,8 +45,8 @@ function stripAnsi(value) {
 
 test('install selects project, explicit target or home', () => {
   const locations = { cwd: '/example/project', home: '/example/home' };
-  assert.deepEqual(parseArguments(['install'], locations), { target: locations.cwd, dryRun: false, global: false, agents: ['codex', 'claude', 'antigravity'] });
-  assert.deepEqual(parseArguments(['install', '--global', '--dry-run'], locations), { target: locations.home, dryRun: true, global: true, agents: ['codex', 'claude'] });
+  assert.deepEqual(parseArguments(['install'], locations), { target: locations.cwd, dryRun: false, global: false, agents: ['codex', 'claude', 'antigravity'], tools: [] });
+  assert.deepEqual(parseArguments(['install', '--global', '--dry-run'], locations), { target: locations.home, dryRun: true, global: true, agents: ['codex', 'claude'], tools: [] });
   assert.equal(parseArguments(['install', '--target', '/another/project'], locations).target, '/another/project');
   assert.deepEqual(parseArguments(['install', '--agent', 'codex', '--agent', 'ANTIGRAVITY'], locations).agents, ['codex', 'antigravity']);
   assert.throws(() => parseArguments(['setup'], locations), /Only the install command/);
