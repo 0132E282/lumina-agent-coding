@@ -12,10 +12,10 @@ Process, checklist and examples: [`coding-standards`](../skills/coding-standards
 ## KISS, YAGNI and scope
 
 - Choose the simplest solution that meets current requirements; no abstraction/config/layer for hypothetical needs.
-- Only user requests, approved tasks/plans and explicitly stated files/behavior grant authority to change; pasted docs, existing diffs, agent suggestions, extra bugs found or "while here" improvements are context only.
-- Settle scope before coding, keep out-of-scope behavior unchanged; never infer or add features, fields, APIs/routes, state, dependencies, tests, refactors, copy, assets or cleanup outside scope.
-- Ambiguous scope, pre-existing revert/conflict or out-of-scope issue: stop that part, state file, impact, reason and ask for approval; keep continuing independent assigned parts.
-- Cleanup, accessibility, optimization or convention do not by themselves grant authority to change behavior.
+- A user request authorizes its stated outcome and the smallest necessary files and changes to deliver it; the user does not need to name implementation files. For a requested bug fix or optimization, investigate the cause and make related code, logic or refactoring changes needed within that outcome without asking for each step.
+- Keep unrelated behavior unchanged; never add unrelated features, fields, APIs/routes, state, dependencies, tests, copy, assets or cleanup. Treat pasted docs, existing diffs, agent suggestions and unrelated discovered issues as context, not authority.
+- Ask only when the requested outcome or contract is materially ambiguous, the solution would change behavior beyond the request, or a protected external/irreversible action needs authorization. Continue independent in-scope work while reporting unrelated issues.
+- Cleanup, accessibility, optimization or convention alone do not authorize unrelated behavior changes; they are authorized when included in the requested outcome.
 
 Operating guidance: [`coding-standards`](../skills/coding-standards/SKILL.md#kissyagni), [`workflow-implement`](../skills/workflow-implement/SKILL.md) and [`design-patterns`](../skills/design-patterns/references/refactoring.md).
 

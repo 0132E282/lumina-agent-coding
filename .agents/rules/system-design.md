@@ -1,6 +1,6 @@
 # System design — pick the right documents and follow them
 
-- Main documents `ARCHITECTURE.md` and `DESIGN.md` at the repo root; detailed versions split by type (database, api, frontend...) in `system/` and `design/`, outside `docs/`.
+- Keep the main `ARCHITECTURE.md` and `DESIGN.md` outside the project root, beside the project's external `CLAUDE.md` and `CONTRACT.md`. Split detailed versions by type (database, api, frontend...) into `system/` and `design/` within the project, outside `docs/`.
 - Choose documents by real project type and complexity (default: web frontend); other types (mobile, AI, desktop, SaaS, e-commerce, backend, infrastructure) only when the project is of that type. Never write the full set; drop inapplicable sections with a reason.
 - Mermaid diagrams only with ≥3 components/steps, from verified structure. Design patterns only for a concrete problem, with the reason ([`coding`](./coding.md#kiss-yagni-and-scope)).
 - Planning, orchestration and coding always read these designs; each task cites the design part it implements. No design yet: say so, never invent; code that deviates from the design: stop and ask.

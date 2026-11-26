@@ -8,7 +8,7 @@ Chọn bộ tài liệu và sơ đồ theo loại dự án, không viết đủ 
 2. Lấy **Core** (mục dưới), rồi cộng bộ riêng của từng loại đã xác định.
 3. Bỏ mục không áp dụng theo độ phức tạp và yêu cầu thật; ghi lý do bỏ.
 4. Mỗi sơ đồ chỉ vẽ khi có ≥3 thành phần/bước, theo [diagrams.md](./diagrams.md).
-5. Tài liệu chính ở gốc repo (`ARCHITECTURE.md`, `DESIGN.md`); bản thiết kế chi tiết chia theo loại trong `system/` (database, api, frontend, backend, infrastructure, security, devops) và `design/` (mỗi trang một file, `animations.md`, `images/`); phần chưa có căn cứ là giả định hoặc câu hỏi mở.
+5. Đặt tài liệu chính `ARCHITECTURE.md` và `DESIGN.md` bên ngoài gốc dự án, cùng thư mục với `CLAUDE.md` và `CONTRACT.md` bên ngoài dự án. Chia bản thiết kế chi tiết theo loại vào `system/` (database, api, frontend, backend, infrastructure, security, devops) và `design/` (mỗi trang một file, `animations.md`, `images/`) trong dự án; phần chưa có căn cứ là giả định hoặc câu hỏi mở.
 
 ## Phân loại dự án
 
@@ -54,4 +54,4 @@ Chọn bộ tài liệu và sơ đồ theo loại dự án, không viết đủ 
 - [ ] Phân biệt dữ kiện đã xác minh, giả định, câu hỏi mở
 - [ ] Bám design system/UI hiện có, không tự redesign
 - [ ] Môi trường (local/staging/production) tách secret; CI chạy lint/test/build trước deploy, có health check và rollback
-- [ ] Đã ghi `ARCHITECTURE.md`/`DESIGN.md` ở gốc và chi tiết theo loại vào `system/`, `design/`
+- [ ] Đã ghi `ARCHITECTURE.md`/`DESIGN.md` cạnh `CLAUDE.md`/`CONTRACT.md` bên ngoài gốc dự án, cùng tài liệu chi tiết theo loại vào `system/`, `design/` trong dự án

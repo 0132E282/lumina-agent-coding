@@ -14,12 +14,14 @@ This is an agent configuration repo. `.agents/rules/` is the single shared sourc
 ## Skills, roles, and workflows
 
 - `.agents/skills/` is the shared skill source; `.claude/skills/` and `.codex/skills/` symlink there. `.codex/agents/*.toml` corresponds to `.claude/agents/*.md` (except `codex-review`, which runs in Claude Code to call Codex).
-- Workflows: `$workflow-{analyze,plan,implement,debug,test,review,report,git,cleanup,graphify}`. Claude calls the slash commands in `.claude/commands/` directly; for review, type `/review` to use Claude Code's built-in `code-review`/`security-review` skills — there is no `.claude/commands/review.md` (see [`workflow-review`](./.agents/skills/workflow-review/SKILL.md)). Planning: native Plan mode + `.agents/skills/workflow-plan/SKILL.md`. Git: `/git` or `$workflow-git` ([`rules/git`](./.agents/rules/git.md)).
+- Workflows: `$workflow-{analyze,plan,implement,debug,test,review,report,git,cleanup,graphify,init}`. Claude calls the slash commands in `.claude/commands/` directly; `/init` initializes project guidance for Claude, and Codex uses `$workflow-init` for Codex guidance. For review, type `/review` to use Claude Code's built-in `code-review`/`security-review` skills — there is no `.claude/commands/review.md` (see [`workflow-review`](./.agents/skills/workflow-review/SKILL.md)). Planning: native Plan mode + `.agents/skills/workflow-plan/SKILL.md`. Git: `/git` or `$workflow-git` ([`rules/git`](./.agents/rules/git.md)).
 - Hand off via `docs/` per role; maintain approval checkpoints. Do not auto-run the full pipeline.
 
 ## Execution discipline
 
 Follow [implementation](./.agents/rules/delivery.md#implementation-on-request) directly. `/cleanup` trims context only. `/test`/`$workflow-test` saves to `testcase.json` at repo root.
+
+- An explicit user request authorizes the stated outcome and the smallest necessary files/actions to deliver it; the user does not need to list implementation files. For requested bug fixes or optimization, investigate the cause and make related in-scope changes without asking for approval at each step. Keep unrelated changes out of scope; retain approval gates for ambiguous requirements and protected database or external side effects.
 
 - Every task that performs work follows the mandatory [`orchestration`](./.agents/rules/orchestration.md) rule: the main session delegates directly to the matching specialist subagent. Pure answers/lookups without an execution task stay in the main session.
 - Implement immediately when evidence is sufficient; no extra probing.
@@ -38,6 +40,7 @@ Discovers skills/rules from `.agents/`. TOML files in `.codex/agents/` are not A
 
 | Task | Role / Skill |
 |---|---|
+| Initialize a project for the active runtime | `/init` / `$workflow-init` → shared `workflow-init` skill |
 | Setup tool/library/runtime/app | `setup` |
 | Read PDF/DOCX/PPTX/XLSX/HTML/image/URL content cheaply | `markitdown` — convert to Markdown first (CLI or MCP) |
 | Requirement analysis | `workflow-analyze` / `analyst` |
