@@ -21,6 +21,8 @@ This is an agent configuration repo. `.agents/rules/` is the single shared sourc
 
 Follow [implementation](./.agents/rules/delivery.md#implementation-on-request) directly. `/cleanup` trims context only. `/test`/`$workflow-test` saves to `testcase.json` at repo root.
 
+- An explicit user request authorizes the stated outcome and the smallest necessary files/actions to deliver it; the user does not need to list implementation files. For requested bug fixes or optimization, investigate the cause and make related in-scope changes without asking for approval at each step. Keep unrelated changes out of scope; retain approval gates for ambiguous requirements and protected database or external side effects.
+
 - Every task that performs work follows the mandatory [`orchestration`](./.agents/rules/orchestration.md) rule: the main session delegates directly to the matching specialist subagent. Pure answers/lookups without an execution task stay in the main session.
 - Implement immediately when evidence is sufficient; no extra probing.
 - Gates: scope/authorization → [`coding`](./.agents/rules/coding.md#kiss-yagni-and-scope); UI → [`frontend`](./.agents/rules/frontend.md); before handoff → [`delivery`](./.agents/rules/delivery.md#quality-and-evidence); full plan completion → [`docs`](./.agents/rules/docs.md#docs-sync).

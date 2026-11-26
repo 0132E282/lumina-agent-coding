@@ -36,7 +36,7 @@ Read the invariants in [`coding-principles`](../../rules/coding.md#coding-princi
 
 - Choose the simplest solution for the current requirement; three repeated lines beat a premature abstraction.
 - Do not add config/interfaces/layers or design patterns for hypothetical needs. If a solution needs a new diagram to explain, simplify it.
-- On finding out-of-scope issues, note the file, impact and reason and ask for approval; continue the independent parts. Cleanup, accessibility, optimization or convention do not by themselves grant permission to change behavior.
+- For requested optimization or bug fixing, make the related changes needed to achieve the requested outcome, including within-scope cleanup or refactoring; no per-file approval is needed. For unrelated issues, note the file and impact without changing it. Ask only if a proposed change would expand the requested behavior or alter an ambiguous contract.
 
 ## Handoff checklist
 
