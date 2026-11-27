@@ -9,9 +9,9 @@
 #   file test mới/sửa so với base (commit từ merge-base tới HEAD, staged,
 #   unstaged, untracked); `node_modules` ở gốc repo được symlink sang nếu có.
 # - Chạy lệnh test trong worktree base rồi trong working tree hiện tại.
-# - Log đầy đủ: .agents/storage/evidence/<slug-nhánh>/<yyyyMMdd-HHmm>-regression.log
-#   (hoặc --evidence-dir: phải nằm trong <repo>/.agents/storage/evidence, không đi
-#   qua symlink; ngoài đó exit 2). Đọc log để chắc base fail vì đúng lỗi, không vì môi trường.
+# - Log đầy đủ: .agents/storage/<slug-nhánh>/<yyyyMMdd-HHmm>-regression.log
+#   (hoặc --evidence-dir: phải là một task folder ngay trong <repo>/.agents/storage,
+#   không đi qua symlink; ngoài đó exit 2). Đọc log để chắc base fail do đúng lỗi.
 # - Không sửa working tree/index hiện tại; worktree tạm luôn được dọn (trap EXIT).
 #   Script chỉ chạy đúng lệnh test được truyền vào — không tự ghi DB hay push.
 #
@@ -71,59 +71,47 @@ if [ "${#test_files[@]}" -eq 0 ]; then
   exit 2
 fi
 
-evidence_root="$repository_root/.agents/storage/evidence"
+evidence_root="$repository_root/.agents/storage"
 resolve_evidence_dir() {
   case "$evidence_directory" in
     /*) evidence_candidate="$evidence_directory" ;;
     *) evidence_candidate="$repository_root/$evidence_directory" ;;
   esac
+  evidence_candidate="${evidence_candidate%/}"
   case "$evidence_candidate" in
-    "$evidence_root") evidence_relative="" ;;
-    "$evidence_root"/*) evidence_relative="${evidence_candidate#"$evidence_root"/}" ;;
-    *) echo "--evidence-dir phải nằm trong $evidence_root." >&2; exit 2 ;;
+    "$evidence_root"/*) task_slug="${evidence_candidate#"$evidence_root"/}" ;;
+    *) echo "--evidence-dir phải là một task folder ngay trong $evidence_root." >&2; exit 2 ;;
   esac
-  case "/$evidence_relative/" in
-    */../*) echo "--evidence-dir phải nằm trong $evidence_root." >&2; exit 2 ;;
-  esac
+  [[ "$task_slug" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$ ]] || {
+    echo "--evidence-dir phải là một task folder ngay trong $evidence_root." >&2
+    exit 2
+  }
 
-  evidence_root_cursor="$repository_root"
-  for component in .agents storage evidence; do
-    evidence_root_cursor="$evidence_root_cursor/$component"
-    [ ! -L "$evidence_root_cursor" ] || { echo "$evidence_root không được đi qua symlink." >&2; exit 2; }
+  evidence_cursor="$repository_root"
+  for component in .agents storage "$task_slug"; do
+    evidence_cursor="$evidence_cursor/$component"
+    [ ! -L "$evidence_cursor" ] || { echo "--evidence-dir không được đi qua symlink ($evidence_root)." >&2; exit 2; }
   done
-  mkdir -p "$evidence_root" || exit 2
+  mkdir -p "$evidence_candidate" || exit 2
   evidence_root_real="$(cd "$evidence_root" && pwd -P)" || exit 2
-  current_directory="$evidence_root_real"
-  IFS='/' read -r -a evidence_components <<< "$evidence_relative"
-  for component in "${evidence_components[@]}"; do
-    [ -n "$component" ] && [ "$component" != "." ] || continue
-    next_directory="$current_directory/$component"
-    if [ -e "$next_directory" ] || [ -L "$next_directory" ]; then
-      [ -d "$next_directory" ] || { echo "--evidence-dir không phải thư mục hợp lệ trong $evidence_root." >&2; exit 2; }
-      next_directory_real="$(cd "$next_directory" && pwd -P)" || exit 2
-      case "$next_directory_real/" in
-        "$evidence_root_real"/*) current_directory="$next_directory_real" ;;
-        *) echo "--evidence-dir không được thoát khỏi $evidence_root qua symlink." >&2; exit 2 ;;
-      esac
-    else
-      current_directory="$next_directory"
-    fi
-  done
-  evidence_directory="$evidence_candidate"
+  evidence_candidate_real="$(cd "$evidence_candidate" && pwd -P)" || exit 2
+  case "$evidence_candidate_real/" in
+    "$evidence_root_real/$task_slug/") evidence_directory="$evidence_candidate_real" ;;
+    *) echo "--evidence-dir không được thoát khỏi $evidence_root." >&2; exit 2 ;;
+  esac
 }
 
 if [ "$evidence_directory_explicit" = false ]; then
   branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
   [ "$branch" = "HEAD" ] && branch="detached-$(git rev-parse --short HEAD)"
-  slug="$(printf '%s' "$branch" | sed -E 's/[^A-Za-z0-9._-]+/-/g; s/^-+|-+$//g')"
+  slug="$(printf '%s' "$branch" | sed -E 's/[^A-Za-z0-9._-]+/-/g; s/^[^A-Za-z0-9]+//; s/-+$//' | cut -c1-80)"
   evidence_directory="$evidence_root/${slug:-regression}"
-else
-  resolve_evidence_dir
 fi
+resolve_evidence_dir
 mkdir -p "$evidence_directory" || exit 2
 log_file="$evidence_directory/$(date +%Y%m%d-%H%M)-regression.log"
 
-temporary_directory="$(mktemp -d "${TMPDIR:-/tmp}/verify-regression.XXXXXX")" || exit 2
+temporary_directory="$(mktemp -d "$evidence_directory/.verify-regression.XXXXXX")" || exit 2
 base_worktree="$temporary_directory/base"
 cleanup() {
   git -C "$repository_root" worktree remove --force "$base_worktree" >/dev/null 2>&1

@@ -25,7 +25,7 @@ function makeDirectory(context, parent, prefix) {
 function setup(context) {
   const project = makeDirectory(context, os.tmpdir(), 'copy-screenshot-project-');
   const screenshots = makeDirectory(context, os.tmpdir(), 'claude-chrome-screenshots-');
-  return { project, screenshots, evidence: path.join(project, '.agents/storage/evidence/browser', today()) };
+  return { project, screenshots, evidence: path.join(project, `.agents/storage/browser-${today()}`) };
 }
 
 function runHook(project, toolResponse, options = {}) {
@@ -41,7 +41,7 @@ function runHook(project, toolResponse, options = {}) {
   return result.stdout.trim() === '' ? null : JSON.parse(result.stdout).hookSpecificOutput;
 }
 
-test('copies a screenshot from the temp directory into the project and reports the new path', context => {
+test('moves a screenshot from the temp directory into the project and reports the new path', context => {
   const { project, screenshots, evidence } = setup(context);
   const source = path.join(screenshots, 'screenshot-1761200000-1.jpg');
   fs.writeFileSync(source, 'jpeg-bytes');
@@ -50,11 +50,11 @@ test('copies a screenshot from the temp directory into the project and reports t
 
   const copied = path.join(evidence, 'screenshot-1761200000-1.jpg');
   assert.equal(fs.readFileSync(copied, 'utf8'), 'jpeg-bytes');
-  assert.ok(fs.existsSync(source), 'source must be copied, not moved');
+  assert.equal(fs.existsSync(source), false, 'task-created temp source should be removed after moving');
   assert.equal(output.hookEventName, 'PostToolUse');
   assert.ok(output.additionalContext.includes(copied));
-  assert.match(output.additionalContext, /staging inbox/i);
-  assert.match(output.additionalContext, /evidence\/<task-slug>/);
+  assert.match(output.additionalContext, /browser-\d{8}/);
+  assert.match(output.additionalContext, /không tạo bản sao ở thư mục khác/i);
   assert.doesNotMatch(output.additionalContext, /Dẫn đường dẫn.*ở trên.*báo cáo/i);
 });
 
@@ -69,10 +69,10 @@ test('uses the payload cwd git root instead of a different session project', con
   fs.writeFileSync(source, 'active');
 
   const output = runHook(sessionProject, source, { payloadCwd: nestedCwd, sessionProject });
-  const copied = path.join(activeProject, '.agents/storage/evidence/browser', today(), 'active.png');
+  const copied = path.join(activeProject, `.agents/storage/browser-${today()}`, 'active.png');
 
   assert.equal(fs.readFileSync(copied, 'utf8'), 'active');
-  assert.equal(fs.existsSync(path.join(sessionProject, '.agents/storage/evidence/browser', today(), 'active.png')), false);
+  assert.equal(fs.existsSync(path.join(sessionProject, `.agents/storage/browser-${today()}`, 'active.png')), false);
   assert.ok(output.additionalContext.includes(copied));
 });
 
@@ -82,14 +82,14 @@ test('copies directly into a validated task slug directory when configured', con
   fs.writeFileSync(source, 'task');
 
   const output = runHook(project, source, { taskSlug: 'fix-evidence_scope.2' });
-  const copied = path.join(project, '.agents/storage/evidence/fix-evidence_scope.2', 'task.png');
+  const copied = path.join(project, '.agents/storage/fix-evidence_scope.2', 'task.png');
 
   assert.equal(fs.readFileSync(copied, 'utf8'), 'task');
   assert.ok(output.additionalContext.includes(copied));
   assert.doesNotMatch(output.additionalContext, /staging inbox/i);
 });
 
-test('ignores an invalid task slug and keeps the screenshot in staging', context => {
+test('uses the project-local browser folder when the task slug is invalid', context => {
   const { project, screenshots, evidence } = setup(context);
   const source = path.join(screenshots, 'invalid-slug.png');
   fs.writeFileSync(source, 'task');
@@ -98,14 +98,14 @@ test('ignores an invalid task slug and keeps the screenshot in staging', context
 
   assert.equal(fs.readFileSync(path.join(evidence, 'invalid-slug.png'), 'utf8'), 'task');
   assert.equal(fs.existsSync(path.join(project, '.agents/storage/outside/invalid-slug.png')), false);
-  assert.match(output.additionalContext, /staging inbox/i);
+  assert.match(output.additionalContext, /browser-\d{8}/);
 });
 
-test('does not copy through an evidence symlink outside the active project', context => {
+test('does not copy through a storage symlink outside the active project', context => {
   const { project, screenshots } = setup(context);
   const outside = makeDirectory(context, os.tmpdir(), 'copy-screenshot-destination-');
-  fs.mkdirSync(path.join(project, '.agents/storage'), { recursive: true });
-  fs.symlinkSync(outside, path.join(project, '.agents/storage/evidence'));
+  fs.mkdirSync(path.join(project, '.agents'), { recursive: true });
+  fs.symlinkSync(outside, path.join(project, '.agents/storage'));
   const source = path.join(screenshots, 'symlink-destination.png');
   fs.writeFileSync(source, 'task');
 

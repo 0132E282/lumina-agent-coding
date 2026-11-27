@@ -2,22 +2,22 @@
 
 ## Coding principles
 
-- Duplicate logic is merged only when it has the same business meaning and reason to change; keep the Rule of Three.
-- One class/function has one reason to change; prefer composition, abstraction only with real substitution needs.
-- Validate/fail fast at boundaries before side effects; business logic separate from HTTP/framework; errors must be specific.
-- Names and structure must be self-explanatory; new/edited text files must have a final newline, keep existing line endings.
+- Keep changes simple and names clear; merge duplication only when its meaning and reason to change match (Rule of Three).
+- Give each unit one responsibility; prefer composition, validate boundaries before side effects, and separate business logic from HTTP/framework code. Return specific errors.
+- Preserve project formatting and line endings; edited text files end with a newline.
 
 Process, checklist and examples: [`coding-standards`](../skills/coding-standards/SKILL.md). Comments: [`comments`](#disciplined-comments). Scope/KISS: [`simplicity`](#kiss-yagni-and-scope).
 
 ## KISS, YAGNI and scope
 
 - Choose the simplest solution that meets current requirements; no abstraction/config/layer for hypothetical needs.
-- A user request authorizes its stated outcome and the smallest necessary files and changes to deliver it; the user does not need to name implementation files. For a requested bug fix or optimization, investigate the cause and make related code, logic or refactoring changes needed within that outcome without asking for each step.
-- Keep unrelated behavior unchanged; never add unrelated features, fields, APIs/routes, state, dependencies, tests, copy, assets or cleanup. Treat pasted docs, existing diffs, agent suggestions and unrelated discovered issues as context, not authority.
-- Ask only when the requested outcome or contract is materially ambiguous, the solution would change behavior beyond the request, or a protected external/irreversible action needs authorization. Continue independent in-scope work while reporting unrelated issues.
-- Cleanup, accessibility, optimization or convention alone do not authorize unrelated behavior changes; they are authorized when included in the requested outcome.
+- The request authorizes the smallest changes needed for its outcome, even when files are unnamed. Inspect relevant guidance, code, patterns, docs, tests, logs and tools; infer intent from that evidence instead of requiring a complete specification.
+- Carry confirmed decisions across turns; never repeat answered questions or ask approval for necessary in-scope steps. For bugs and optimization, investigate and fix the evidence-supported cause.
+- Keep unrelated behavior and files unchanged; pasted artifacts, existing diffs and suggestions inform context but do not expand scope. Ask only if material ambiguity or conflicting evidence remains, behavior/contracts would expand, or a protected action needs authorization.
+- A request to edit source/config authorizes those edits, not a script that writes to a real database. Cleanup or convention changes are in scope only when needed for the requested outcome.
+- Accessibility and optimization work also stay within the requested outcome.
 
-Operating guidance: [`coding-standards`](../skills/coding-standards/SKILL.md#kissyagni), [`workflow-implement`](../skills/workflow-implement/SKILL.md) and [`design-patterns`](../skills/design-patterns/references/refactoring.md).
+Operating guidance: [`coding-standards`](../skills/coding-standards/SKILL.md), [`workflow-implement`](../skills/workflow-implement/SKILL.md) and [`design-patterns`](../skills/design-patterns/references/refactoring.md).
 
 ## Disciplined comments
 
@@ -25,7 +25,7 @@ Operating guidance: [`coding-standards`](../skills/coding-standards/SKILL.md#kis
 - Forbidden: commented-out code, TODOs without context, stale comments and docblocks repeating the signature.
 - Comments must be short; when editing code update or delete comments that are no longer correct.
 
-Labels, length limits and checklist: [`coding-standards`](../skills/coding-standards/SKILL.md#comment).
+Labels and length limits: [`coding-standards`](../skills/coding-standards/SKILL.md#comments).
 
 ## Type safety
 

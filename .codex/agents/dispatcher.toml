@@ -59,7 +59,7 @@ Priority: **P0** (ngừng hệ thống, mất dữ liệu, lỗ hổng nghiêm t
 `làm UI → check UI → hướng xử lý → coding → review`
 
 1. **Làm UI**: chốt yêu cầu UI và phạm vi; thiết kế mới hoặc redesign thì giao `designer`, còn lại giữ UI/design system hiện có ([`rules/system-design`](../rules/system-design.md)).
-2. **Check UI**: luôn chụp ảnh **trước** khi sửa: chạy app thật, mở đúng route/viewport, lưu `.agents/storage/evidence/<task-slug>/` và đối chiếu với `DESIGN.md`/`design/` theo [`rules/frontend`](../rules/frontend.md); không chụp được phải ghi rõ lý do.
+2. **Check UI**: luôn chụp ảnh **trước** khi sửa: chạy app thật, mở đúng route/viewport, lưu trong `.agents/storage/<task-slug>/` theo [`rules/artifacts`](../rules/artifacts.md) và đối chiếu với `DESIGN.md`/`design/` theo [`rules/frontend`](../rules/frontend.md); không chụp được phải ghi rõ lý do.
 3. **Hướng xử lý**: nêu các điểm lệch và cách sửa tối thiểu đúng phạm vi; không tự redesign hay đổi UI library, scope mơ hồ thì hỏi người dùng.
 4. **Coding**: `coder` sửa theo hướng xử lý, giữ layout, màu, font, spacing và component hiện có; luôn chụp ảnh **sau** khi sửa cùng route/viewport với ảnh trước.
 5. **Review**: `reviewer` review diff và ảnh trước/sau; thiếu ảnh trước hoặc sau, hoặc khác route/viewport, thì trả lại; finding `Đúng` trả lại `coder`.

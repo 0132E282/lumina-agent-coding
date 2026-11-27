@@ -1,6 +1,6 @@
 ---
 name: coding-frontend
-description: "Implement/modify content/CMS website frontend — semantic HTML, data rendering, SEO metadata, navigation, images, forms, responsive, accessibility, XSS safety. Use when coding UI per spec or an existing UI/Figma reference; does not replace UX/UI design. Static HTML/CSS to components: references/html-to-component.md."
+description: Implement website/CMS UI and content rendering using the existing stack and approved design; not for UX design or redesign.
 license: MIT
 metadata:
   version: "1.0"
@@ -8,49 +8,18 @@ metadata:
 
 # Coding Frontend
 
-Apply the invariants in [`rules/frontend`](../../rules/frontend.md), [`rules/coding`](../../rules/coding.md#type-safety) and the cross-stack checklist [`coding-standards`](../coding-standards/SKILL.md).
+Follow [`frontend`](../../rules/frontend.md), [`coding`](../../rules/coding.md) and [`coding-standards`](../coding-standards/SKILL.md). Open the [implementation requirements](./references/implementation-requirements.md) groups relevant to the task.
 
-Implement UI per spec, display content reliably and work well for both users and search engines. Follow the project's real stack; do not default to React/Next.js or install new libraries.
+## Frontend-specific work
 
-## Principles
+- Read the canonical screen/component/asset reference and reuse existing components, tokens, metadata and data-fetching patterns. If a reference is unavailable, state the limitation instead of guessing. Do not redesign, change libraries or invent content/API behavior.
+- Wire the requested UI to real data and handle loading, empty, error, retry and success states; never mask API errors with fake data. Keep business logic and data access within existing module boundaries.
+- Preserve semantics, keyboard/focus, labels/alt text, contrast, responsive behavior, reduced motion and deep links; validate untrusted content against XSS.
+- For a `ui-cloner` handoff, read [clone handoff](./references/clone-handoff.md). For static HTML conversion, use [HTML-to-component guidance](./references/html-to-component.md).
 
-- Follow the [coding-frontend](../../rules/frontend.md) rules for the parts relevant to the task.
-- **Edit boundary**: a requested outcome authorizes the smallest necessary changes across the pages/components that implement it, even when the user did not name those files. For requested bug fixes or optimization, follow the evidence to the root cause and change related code or logic as needed, including a shared component when it is part of the requested behavior. Keep unrelated flows untouched; ask only if a change would expand behavior beyond the request.
+## Verify
 
-- Read project guidance, spec, manifest, routes, components and related API/CMS contracts before coding. Reuse existing components, tokens, metadata and fetch/cache mechanisms.
-- **With a UI/Figma reference, follow it**: identify the canonical source, read the right screen/component/asset; keep layout, colors, typography, spacing and interactions. Never create a design system, change theme/UI library or redesign when only assigned a feature/fix. If the reference cannot be read, state the limitation, do not guess details.
-- TypeScript follows [type-safety](../../rules/coding.md#type-safety): no `any` or type-bypassing assertions; reuse/derive existing types, group same-domain types in `types/`. Validate untrusted data at the boundary.
-- Keep scope: no business/backend changes, dependency upgrades, publishing or deploys beyond the request. Never invent content, APIs, assets or verification results.
+- Check the main flow, missing/error data, direct routes, back/forward, keyboard and relevant viewport sizes; check metadata in HTML/DOM where applicable, plus render/state/effect loops and per-item API calls.
+- Run the available test, lint, type-check or build command. Report actual results and limits; separate lab measurements from field data and do not promise search ranking or unmeasured performance.
 
-## Process
-
-1. **Scope**: identify the requested behavior and the pages/components needed to implement it; keep unrelated behavior unchanged. Do not ask for approval merely because a necessary file or dependent component was not named.
-2. **Survey**: identify pages/flows, input data, UI reference and acceptance criteria. Check the existing rendering (CSR/SSR/SSG), framework version and the real test/lint/build commands.
-3. **Implement**: choose existing components, wire data and handle states; apply the groups in the references requirements table by page type. Keep business logic/data fetching within current module boundaries; do not create abstractions or global state when local state suffices.
-4. **Verify**: check the main flow, missing data, API errors, direct routes and responsive; run appropriate test/lint/type check/build. Check render/state/effect loops in the framework in use and that network/API calls do not grow per item (N+1). For an accompanying backend flow, coordinate query counting per request/job in the backend skill; not limited to React/Next.js or any specific framework. Bug fixes need a regression test reproducing first per [quality-assurance](../../rules/delivery.md#quality-and-evidence); use [testing](../testing/references/unit-testing.md) when writing technical tests. Review the diff to confirm no behavior changed beyond the request; ask only if a proposed change would expand the requested behavior.
-5. **Handoff**: self-review the diff, update affected docs. Report changed files/behavior, real checks and results, unverified parts; never treat a local preview as proof Google has indexed.
-
-When receiving a handoff from `ui-cloner`: read [references/clone-handoff.md](./references/clone-handoff.md) before editing UI.
-
-## Implementation requirements
-
-Requirements table by group (semantic HTML, CSS/responsive, JS/forms, content/CMS, metadata/SEO, CSR/SSR/SSG, images/performance, accessibility, navigation, sharing, render safety): [references/implementation-requirements.md](./references/implementation-requirements.md). Open when implementing and apply only the relevant groups.
-
-## Pre-completion checks
-
-- UI matches the reference; long content/missing images do not break layout; check mobile, tablet, desktop and keyboard.
-- Valid/invalid forms, pending, network errors, retry and success flows work; no console/hydration errors caused by the change.
-- Deep links, refresh, back/forward, internal links and error pages are correct; metadata belongs to the right page in the HTML response and the DOM where applicable.
-- CMS data cannot inject scripts through the changes made; dependencies and types are reused per convention.
-- State which checks pass/fail/not run. Separate lab from field numbers; never promise SEO ranking or unmeasured performance.
-
-## Related skills and docs
-
-- [seo](../seo/references/website.md) when a crawl/index audit, sitemap, structured data or SEO issues broader than the frontend are needed.
-- [seo](../seo/references/content.md) when assigned to plan/write content; never change approved content just to add keywords.
-- New design/redesign goes to [designer](../../agents/designer.md); never apply style skills to existing UI on your own.
-- Look up official docs for the real version when needed: [HTML and accessibility — MDN](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Accessibility/HTML), [responsive images — MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Guides/Responsive_images), [JavaScript SEO — Google](https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics).
-
-## Convert static HTML/CSS to components
-
-Convert existing static HTML/CSS into the target framework's components (React, Vue, Angular, Svelte...), split by repeated blocks and per project convention: [references/html-to-component.md](./references/html-to-component.md).
+Use [`seo`](../seo/SKILL.md) only when broader crawl/index or content work is in scope; new design work goes to the [`designer`](../../agents/designer.md).

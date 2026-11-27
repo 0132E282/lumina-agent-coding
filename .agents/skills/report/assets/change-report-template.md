@@ -5,7 +5,7 @@
 - Short description of the change and problem solved. Links use real line numbers/ranges as label, absolute path opening at the first line: `[3–27](/absolute/path/file:3)`. Deleted content states the real reason, no link when the location is gone; never invent line numbers.
 - `Big O:` sits in the file's section, after the change lines, in English, one line **bold entire line**: `**Big O: <complexity> — Good | needs optimization**`. E.g. `**Big O: O(2n) — Good**`, `**Big O: N+1 — needs optimization**`. Only for files with data-dependent code (algorithm, loop, query/API); rule/skill/docs/template/config/test **omit the line entirely**, no "Not applicable", "None" or any substitute sentence.
 - After the last separator write `Verification:`, `Limits:`, `Assessment:`, then `Token:` (and `Waste issue:` only if the hook lists violations) when the `report-usage` hook (run when invoking the `report` skill) put real numbers in context — copy exact numbers and scope label (whole session or since previous mark) from this turn's hook injection — never previous numbers, never self-computed; to get fresh numbers call the `report` skill again this turn; no data means omit the line, no N/A, no estimates. Final results only, no process narration (test-first, attempts, which subagent did what); add old/new code or deep explanation only when requested.
-- UI/frontend changes (including clone-website): add `URL:` (route checked in a real browser) and `Evidence image:` (real screenshot path, e.g. `.agents/storage/evidence/<task-slug>/...png`; state `before` if any and `result` required) — see [`rules/frontend`](../../../rules/frontend.md). Omit when no UI.
+- UI/frontend changes (including clone-website): add `URL:` (route checked in a real browser) and `Evidence image:` (real screenshot path under `.agents/storage/<task-slug>/`; state `before` if any and `result` required) — see [`rules/frontend`](../../../rules/frontend.md). Omit when no UI.
 - API changes: add `API:` only when an API is touched (otherwise omit, no blank line) — real request (`METHOD URL` + input values) and real response (status, body) actually run, checked against expectation. Not run: write `Not run`, never invent responses.
 - Output outside a code fence; separator is 24 `-` in inline code (fits mobile).
 
@@ -29,7 +29,7 @@ Modified: [5](/absolute/path/to/other.ext:5): Main change and problem solved.
 
 **URL**: Route opened in a real browser (only when UI).
 
-**Evidence image**: `.agents/storage/evidence/<task-slug>/...png` (only when UI).
+**Evidence image**: `.agents/storage/<task-slug>/...png` (only when UI).
 
 **Limits**: What was not done or measured; `None` when appropriate.
 

@@ -65,7 +65,7 @@ When **recording executed results** (not just design) → add: Actual result, St
 
 ## 7.2. Evidence and API results
 
-- Every executed case (Pass/Fail) must have real evidence: screenshots for UI (stored in `.agents/storage/evidence/<task-slug>/`, per [`rules/frontend`](../../../rules/frontend.md)) or real API request/response for API. No evidence means no Pass/Fail.
+- Every executed case (Pass/Fail) must have real evidence: screenshots and any saved API/run logs in `.agents/storage/<task-slug>/`, per [`rules/artifacts`](../../../rules/artifacts.md), or a real API request/response recorded in the case. No evidence means no Pass/Fail.
 - Never write generic API results ("API works normally", "APIs OK"). Each API is its own section with:
   - Full `METHOD URL` (real path, not `/api/...`).
   - Parameters sent: path/query/body/header (secret/PII masked), and whether each parameter is correct or incorrect vs the contract.

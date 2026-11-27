@@ -1,7 +1,7 @@
 # Frontend — match the pattern, usable, safe
 
 - Only edit the assigned route/component/section and UI behavior; never add, remove, restore, reorder or restyle UI, copy, modals, CTAs, assets, routes, responsive behavior or state outside scope (authority and revert/conflict handling per [`coding`](./coding.md#kiss-yagni-and-scope)).
-- Before UI edits, state the file/section and capture a baseline of the same route/viewport if a browser is available; before handoff capture a final of the same viewport, compare the diff and remove out-of-scope UI. Final evidence has URL and images at `.agents/storage/evidence/<task-slug>/` of the project being worked on; browser-tool images saved in system temp directories (`/var/folders`, `/tmp`) must be copied there before citing in a report, never cite temp paths; if unable to run/capture, state it.
+- Before UI edits, state the file/section and capture a baseline of the same route/viewport if a browser is available; before handoff capture a final of the same viewport and compare the diff. Store all task evidence in `.agents/storage/<task-slug>/` per [`artifacts`](./artifacts.md); move required captures from tool temp output there and remove task-created temporary copies. Never cite an external/temp path; if unable to capture, state why.
 - New UI must have a standard design/source; never genericize on your own. Keep approved route/state/data fetching and content; never use fake data to mask API errors.
 - Keep semantic HTML, keyboard/focus/label/alt/contrast, responsive, reduced motion, UI states, deep links and the public SEO boundary.
 - Never expose secrets; escape/sanitize untrusted data.

@@ -20,7 +20,7 @@ Use when diagnosing/fixing bugs per skill [`debugs`](../../debugs/SKILL.md). Sta
 
 **Root cause**: one sentence + `file:line` + evidence directly linking to the symptom
 
-**Evidence**: log/stack trace/query/request with secrets masked (secret check from skill debugs run), path `.agents/storage/evidence/<task-slug>/<yyyyMMdd-HHmm>-<type>.<ext>`
+**Evidence**: log/stack trace/query/request with secrets masked, path `.agents/storage/<task-slug>/<yyyyMMdd-HHmm>-<type>.<ext>`
 
 **Fix**: main change and why it targets the root cause
 
@@ -30,7 +30,7 @@ Use when diagnosing/fixing bugs per skill [`debugs`](../../debugs/SKILL.md). Sta
 
 **Security**: yes/no; if yes reference the security report, never write exploit payloads
 
-**URL / Evidence image**: route and before/after images in `.agents/storage/evidence/<task-slug>/` — only for UI bugs
+**URL / Evidence image**: route and before/after images in `.agents/storage/<task-slug>/` — only for UI bugs
 
 **Verification**: final command and result (failing, normal, edge, regression cases)
 

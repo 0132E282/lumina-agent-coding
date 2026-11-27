@@ -11,6 +11,7 @@ Order of reading plan, implementing, verifying and handoff: [`workflow-implement
 
 - Checks proportional to risk/scope; static analysis is mandatory before reporting completion unless the user explicitly declines.
 - Never record Pass/Fail or claim a tool/check ran without execution and evidence; executed testcases must have images or real API request/response, APIs record each endpoint/parameter `Correct | Incorrect` per [`testcase` section 7.2](../skills/testing/references/testcase.md#72-evidence-and-api-results).
+- Store generated verification evidence and temporary test output in `.agents/storage/<task-slug>/` per [`artifacts`](./artifacts.md); keep durable testcase definitions and project docs in their tracked locations.
 - Before handoff, check final newline on changed text files, `git diff --check`, diff/out-of-scope, regression, render/state/effect loops and N+1 on affected flows; if unmeasurable, state static review only.
 - Errors caused by the diff or within scope must be fixed and rechecked; pre-existing out-of-scope errors: only report location/impact and ask permission.
 - Bug fixes follow [`rules/bug-fix`](./bug-fix.md); respect requests not to run tests/checks.

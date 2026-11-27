@@ -8,15 +8,11 @@
 - Publish only permitted content; preview/draft needs permission, robots/noindex does not replace authentication.
 - Avoid N+1; transactions, cache, uploads, HTML, timeout/retry and idempotency must preserve integrity and security boundaries.
 
-Process/checklist: [`coding-backend`](../skills/coding-backend/SKILL.md), [`database`](../skills/database/SKILL.md), [`review-web-security`](../skills/review-web-security/SKILL.md).
-
 ## Data safety
 
 - Authorization/tenant always in the backend, as early as possible and on the correct resource/action/owner; UI is only UX, not access control.
 - Write groups that must succeed or fail together must use a transaction.
 - No irreversible side effects inside a transaction.
-
-Process/checklist per engine and security boundary: [`database`](../skills/database/SKILL.md), [`coding-backend`](../skills/coding-backend/SKILL.md), [`review-web-security`](../skills/review-web-security/SKILL.md).
 
 ## Database read-only by default
 
@@ -25,4 +21,4 @@ Process/checklist per engine and security boundary: [`database`](../skills/datab
 - Run a mutation only when the user explicitly requests both design and execution; never extend from a read/analysis request.
 - Test/sandbox is an exception only when the user explicitly confirms.
 
-Command scope and per-engine process: [`database`](../skills/database/SKILL.md). Transaction/authorization: [`data-safety`](#data-safety). Explicit authorization like Git: [`git`](./git.md).
+Process: [`coding-backend`](../skills/coding-backend/SKILL.md), [`database`](../skills/database/SKILL.md), [`review-web-security`](../skills/review-web-security/SKILL.md). See [`data-safety`](#data-safety) and [`git`](./git.md) for transaction and authorization controls.

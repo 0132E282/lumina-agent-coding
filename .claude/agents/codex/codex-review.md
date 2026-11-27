@@ -12,7 +12,7 @@ You use the Codex CLI for exactly two things: **code review** and **UI screensho
 ## Mandatory principles
 
 - Read `AGENTS.md`, `CONTRACT.md` and all of [`rules/`](../../rules) before working.
-- The prompt sent to Codex must state: do not edit/create/delete files outside `.agents/storage/evidence/<task-slug>/`, no commit/push/deploy, no dependency install, no database writes.
+- The prompt sent to Codex must state: write required review/screenshot evidence only to `.agents/storage/<task-slug>/` per [`rules/artifacts`](../../rules/artifacts.md); no other file writes, commit/push/deploy, dependency install or database writes.
 - Never put secrets, tokens, `.env` or personal data in the prompt.
 - Do not claim results before seeing evidence on disk (review output, image files).
 - After each run, `git status` must equal the pre-run state (outside the evidence directory); if different, report and propose a revert, do not delete on your own.
@@ -23,7 +23,7 @@ You use the Codex CLI for exactly two things: **code review** and **UI screensho
 2. **Code review** (read-only sandbox):
 
    ```bash
-   codex exec review --uncommitted -c sandbox_mode="read-only" -o "<scratchpad>/codex-review.md" "<original request + scope + criteria>"
+   cd "<repo>" && mkdir -p ".agents/storage/<task-slug>" && codex exec review --uncommitted -c sandbox_mode="read-only" -o ".agents/storage/<task-slug>/codex-review.md" "<original request + scope + criteria>"
    ```
 
    - Use `--base <branch>` or `--commit <sha>` instead of `--uncommitted` when the scope is a branch/commit.
@@ -31,10 +31,10 @@ You use the Codex CLI for exactly two things: **code review** and **UI screensho
 3. **UI screenshots** (write only to evidence):
 
    ```bash
-   codex exec -C "<repo>" -s workspace-write -c sandbox_workspace_write.network_access=true -o "<scratchpad>/codex-shot.txt" "<prompt>"
+   cd "<repo>" && mkdir -p ".agents/storage/<task-slug>" && codex exec -C . -s workspace-write -c sandbox_workspace_write.network_access=true -o ".agents/storage/<task-slug>/codex-shot.txt" "<prompt>"
    ```
 
-   - The prompt states URL/route, viewport, state to capture and save path `.agents/storage/evidence/<task-slug>/<yyyyMMdd-HHmm>-<name>.png`; use the existing browser/Playwright, no fresh `npx` install. No capture tool → stop and report.
+   - The prompt states URL/route, viewport, state and save path `.agents/storage/<task-slug>/<yyyyMMdd-HHmm>-<name>.png`; use the existing browser/Playwright, no fresh `npx` install. No capture tool → stop and report.
    - Before/after images must use the same route/viewport per [`rules/frontend`](../../rules/frontend.md). Open the image file to confirm the right page before citing it in a report.
 4. Quota (`usage limit`), network or login errors → stop, report the retry condition verbatim; do not loop, do not drop the sandbox (`--dangerously-bypass-approvals-and-sandbox`).
 5. **Handoff** via the [`report`](../../skills/report/SKILL.md) skill: Review template for reviews, with `URL`/`Evidence image` for UI images; state commands run and limits.

@@ -1,6 +1,6 @@
 ---
 name: workflow-init
-description: "Initialize a project for the active Claude or Codex runtime by reading its real structure, creating missing project guidance, securing its contract, documenting design, and building the first Graphify index."
+description: "Initialize a project for the active Claude or Codex runtime by reading its real structure, creating missing project guidance and an agent architecture tree, securing its contract, documenting design, and building the first Graphify index."
 ---
 
 # workflow-init
@@ -11,8 +11,15 @@ Use this workflow when the user invokes Claude `/init` or Codex `$workflow-init`
 
 - Operate on the current project root. Resolve it from the Git root when available; otherwise use the current directory. In a monorepo, use the current package unless the user names the whole repository.
 - Read existing project guidance, `CONTRACT.md`, manifests/lockfiles, representative source files, tests and CI configuration. Do not read secret values or scan `.env`, credential, key, generated, cache or dependency directories.
-- Create only missing files. Read and preserve existing `CLAUDE.md`, `AGENTS.md`, `CONTRACT.md`, `DESIGN.md` and `ARCHITECTURE.md`; never replace them wholesale. If an existing contract lacks security protections, report the gaps without silently changing its terms.
+- Create only missing files. Read and preserve existing `CLAUDE.md`, `AGENTS.md`, `CONTRACT.md`, `DESIGN.md`, `ARCHITECTURE.md` and `AGENT_ARCHITECTURE.md`; never replace them wholesale. If an existing contract lacks security protections, report the gaps without silently changing its terms.
 - Do not install dependencies, modify databases, deploy, publish, commit or push. Never include secrets or PII in generated instructions, design documents or Graphify output.
+
+## Agent architecture tree
+
+- During every initialization, inspect the actual agent definitions and routing in the target project, whether or not the runtime instruction file already exists. Check applicable entrypoints and agent configuration (for example `AGENTS.md`, `CLAUDE.md`, `.agents/`, `.claude/agents/`, `.codex/agents/`), plus referenced dispatch rules, workflows and handoff/artifact locations. Read only files relevant to the map; do not scan secrets, generated content or dependency directories.
+- Create a concise root-level `AGENT_ARCHITECTURE.md` as an ASCII tree. Show the verified entrypoint/orchestrator, actual custom agents and their responsibilities, how work is routed or handed off, and the relevant file paths. Keep roles, skills, workflows, tools and runtime adapters clearly distinguished; do not present a skill or tool as an agent.
+- Infer the tree from repository evidence; never invent agents or hierarchy. If the project has no custom agent definitions, state that and show the verified runtime entrypoint/workflow structure instead.
+- Create the file only when missing. Preserve an existing `AGENT_ARCHITECTURE.md`; report its presence and any material mismatch with the inspected structure without silently rewriting it.
 
 ## Runtime-specific project instructions
 
@@ -36,8 +43,8 @@ Use this workflow when the user invokes Claude `/init` or Codex `$workflow-init`
 
 1. Identify runtime from the entrypoint and settle the project/package root.
 2. Survey project instructions, contract, stack, representative code and available commands without reading secrets.
-3. Determine the complete set of missing files and the design-document destination before writing. Ask only if a material location, contract or runtime ambiguity remains.
-4. Create the missing runtime instructions, contract and design documents in scope; build/update Graphify as above.
-5. Verify paths, links, truthful project facts, secret exclusion and rerun idempotency. Report files created, preserved existing files, security gaps, Graphify result and any blocked items. Never claim that unavailable checks ran.
+3. Inspect agent definitions, dispatch/routing, relevant workflows and handoff paths; determine the verified tree and whether `AGENT_ARCHITECTURE.md` is missing. Determine the complete set of other missing files and the design-document destination before writing. Ask only if a material location, contract or runtime ambiguity remains.
+4. Create the missing runtime instructions, contract, design documents and agent architecture tree in scope; build/update Graphify as above.
+5. Verify paths, links, tree accuracy against source files, secret exclusion and rerun idempotency. Report files created, preserved existing files (including an existing agent architecture map), security gaps, Graphify result and any blocked items. Never claim that unavailable checks ran.
 
 Claude command: [`/init`](../../../.claude/commands/init.md). Codex entrypoint: `$workflow-init`.

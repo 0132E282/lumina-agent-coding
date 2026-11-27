@@ -257,16 +257,16 @@ On every Agent tool call, this hook always reports the `subagent_type` being use
 - **Other runtimes**: Codex/Antigravity run the checker per quality-assurance; the Claude hook does not run there automatically. `.editorconfig` enables `insert_final_newline` for editors that support it.
 - **Limit**: check the list of files in the task; no guarantee for unchecked files. Fixtures deliberately missing a newline must be excluded from the list with a reason.
 
-## copy-browser-screenshot — bring browser screenshots from the temp folder into the project
+## copy-browser-screenshot — move browser screenshots into project storage
 
-Tool Claude in Chrome không ghi file ảnh vào thư mục tạm: `tool_response` có text `Successfully captured screenshot … ID: ss_xxx` và khối `image` base64 (Claude Code còn lưu bản sao dưới `~/.claude/projects/<project>/<session>/tool-results/`). Hook lưu ảnh vào project để bằng chứng không mất. Hook lấy project từ `cwd` của payload (Git root nếu có) rồi copy ảnh vào project. `LUMINA_TASK_SLUG` hợp lệ → `.agents/storage/evidence/<task-slug>/`; không thì `.agents/storage/evidence/browser/<yyyyMMdd>/` (staging inbox), phải chuyển vào thư mục task trước khi dẫn trong báo cáo — liên hệ [`rules/frontend.md`](../rules/frontend.md).
+Claude in Chrome may return an image in `tool_response` and keep a tool-results copy under `~/.claude/projects/<project>/<session>/tool-results/`. The hook resolves the active project from payload `cwd` (Git root when available), moves the screenshot into `.agents/storage/<task-slug>/` or `.agents/storage/browser-<yyyyMMdd>/` when no valid task slug is set, then removes the temporary source. See [`rules/artifacts`](../rules/artifacts.md).
 
 - **Script**: [`scripts/copy-browser-screenshot.sh`](./scripts/copy-browser-screenshot.sh)
 - **Loại hook**: `PostToolUse`, matcher `mcp__claude-in-chrome__.*`
 - **Nhận diện ảnh**: (1) khối `image` base64 trong `tool_response` được giải mã thành `chrome-<ID ss_xxx>.<jpg|png|webp>`; (2) quét mọi chuỗi trong `tool_response` theo regex file `.png`/`.jpg`/`.jpeg`/`.webp` (không phụ thuộc tên field); chỉ nhận file thường (bỏ symlink) có thư mục thật nằm dưới `$TMPDIR`, `/tmp`, `/private/tmp`, `/var/folders`, `/private/var/folders` và không nằm sẵn trong project; (3) cùng cách quét đó nhưng cũng nhận ảnh nằm dưới `tool-results/` của `~/.claude/projects` (hoặc `CLAUDE_CONFIG_DIR`).
-- **Copy, không move**: giữ tên file; trùng tên thì thêm hậu tố `-1`, `-2`..., không ghi đè.
+- **Move khỏi temp**: giữ tên file; trùng tên thì thêm hậu tố `-1`, `-2`..., không ghi đè. Chỉ xóa source sau khi bản trong project đã được copy và xác minh.
 - **Project đang hoạt động**: ưu tiên `cwd` hợp lệ trong payload và resolve Git root; chỉ fallback `CLAUDE_PROJECT_DIR`, rồi thư mục chạy hook, khi payload không có `cwd` hợp lệ. Vì vậy session mở từ repo khác không kéo ảnh ra khỏi repo của thao tác hiện tại.
-- **Task slug tùy chọn**: đặt `LUMINA_TASK_SLUG` theo mẫu `^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$` để copy thẳng vào thư mục task. Giá trị thiếu hoặc không hợp lệ không được dùng làm path; ảnh giữ ở staging inbox và `additionalContext` nhắc chuyển ảnh trước khi báo cáo.
+- **Task slug tùy chọn**: đặt `LUMINA_TASK_SLUG` theo mẫu `^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$` để lưu thẳng vào thư mục task. Giá trị thiếu hoặc không hợp lệ được thay bằng `browser-<yyyyMMdd>`, vẫn nằm trong `.agents/storage/`.
 - **An toàn**: luôn `exit 0`, không chặn tool; thiếu `jq`, không có ảnh hợp lệ hoặc copy lỗi thì im lặng.
 - **Phụ thuộc**: cần `jq`. Chỉ Claude Code (Codex không có tool này).
 - **Giới hạn**: hình dạng `tool_response` mà hook thật nhận chưa được ghi lại (transcript chỉ cho thấy phần model nhìn thấy), nên cả ba nguồn đều được hỗ trợ; extension Chrome không chạy/không kết nối thì tool không trả ảnh và hook không có gì để lưu.
@@ -277,7 +277,7 @@ Trước mỗi `Write`/`Edit`, hook `deny` khi ghi file `.env`/`.env.*` (trừ `
 
 - **Script**: [`scripts/write-path-guard.sh`](./scripts/write-path-guard.sh) (dùng helper [`_resolve-path.sh`](./scripts/_resolve-path.sh))
 - **Loại hook**: `PreToolUse`, matcher `Write|Edit`
-- **Chuẩn hoá path**: mở `~`, gộp `.`/`..`, realpath thư mục tổ tiên gần nhất còn tồn tại (đi qua symlink). Đường dẫn trong project luôn qua bước kiểm path ngoài project; memory (`~/.claude/projects/*/memory/`), backup, scratchpad, evidence vẫn ghi được.
+- **Chuẩn hoá path**: mở `~`, gộp `.`/`..`, realpath thư mục tổ tiên gần nhất còn tồn tại (đi qua symlink). Đường dẫn trong project luôn qua bước kiểm path ngoài project; memory (`~/.claude/projects/*/memory/`), backup và scratchpad vẫn ghi được. Verification evidence chỉ lưu trong project theo [`rules/artifacts`](../rules/artifacts.md).
 - **An toàn**: thông báo không in nội dung ghi; thiếu `jq` hoặc không chuẩn hoá được path → không chặn.
 - **Giới hạn**: chỉ xét `content`/`new_string`; `..` được gộp theo chữ trước khi resolve symlink; Bash ghi file (`echo > .env`) không bị chặn.
 

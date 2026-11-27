@@ -46,13 +46,13 @@ Unsure between two levels -> pick the higher one and state the reason.
 ## Debug quality
 
 - [ ] Reproduced the bug or clearly identified the conditions
-- [ ] Concrete evidence (log, stack trace, request, query, screenshot) with secrets/PII masked, stored or referenced by path in `.agents/storage/evidence/<task-slug>/`
+- [ ] Concrete evidence (log, stack trace, request, query, screenshot) with secrets/PII masked, stored or referenced by path in `.agents/storage/<task-slug>/`
 - [ ] Identified the origin (code/data/environment/user/dependency) and root cause
 - [ ] Assigned severity S1–S4 and assessed security risk
 - [ ] Fixed the real cause, no arbitrary workaround
 - [ ] A test reproduces the bug: fails before the fix, passes after, fails again when the fix alone is removed
 - [ ] Ran the appropriate regression tests
-- [ ] UI bug: before/after screenshots at the same route/viewport in `.agents/storage/evidence/<task-slug>/` and attached to the report
+- [ ] UI bug: before/after screenshots at the same route/viewport in `.agents/storage/<task-slug>/` and attached to the report
 - [ ] Verified on the target environment (or clearly stated it could not be verified)
 - [ ] Performance bug: before/after measurements (p50/p95, queries/request, CPU/RAM when measurable)
 - [ ] Production bug: logs/monitoring plan and a short postmortem note

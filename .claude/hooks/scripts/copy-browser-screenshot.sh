@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
-# PostToolUse hook: the browser tool (Claude in Chrome) saves screenshots into the system
-# temp directory; this hook copies the image into the project so the evidence survives OS temp cleanup
-# and reports the new path via additionalContext.
+# PostToolUse hook: move browser screenshots into the active project's single task-artifact folder
+# and report the new path via additionalContext.
 #
 # Reads JSON input from stdin per the PostToolUse schema:
 #   { "tool_name": "...", "tool_response": ..., "cwd": "..." }
@@ -12,7 +11,8 @@
 # Hook nhận: (1) khối image base64 trong tool_response, (2) đường dẫn ảnh dưới thư mục tạm,
 # (3) đường dẫn ảnh trong tool-results của Claude Code; chỉ nhận file thường (không symlink) dưới thư mục tin cậy.
 #
-# Copy, not move; on a name clash add a suffix, never overwrite. Always exit 0, never blocks the tool.
+# On a name clash add a suffix, never overwrite. Remove the source only after a successful copy.
+# Always exit 0, never block the tool.
 
 # ! Skip if the project already has the same hook (avoid running twice with the user-level copy).
 . "$(dirname "$0")/_dedupe-guard.sh"
@@ -73,14 +73,13 @@ is_under_temp_root() {
 
 task_slug="${LUMINA_TASK_SLUG:-}"
 if [[ "$task_slug" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$ ]]; then
-  destination_dir="$project_dir/.agents/storage/evidence/$task_slug"
-  context_header="Ảnh chụp trình duyệt đã được copy vào thư mục evidence của task trong project đang hoạt động:"
-  context_footer="Dùng đường dẫn trong project ở trên thay cho đường dẫn tạm."
+  :
 else
-  destination_dir="$project_dir/.agents/storage/evidence/browser/$(date +%Y%m%d)"
-  context_header="Ảnh chụp trình duyệt đã được copy vào staging inbox của project đang hoạt động:"
-  context_footer="Đây chưa phải evidence cuối. Trước khi dẫn trong báo cáo, hãy chuyển ảnh cần dùng vào .agents/storage/evidence/<task-slug>/ của project này."
+  task_slug="browser-$(date +%Y%m%d)"
 fi
+destination_dir="$project_dir/.agents/storage/$task_slug"
+context_header="Ảnh chụp trình duyệt đã được lưu trong thư mục artifact của task ở project đang hoạt động:"
+context_footer="Dẫn đúng đường dẫn trong project; không tạo bản sao ở thư mục khác."
 destination_relative="${destination_dir#"$project_dir"/}"
 destination_cursor="$project_dir"
 IFS='/' read -r -a destination_components <<< "$destination_relative"
@@ -115,6 +114,11 @@ while IFS= read -r source_path; do
   done
 
   cp -p "$source_path" "$destination_path" 2>/dev/null || continue
+  cmp -s "$source_path" "$destination_path" || { rm -f "$destination_path"; continue; }
+  if ! rm -f "$source_path" 2>/dev/null; then
+    rm -f "$destination_path"
+    continue
+  fi
   copied_lines="${copied_lines}- ${source_path} -> ${destination_path}
 "
 done <<< "$candidates"

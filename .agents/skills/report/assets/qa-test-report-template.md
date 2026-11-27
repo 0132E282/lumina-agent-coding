@@ -17,7 +17,7 @@ Use to summarize results **designed/executed** by agent [`qa-tester`](../../../a
 **`TC-xxx` / `BUG-xxx`** (P1/P2/P3) — Pass | Fail | Blocked | Skipped | Not Run
 - Problem: [observed wrong behavior]
 - Cause & fix: [root cause + fix, with `file:line`]
-- Evidence: [image `.agents/storage/evidence/<task-slug>/...png` or `API-xx`]
+- Evidence: [image `.agents/storage/<task-slug>/...png` or `API-xx`]
 
 ### API (only when testing API — one section per API, nothing generic)
 

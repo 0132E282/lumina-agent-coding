@@ -1,46 +1,30 @@
 ---
 name: coding-standards
-description: "Cross-stack code checklist: DRY/SOLID/SRP/fail-fast, comments, strict TypeScript, readability, KISS/YAGNI. Use when writing, modifying or reviewing code and checking against code standards."
+description: "Apply shared code quality rules when writing or reviewing code."
+license: MIT
+metadata:
+  version: "1.0"
 ---
 
 # Coding standards
 
-Read the invariants in [`coding-principles`](../../rules/coding.md#coding-principles), [`comments`](../../rules/coding.md#disciplined-comments), [`type-safety`](../../rules/coding.md#type-safety) and [`simplicity`](../../rules/coding.md#kiss-yagni-and-scope) before using this checklist.
+Use [`coding-principles`](../../rules/coding.md#coding-principles), [`simplicity`](../../rules/coding.md#kiss-yagni-and-scope), [`comments`](../../rules/coding.md#disciplined-comments) and [`type-safety`](../../rules/coding.md#type-safety) as the source of truth. Open only sections relevant to the task.
 
-## DRY, SOLID and responsibility
+Before changing code, check nearby implementations and project conventions. Reuse existing types, components and tools where suitable; run available format, lint, type and test commands for the changed scope. Do not install dependencies just to check.
 
-- Merge only logic with the same business meaning and the same reason to change. Rule of Three: tolerate two repetitions; refactor on the third.
-- Before creating a new resource/config, look for one with the same purpose in code/config and reuse it when suitable.
-- Prefer composition; use inheritance only for a real, stable `is-a` relationship. Create interfaces/DI only when real substitution is needed.
-- In request flows, separate HTTP, validation, authorization and business logic. Business logic must not depend on HTTP/framework if it needs reuse or independent testing.
-- Validate boundaries and business conditions before writing data; return specific errors. Use early returns, meaningful names and single-responsibility functions.
-- Keep the codebase format. New/modified text files must have a final newline and keep the existing line ending; do not format files outside scope.
+## Reuse and design
 
-## Comment
+- Look for an existing resource/config with the same purpose before creating one.
+- Use interfaces and dependency injection only when real substitution is needed; use composition unless inheritance models a stable `is-a` relationship.
 
-- Never comment self-explanatory logic. Explain only `why`: business constraints, workarounds or surprising third-party behavior.
-- Labels: `*` important info, `!` warning, `?` question needing confirmation, `TODO:` with context; `@param`/`@return` only when adding type info the signature lacks.
-- Keep no commented-out code, context-free TODOs, banners, stale comments or PHPDoc/JSDoc repeating the signature.
-- Max 180 characters per line, 1–3 lines per paragraph. Longer -> cut to the invariant/consequence, split the function or move to docs; multiple warnings each get their own `!` line.
-- When changing code, update or delete comments that are no longer correct.
+## Comments
+
+- Explain only why; use `*`, `!`, `?` or contextual `TODO:` labels where useful. Add `@param`/`@return` only when the signature lacks the type information.
+- Avoid commented-out code, context-free TODOs, banners, stale comments and docblocks that repeat signatures. Update or remove comments made incorrect by a change.
+- Keep lines under 180 characters and paragraphs to 1–3 lines; condense, split the function or move detail to docs when needed.
 
 ## TypeScript
 
-- Never use `any`, implicit `any`, `as unknown as T`, `@ts-ignore` or disabling lint to bypass types. Use `unknown` for unknown data then validate/narrow.
-- Find and reuse domain/SDK/schema types first; use inference when clear enough. Derive with `extends`, intersection, `Pick`, `Omit`, `Partial` when semantically right.
-- Create new types only for truly different contracts/concepts. Group types by domain in `types/` or the module convention; never redeclare in components/services/hooks.
-- Use `import type` where appropriate; import generated types from the source and derive only when needed.
-- Run the existing type checker/lint; fix errors at the source, never use assertions to hide unverified data.
-
-## KISS/YAGNI
-
-- Choose the simplest solution for the current requirement; three repeated lines beat a premature abstraction.
-- Do not add config/interfaces/layers or design patterns for hypothetical needs. If a solution needs a new diagram to explain, simplify it.
-- For requested optimization or bug fixing, make the related changes needed to achieve the requested outcome, including within-scope cleanup or refactoring; no per-file approval is needed. For unrelated issues, note the file and impact without changing it. Ask only if a proposed change would expand the requested behavior or alter an ambiguous contract.
-
-## Handoff checklist
-
-- Duplicate logic was distinguished by business meaning; new abstractions have real need.
-- Boundary validation, authorization and side effects are in the right layer.
-- Comments and types follow the items above.
-- The diff has no out-of-scope changes; relevant formatter, lint and type checker were run or explicitly noted as not run.
+- Never use `any`, implicit `any`, `as unknown as T`, `@ts-ignore` or lint suppression to bypass types. Validate `unknown` at boundaries.
+- Reuse or derive domain/SDK/schema types; create types only for distinct concepts and group them by domain. Use `import type` where appropriate.
+- Run the existing type checker/linter and fix errors at the source; never use assertions to hide unverified data.
